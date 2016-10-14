@@ -1,0 +1,61 @@
+﻿.profile {
+    &__block-wrap {
+        padding: 0 20px;
+
+        @media @tablet {
+            padding: 0 40px;
+        }
+
+        &_header {
+            margin-top: 70px !important;
+
+            @media @tablet{
+                margin-top: 100px !important;
+            }
+        }
+    }
+
+    &__description {
+        .clearfix();
+        margin-top: 25px;
+        margin-bottom: 40px;
+
+        @media @tablet{
+            margin-bottom: 50px;
+        }
+
+        &__text {
+            @media @desktop {
+                float: left;
+                width: 457px;
+                margin-right: 10px;
+            }
+        }
+    }
+
+    &__status-block {
+        margin: 25px 0;
+        .clearfix();
+
+        @media @desktop {
+            float: right;
+            max-width: 460px;
+            margin: 0 0;
+        }
+    }
+
+    &__status {
+        float: left;
+        margin-right: 50px;
+    }
+
+    &__skip-btn {
+        float: right;
+    }
+
+    &__btn-block {
+        margin-bottom: 110px;
+        margin-top: 40px;
+        .clearfix();
+    }
+}

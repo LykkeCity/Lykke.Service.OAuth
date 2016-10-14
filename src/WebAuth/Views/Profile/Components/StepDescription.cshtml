@@ -1,0 +1,13 @@
+﻿@model WebAuth.Models.Profile.StepViewModel
+
+<div class="profile-steps__description">
+    <h2>@Model.Title</h2>
+    <p>
+        @Model.Description
+    </p>
+    
+    @if (!string.IsNullOrEmpty(Model.ErrorDetails))
+    {
+        <p class="error-message">@Model.ErrorDetails</p>
+    }
+</div>

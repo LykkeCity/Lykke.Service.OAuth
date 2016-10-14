@@ -1,0 +1,23 @@
+﻿@model WebAuth.Models.SigninViewModel
+
+
+<div class="login__block login__block_signin">
+    <h4 class="login__block-title">Already registered?</h4>
+    <p class="block-description">Log In</p>
+    <form enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin">
+        <div class="form-group">
+            <div class="form__input-wrap form__input-wrap_icon form__input-wrap_icon_email">
+                <input class="form-control form-control__input" placeholder="E-mail address" asp-for="Username" />
+            </div>
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <div class="form__input-wrap form__input-wrap_icon form__input-wrap_icon_password">
+                <input class="form-control form-control__input" placeholder="Password" asp-for="Password" />
+            </div>
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl"/>
+        <input class="btn btn-success btn-lg form__btn" name="Authorize" type="submit" value="Log In"/>
+    </form>
+</div>

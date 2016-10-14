@@ -1,0 +1,38 @@
+﻿@model WebAuth.Models.Profile.StepViewModel
+
+<div class="profile-steps">
+    <div class="main-wrapper profile__block-wrap">
+        <ul class="profile-steps__list">
+            <li class="profile-steps__item @(Model.StepNumber == 1 ? $"profile-steps__item_active" : string.Empty)">
+                <div class="profile-steps__number">1</div>
+                <div class="profile-steps__icon profile-steps__icon_personal"></div>
+                <div class="profile-steps__title">Personal information</div>
+            </li>
+            <li class="profile-steps__item @(Model.StepNumber == 2 ? "profile-steps__item_active" : string.Empty)">
+                <div class="profile-steps__number">2</div>
+                <div class="profile-steps__icon profile-steps__icon_country"></div>
+                <div class="profile-steps__title">Country of residence</div>
+            </li>
+            <li class="profile-steps__item @(Model.StepNumber == 3 ? "profile-steps__item_active" : string.Empty)">
+                <div class="profile-steps__number">3</div>
+                <div class="profile-steps__icon profile-steps__icon_address"></div>
+                <div class="profile-steps__title">Address information</div>
+            </li>
+            <li class="profile-steps__item @(Model.StepNumber == 4 ? "profile-steps__item_active" : string.Empty)">
+                <div class="profile-steps__number">4</div>
+                <div class="profile-steps__icon profile-steps__icon_address-proof"></div>
+                <div class="profile-steps__title">Proof of address</div>
+            </li>
+            <li class="profile-steps__item @(Model.StepNumber == 5 ? "profile-steps__item_active" : string.Empty)">
+                <div class="profile-steps__number">5</div>
+                <div class="profile-steps__icon profile-steps__icon_bank"></div>
+                <div class="profile-steps__title">Bank account info</div>
+            </li>
+            <li class="profile-steps__item @(Model.StepNumber == 6 ? "profile-steps__item_active" : string.Empty)">
+                <div class="profile-steps__number">6</div>
+                <div class="profile-steps__icon profile-steps__icon_additional"></div>
+                <div class="profile-steps__title">Additional documents</div>
+            </li>
+        </ul>
+    </div>
+</div>

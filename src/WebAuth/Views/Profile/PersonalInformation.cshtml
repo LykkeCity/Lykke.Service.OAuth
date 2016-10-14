@@ -1,0 +1,71 @@
+﻿@using WebAuth.Models.Profile
+@model PersonalInformationViewModel
+@{
+    Layout = "~/Views/Shared/_ProfileLayout.cshtml";
+}
+
+
+@{ Html.RenderPartial("Components/StepCarousel", Model); }
+
+<div class="main-wrapper profile__block-wrap profile-steps__details-wrap">
+
+    @{ Html.RenderPartial("Components/PrevStepButton", Model); }
+
+    <div class="profile-steps__details">
+
+        @{ Html.RenderPartial("Components/StepDescription", Model); }
+
+        <form class="profile-steps__form" enctype="multipart/form-data" method="post" asp-controller="Profile"
+              asp-action="PersonalInformation" asp-route-returnurl="@Model.ReturnUrl">
+            <div class="form-group">
+                <div class="form__input-wrap">
+                    <label>First name</label>
+                    <input class="form-control form-control_long js-input-change" asp-for="FirstName" data-changable="true"/>
+                </div>
+                <span class="text-danger" asp-validation-for="FirstName"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form__input-wrap">
+                    <label>Last name</label>
+                    <input class="form-control form-control_long js-input-change" asp-for="LastName" data-changable="true"/>
+                </div>
+                <span asp-validation-for="LastName" class="text-danger"></span>
+            </div>
+
+@*            <div class="form-group">*@
+@*                <div class="form__input-wrap">*@
+@*                    <label>Date of birth</label>*@
+@*                    <input class="form-control form-control_long" asp-for="DateOfBirth"/>*@
+@*                </div>*@
+@*                <span asp-validation-for="DateOfBirth" class="text-danger"></span>*@
+@*            </div>*@
+
+            <div class="form-group">
+                <div class="form__input-wrap">
+                    <label>Phone number</label>
+                    <input class="form-control form-control_long js-input-change" asp-for="ContactPhone" data-changable="true"/>
+                </div>
+                <span asp-validation-for="ContactPhone" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <div class="form__input-wrap">
+                    <label>E-mail address</label>
+                    <input class="form-control form-control_long" disabled asp-for="Email"/>
+                </div>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl"/>
+            <div class="profile__btn-block">
+                <a class="btn btn-default btn-lg btn_left" href="@Model.NextStepUrl">Skip</a>
+                <input class="btn btn-primary btn-lg btn_right disabled" disabled name="NextStep" type="submit"
+                       value="Next step"/>
+            </div>
+        </form>
+    </div>
+
+    @{ Html.RenderPartial("Components/NextStepButton", Model); }
+
+</div>

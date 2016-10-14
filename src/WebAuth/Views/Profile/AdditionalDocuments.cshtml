@@ -1,0 +1,74 @@
+﻿@model WebAuth.Models.Profile.AdditionalDocumentsViewModel
+
+@{
+    Layout = "~/Views/Shared/_ProfileLayout.cshtml";
+}
+
+
+@{ Html.RenderPartial("Components/StepCarousel", Model); }
+
+<div class="main-wrapper profile__block-wrap profile-steps__details-wrap">
+
+    @{ Html.RenderPartial("Components/PrevStepButton", Model); }
+
+    <div class="profile-steps__details">
+
+        @{ Html.RenderPartial("Components/StepDescription", Model); }
+
+        <form class="profile-steps__form" enctype="multipart/form-data" method="post" asp-route-returnurl="@Model.ReturnUrl"
+              asp-controller="Profile" asp-action="AdditionalDocuments">
+            <div class="form-group">
+                <div class="form__input-wrap js-file-upload">
+                    <label>Another document #1</label>
+                    <div class="file-upload">
+                        @if (!string.IsNullOrEmpty(Model.FirstDocument.DocumentName))
+                        {
+                            <div class="file-upload__file file-upload__file_visible">
+                                <div class="file-upload__icon file-upload__icon_@Model.FirstDocument.DocumentMime"></div>
+                                <div class="file-upload__name">@Model.FirstDocument.DocumentName</div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="file-upload__file">
+                                <div class="file-upload__icon"></div>
+                                <div class="file-upload__name"></div>
+                            </div>
+                            <div class="file-upload__wrap btn-info form-control_long">
+                                <span>Choose file...</span>
+                                <input class="file-upload__input" asp-for="@Model.FirstDocument.Document" accept=".png,.jpg,.jpeg"/>
+                                <input type="hidden" asp-for="@Model.FirstDocument.DocumentType"/>
+                            </div>
+                            <div class="file-upload__info">Maximum file size is 3Mb</div>
+                        }
+                    </div>
+                </div>
+                <span class="text-danger"></span>
+            </div>
+
+@*            <div class="form-group">*@
+@*                <div class="form__input-wrap js-file-upload">*@
+@*                    <label>Another document #2</label>*@
+@*                    <div class="file-upload">*@
+@*                        <div class="file-upload__file"></div>*@
+@*                        <div class="file-upload__wrap btn-info form-control_long">*@
+@*                            <span>Choose file...</span>*@
+@*                            <input type="file" class="file-upload__input"/>*@
+@*                        </div>*@
+@*                        <div class="file-upload__info">Maximum file size is 3Mb</div>*@
+@*                    </div>*@
+@*                </div>*@
+@*                <span class="text-danger"></span>*@
+@*            </div>*@
+
+            <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl"/>
+            <div class="profile__btn-block">
+                <input class="btn btn-primary btn-lg btn_right" name="NextStep" type="submit"
+                       value="Submit Registration"/>
+            </div>
+        </form>
+    </div>
+
+    @{ Html.RenderPartial("Components/NextStepButton", Model); }
+
+</div>

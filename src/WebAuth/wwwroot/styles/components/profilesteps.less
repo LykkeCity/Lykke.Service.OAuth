@@ -1,0 +1,222 @@
+.profile-steps {
+
+    background-color: @purple;
+
+    &__list {
+        .not-list();
+        .clearfix();
+        list-style-type: none;
+        margin-top: 30px;
+        margin-bottom: 40px;
+
+        @media @desktop {
+            height: 190px;
+        }
+    }
+
+    &__item {
+        display: block;
+        float: left;
+        color: #fff;
+        text-transform: uppercase;
+        width: 32%;
+        padding: 30px 10px;
+
+        &:before {
+            display: none;
+        }
+
+        @media @desktop {
+            width: 16.666666%;
+        }
+
+        &_active {
+            color: #fff;
+
+            @media @desktop {
+                padding: 20px 10px;
+                margin: -20px 0;
+                box-shadow: 0px 0px 11px rgba(0, 0, 0, 0.4);
+                color: #000;
+                height: 230px;
+                position: relative;
+                background: #fff url("../../images/01-icon.svg") no-repeat 50% 100%;
+                background-size: 160px;
+            }
+        }
+
+        &:nth-child(2)&_active {
+            @media @desktop {
+                background-image: url("../../images/02-icon.svg");
+            }
+        }
+
+        &:nth-child(3)&_active {
+            @media @desktop {
+                background-image: url("../../images/03-icon.svg");
+            }
+        }
+
+        &:nth-child(4)&_active {
+            @media @desktop {
+                background-image: url("../../images/04-icon.svg");
+            }
+        }
+
+        &:nth-child(5)&_active {
+            @media @desktop {
+                background-image: url("../../images/05-icon.svg");
+            }
+        }
+
+        &:nth-child(6)&_active {
+            @media @desktop {
+                background-image: url("../../images/06-icon.svg");
+            }
+        }
+
+    }
+
+    &__item_active &__number {
+        background-color: white;
+        border: none;
+        color: @purple;
+        padding: 7px 1px;
+        opacity: 1;
+    }
+
+    &__number {
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        padding: 5px 1px;
+        text-align: center;
+        font-size: 13px;
+        border: 2px solid #fff;
+        background-color: @purple;
+        line-height: 1;
+        opacity: 0.5;
+        margin-bottom: 10px;
+
+        @media @desktop {
+            display: none;
+        }
+    }
+
+    &__title {
+        line-height: 20px;
+        opacity: 0.5;
+
+        @media @desktop {
+            text-align: center;
+        }
+    }
+
+    &__icon {
+        display: none;
+        height: 80px;
+        stroke: #fff;
+        fill: transparent;
+        stroke-width: 2px;
+        opacity: 0.5;
+        background: no-repeat 50%;
+        background-size: 50px;
+
+        @media @desktop {
+            display: block;
+        }
+
+        &_personal {
+            background-image: url("../../images/line_icon_1.svg");
+        }
+
+        &_country {
+            background-image: url("../../images/line_icon_2.svg");
+        }
+
+        &_address {
+            background-image: url("../../images/line_icon_3.svg");
+        }
+
+        &_address-proof {
+            background-image: url("../../images/line_icon_4.svg");
+        }
+
+        &_bank {
+            background-image: url("../../images/line_icon_5.svg");
+        }
+
+        &_additional {
+            background-image: url("../../images/line_icon_6.svg");
+        }
+    }
+
+    &__item_active &__icon {
+        opacity: 1;
+        height: 100px;
+        background-size: 60px;
+        margin-bottom: 10px;
+
+        &_personal {
+            background-image: url("../../images/color_icon_1.svg");
+        }
+
+        &_country {
+            background-image: url("../../images/color_icon_2.svg");
+        }
+
+        &_address {
+            background-image: url("../../images/color_icon_3.svg");
+        }
+
+        &_address-proof {
+            background-image: url("../../images/color_icon_4.svg");
+        }
+
+        &_bank {
+            background-image: url("../../images/color_icon_5.svg");
+        }
+
+        &_additional {
+            background-image: url("../../images/color_icon_6.svg");
+        }
+    }
+
+    &__item_active &__title {
+        opacity: 1;
+    }
+
+    &__details-wrap {
+        position: relative;
+
+        @media @tablet{
+            margin-top: 70px !important;
+        }
+    }
+
+    &__details {
+        .clearfix();
+
+        @media @tablet {
+            padding: 0 100px;
+        }
+    }
+
+
+    &__description {
+        @media @desktop {
+            float: left;
+            max-width: 400px;
+            margin-right: 10px;
+        }
+    }
+
+    &__form {
+        @media @desktop {
+            float: right;
+            width: 350px;
+            margin-top: 26px;
+        }
+    }
+
+}

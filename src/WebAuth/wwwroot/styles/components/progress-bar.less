@@ -1,0 +1,36 @@
+.myprogress-bar {
+    .clearfix();
+
+    &__pct {
+        float: left;
+        color: @purple;
+        font-weight: bold;
+        margin-right: 10px;
+        line-height: 20px;
+    }
+
+    &__status {
+        position: relative;
+        height: 20px;
+        width: 210px;
+        background-color: #efefef;
+        float: right;
+
+        &:before {
+            content: '';
+            position: absolute;
+            z-index: 1;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-image: linear-gradient(90deg, transparent 50%, #fff 50%);
+            background-size: 10px;
+        }
+
+        &__filler {
+            height: 100%;
+            background-color: @purple;
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "name": "asp.net",
+  "private": true,
+  "scripts": {
+    "start": "./node_modules/.bin/grunt all"
+  },
+  "devDependencies": {
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-cssmin": "^1.0.2",
+    "grunt-contrib-less": "^1.4.0",
+    "grunt-contrib-uglify": "^2.0.0",
+    "grunt-contrib-watch": "^1.0.0"
+  },
+  "dependencies": {
+    "bootstrap": "3.3.6",
+    "jquery": "2.2.0",
+    "jquery-validation": "1.14.0",
+    "jquery-validation-unobtrusive": "3.2.6"
+  }
+}

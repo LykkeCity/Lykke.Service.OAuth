@@ -1,0 +1,21 @@
+.modalDialog {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(207,210,215,0.8);
+    z-index: 99999;
+    pointer-events: auto;
+
+    &__content {
+        width: 370px;
+        position: relative;
+        margin: 10% auto;
+        padding: 10px 40px;
+        border-radius: 8px;
+        background: #fff;
+        max-height: 500px;
+        overflow: auto;
+    }
+}

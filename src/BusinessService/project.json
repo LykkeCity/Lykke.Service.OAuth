@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0-*",
+
+  "dependencies": {
+    "Common": "1.0.0-*",
+    "Core": "1.0.0-*",
+    "Microsoft.AspNetCore.Hosting.Abstractions": "1.0.0",
+    "Microsoft.AspNetCore.WebUtilities": "1.0.0",
+    "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
+    "NETStandard.Library": "1.6.0",
+    "Newtonsoft.Json": "9.0.1",
+    "Nustache.Core": "1.0.0-alfa2",
+    "StructureMap.Microsoft.DependencyInjection": "1.0.1"
+  },
+
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": "dnxcore50"
+    }
+  }
+}
