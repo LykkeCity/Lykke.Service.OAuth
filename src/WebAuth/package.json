@@ -6,6 +6,7 @@
     "start": "./node_modules/.bin/grunt all"
   },
   "devDependencies": {
+    "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-cssmin": "^1.0.2",
