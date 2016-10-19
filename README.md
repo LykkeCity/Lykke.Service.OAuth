@@ -2,6 +2,15 @@
 
 WebAuth is an OpenID Connect server based on [ASOS](https://github.com/aspnet-contrib/AspNet.Security.OpenIdConnect.Server) and ASP.NET Core 1.0
 
+### How to create configuration file? ###
+
+* Create "ConnectionString" in [appsettings.json](src/WebAuth/appsettings.json) file
+* Create generalsettings.json file [template](src/WebAuth/generalsettings_template.json)
+* Fill Db configuration
+* Fill fields:
+	* ServiceUri - Url to API service
+* Your generalsettings.json file is ready
+
 ### Before running ###
 
 The application with the following data needs to be added to the Backoffice:

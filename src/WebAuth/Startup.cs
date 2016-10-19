@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using AspNet.Security.OAuth.Validation;
 using AutoMapper;
+using AzureDataAccess.Settings;
 using Core.Application;
 using Core.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -34,7 +36,8 @@ namespace WebAuth
 
         public virtual IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            return ConfigureWebServices(services, new BaseSettings());
+            var baseSettings = ReadGeneralSettings();
+            return ConfigureWebServices(services, baseSettings);
         }
 
         public IServiceProvider ConfigureWebServices(IServiceCollection services, BaseSettings settings)
@@ -160,5 +163,49 @@ namespace WebAuth
 
             app.UseMvc();
         }
+
+        private static BaseSettings ReadGeneralSettings()
+        {
+            var settingsData = ReadSettingsFile();
+
+            if (string.IsNullOrWhiteSpace(settingsData))
+            {
+                Console.WriteLine("Please, provide generalsettings.json file");
+                return null;
+            }
+
+            var settings = GeneralSettingsReader.ReadSettingsFromData<BaseSettings>(settingsData);
+
+            CheckSettings(settings);
+
+            return settings;
+        }
+
+        private static void CheckSettings(BaseSettings settings)
+        {
+            if (string.IsNullOrWhiteSpace(settings.Db?.ClientPersonalInfoConnString))
+                throw new Exception("ClientPersonalInfoConnString is missing");
+            if (string.IsNullOrWhiteSpace(settings.Db?.LogsConnString))
+                throw new Exception("LogsConnString is missing");
+            if (string.IsNullOrWhiteSpace(settings.LykkeServiceApi?.ServiceUri))
+                throw new Exception("ServiceUri is missing");
+        }
+
+        private static string ReadSettingsFile()
+        {
+            try
+            {
+#if DEBUG
+                return File.ReadAllText(@"..\..\..\settings\generalsettings.json");
+#else
+                return File.ReadAllText("generalsettings.json");
+#endif
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
     }
 }

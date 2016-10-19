@@ -16,8 +16,6 @@
         public DbSettings Db { get; set; }
 
         public LykkeServiceApiSettings LykkeServiceApi { get; set; }
-
-        public bool IsProduction { get; set; }
     }
 
 }
