@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NWebsec.AspNetCore.Middleware;
 using WebAuth.Configurations;
+using WebAuth.EventHandler;
 using WebAuth.Providers;
 
 namespace WebAuth
@@ -46,7 +47,10 @@ namespace WebAuth
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-            services.AddMvc().AddViewLocalization().AddDataAnnotationsLocalization();
+            services.AddMvc()
+                .AddViewLocalization()
+                .AddDataAnnotationsLocalization()
+                .AddMvcOptions(o => { o.Filters.Add(typeof(UnhandledExceptionFilter)); });
 
             services.AddDistributedMemoryCache();
 
