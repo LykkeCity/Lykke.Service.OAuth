@@ -4,6 +4,7 @@ using System.IO;
 using AspNet.Security.OAuth.Validation;
 using AutoMapper;
 using AzureDataAccess.Settings;
+using Common.Validation;
 using Core.Application;
 using Core.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NWebsec.AspNetCore.Middleware;
 using WebAuth.Configurations;
+using WebAuth.EventFilter;
 using WebAuth.Providers;
 
 namespace WebAuth
@@ -46,7 +48,10 @@ namespace WebAuth
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-            services.AddMvc().AddViewLocalization().AddDataAnnotationsLocalization();
+            services.AddMvc()
+                .AddViewLocalization()
+                .AddDataAnnotationsLocalization()
+                .AddMvcOptions(o => { o.Filters.Add(typeof(UnhandledExceptionFilter)); });
 
             services.AddDistributedMemoryCache();
 
@@ -170,25 +175,14 @@ namespace WebAuth
 
             if (string.IsNullOrWhiteSpace(settingsData))
             {
-                Console.WriteLine("Please, provide generalsettings.json file");
-                return null;
+                throw new Exception("Please, provide generalsettings.json file");
             }
 
             var settings = GeneralSettingsReader.ReadSettingsFromData<BaseSettings>(settingsData);
 
-            CheckSettings(settings);
+            GeneralSettingsValidator.Validate(settings);
 
             return settings;
-        }
-
-        private static void CheckSettings(BaseSettings settings)
-        {
-            if (string.IsNullOrWhiteSpace(settings.Db?.ClientPersonalInfoConnString))
-                throw new Exception("ClientPersonalInfoConnString is missing");
-            if (string.IsNullOrWhiteSpace(settings.Db?.LogsConnString))
-                throw new Exception("LogsConnString is missing");
-            if (string.IsNullOrWhiteSpace(settings.LykkeServiceApi?.ServiceUri))
-                throw new Exception("ServiceUri is missing");
         }
 
         private static string ReadSettingsFile()

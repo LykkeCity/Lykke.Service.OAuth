@@ -8,6 +8,7 @@ using AzureRepositories.Assets;
 using AzureStorage.Queue;
 using AzureStorage.Tables;
 using Common.Log;
+using Common.Validation;
 using Core.Application;
 using Core.Assets.AssetGroup;
 using Core.AuditLog;
@@ -24,8 +25,10 @@ namespace AzureDataAccess
     {
         public AzureDataAccessConfig(BaseSettings settings)
         {
-            var log = new LogToTable(new AzureTableStorage<LogEntity>(settings.Db.LogsConnString, "LogApi", null));
+            var log = CreateLogToTable(settings.Db.LogsConnString);
             For<ILog>().Add(log);
+
+            GeneralSettingsValidator.Validate(settings, log);
 
             var clientPersonalInfoConnString = settings.Db.ClientPersonalInfoConnString;
 
@@ -42,6 +45,11 @@ namespace AzureDataAccess
             BindSettings(clientPersonalInfoConnString, log);
 
             BindEmailMessages(clientPersonalInfoConnString);
+        }
+
+        public static LogToTable CreateLogToTable(string connString)
+        {
+            return new LogToTable(new AzureTableStorage<LogEntity>(connString, "LogWebAuth", null));
         }
 
         private void BindEmailMessages(string clientPersonalInfoConnString)
