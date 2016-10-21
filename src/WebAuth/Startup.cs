@@ -15,7 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NWebsec.AspNetCore.Middleware;
 using WebAuth.Configurations;
-using WebAuth.EventHandler;
+using WebAuth.EventFilter;
 using WebAuth.Providers;
 
 namespace WebAuth

@@ -2,7 +2,7 @@
 using Common.Log;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace WebAuth.EventHandler
+namespace WebAuth.EventFilter
 {
     public class UnhandledExceptionFilter : IExceptionFilter
     {
@@ -15,7 +15,7 @@ namespace WebAuth.EventHandler
 
         public void OnException(ExceptionContext context)
         {
-            _errorLog.WriteError(context.Exception.Source, null, null, context.Exception, DateTime.UtcNow);
+            _errorLog.WriteError(context.Exception.Source, null, null, context.Exception);
         }
     }
 }

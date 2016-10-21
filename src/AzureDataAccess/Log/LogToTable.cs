@@ -74,15 +74,10 @@ namespace AzureDataAccess.Log
                 type.Message, dateTime);
         }
 
-        public int Count
-        {
-            get { return 0; }
-        }
-
+        public int Count => 0;
 
         private async Task Insert(string level, string component, string process, string context, string type,
-            string stack,
-            string msg, DateTime? dateTime)
+            string stack, string msg, DateTime? dateTime)
         {
             var dt = dateTime ?? DateTime.UtcNow;
             var newEntity = LogEntity.Create(level, component, process, context, type, stack, msg, dt);
