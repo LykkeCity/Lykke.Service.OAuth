@@ -23,7 +23,7 @@ namespace BusinessService.Country
 
         public async Task<IpGeoLocationData> GetLocationDetailsByIpAsync(string ip, string language)
         {
-            var webApiServerUri = new UriBuilder($"{_baseSettings.LykkeServiceApi.ServiceUri}/api/ipgeolocation/get");
+            var webApiServerUri = new UriBuilder($"{_baseSettings.LykkeServiceApi.ServiceUri}/api/ipgeolocation");
 
             var queryStrings = new Dictionary<string, string>
             {

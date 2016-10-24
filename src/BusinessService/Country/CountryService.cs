@@ -23,7 +23,7 @@ namespace BusinessService.Country
 
         public async Task<IEnumerable<CountryItem>> GetCountryListAsync(string language)
         {
-            var webApiServerUri = new UriBuilder($"{_baseSettings.LykkeServiceApi.ServiceUri}/api/country/get");
+            var webApiServerUri = new UriBuilder($"{_baseSettings.LykkeServiceApi.ServiceUri}/api/country");
 
             var queryStrings = new Dictionary<string, string>
             {
