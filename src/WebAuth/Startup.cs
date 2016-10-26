@@ -35,12 +35,12 @@ namespace WebAuth
         }
 
         public virtual IConfigurationRoot Configuration { get; }
-        private BaseSettings _settings;
+        public BaseSettings Settings { get; set; }
 
         public virtual IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            _settings = ReadGeneralSettings();
-            return ConfigureWebServices(services, _settings);
+            Settings = ReadGeneralSettings();
+            return ConfigureWebServices(services, Settings);
         }
 
         public IServiceProvider ConfigureWebServices(IServiceCollection services, BaseSettings settings)
@@ -74,7 +74,7 @@ namespace WebAuth
             }
             else
             {
-                if (_settings.IsDebug)
+                if (Settings.IsDebug)
                 {
                     app.UseDeveloperExceptionPage();
                 }
