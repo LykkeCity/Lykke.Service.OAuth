@@ -23,6 +23,8 @@ namespace Core.Settings
 
         [Required]
         public LykkeServiceApiSettings LykkeServiceApi { get; set; }
+
+        public bool IsDebug { get; set; }
     }
 
 }

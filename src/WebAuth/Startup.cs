@@ -35,11 +35,12 @@ namespace WebAuth
         }
 
         public virtual IConfigurationRoot Configuration { get; }
+        private BaseSettings _settings;
 
         public virtual IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            var baseSettings = ReadGeneralSettings();
-            return ConfigureWebServices(services, baseSettings);
+            _settings = ReadGeneralSettings();
+            return ConfigureWebServices(services, _settings);
         }
 
         public IServiceProvider ConfigureWebServices(IServiceCollection services, BaseSettings settings)
@@ -73,8 +74,14 @@ namespace WebAuth
             }
             else
             {
-//                app.UseExceptionHandler("/Home/Error");
-                app.UseDeveloperExceptionPage();
+                if (_settings.IsDebug)
+                {
+                    app.UseDeveloperExceptionPage();
+                }
+                else
+                {
+                    app.UseExceptionHandler("/Home/Error");
+                }
 
                 app.Use(async (context, next) =>
                 {
