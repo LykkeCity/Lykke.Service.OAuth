@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Common.Log;
 using Core.Clients;
 using Core.Kyc;
 using Microsoft.AspNetCore.Mvc;
@@ -74,8 +75,9 @@ namespace WebAuth.Tests.Controllers
 
             var userManager = Substitute.For<IUserManager>();
             var srvKycManager = Substitute.For<ISrvKycManager>();
+            var log = Substitute.For<ILog>();
 
-            return new AuthenticationController(clientRepository, userManager, srvKycManager);
+            return new AuthenticationController(clientRepository, userManager, srvKycManager, log);
         }
     }
 }
