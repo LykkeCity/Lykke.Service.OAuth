@@ -1,8 +1,10 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using BusinessService.Kyc;
+using Common.Log;
 using Core.Clients;
 using Core.Kyc;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -18,20 +20,30 @@ namespace WebAuth.Controllers
         private readonly IClientAccountsRepository _clientAccountsRepository;
         private readonly ISrvKycManager _srvKycManager;
         private readonly IUserManager _userManager;
+        private readonly ILog _log;
 
         public AuthenticationController(IClientAccountsRepository clientAccountsRepository,
-            IUserManager userManager, ISrvKycManager srvKycManager)
+            IUserManager userManager, ISrvKycManager srvKycManager, ILog log)
         {
             _clientAccountsRepository = clientAccountsRepository;
             _userManager = userManager;
             _srvKycManager = srvKycManager;
+            _log = log;
         }
 
         [HttpGet("~/signin")]
         [HttpGet("~/register")]
         public ActionResult Login(string returnUrl = null)
         {
-            return View("Login", new LoginViewModel(returnUrl));
+            try
+            {
+                return View("Login", new LoginViewModel(returnUrl));
+            }
+            catch (Exception ex)
+            {
+                _log.WriteError(ex.Source, "Signin", null, ex);
+                return Content(ex.Message);
+            }
         }
 
         [HttpPost("~/signin")]
