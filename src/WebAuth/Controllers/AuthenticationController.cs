@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using BusinessService.Kyc;
+using Common.Extenstions;
 using Common.Log;
 using Core.Clients;
 using Core.Kyc;
@@ -41,7 +42,7 @@ namespace WebAuth.Controllers
             }
             catch (Exception ex)
             {
-                _log.WriteErrorAsync(ex.Source, "Signin", null, ex);
+                _log.WriteErrorAsync(ex.Source, "Signin", null, ex).RunSync();
                 return Content(ex.Message);
             }
         }
