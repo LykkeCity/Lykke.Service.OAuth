@@ -73,7 +73,8 @@ namespace WebAuth
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+//                app.UseExceptionHandler("/Home/Error");
+                app.UseDeveloperExceptionPage();
 
                 app.Use(async (context, next) =>
                 {
