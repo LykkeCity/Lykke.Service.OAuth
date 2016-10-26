@@ -49,25 +49,25 @@ namespace AzureDataAccess.Log
             _tableStorage = tableStorage;
         }
 
-        public Task WriteInfo(string component, string process, string context, string info, DateTime? dateTime = null)
+        public Task WriteInfoAsync(string component, string process, string context, string info, DateTime? dateTime = null)
         {
             return Insert("info", component, process, context, null, null, info, dateTime);
         }
 
-        public Task WriteWarning(string component, string process, string context, string info,
+        public Task WriteWarningAsync(string component, string process, string context, string info,
             DateTime? dateTime = null)
         {
             return Insert("warning", component, process, context, null, null, info, dateTime);
         }
 
-        public Task WriteError(string component, string process, string context, Exception type,
+        public Task WriteErrorAsync(string component, string process, string context, Exception type,
             DateTime? dateTime = null)
         {
             return Insert("error", component, process, context, type.GetType().ToString(), type.StackTrace, type.Message,
                 dateTime);
         }
 
-        public Task WriteFatalError(string component, string process, string context, Exception type,
+        public Task WriteFatalErrorAsync(string component, string process, string context, Exception type,
             DateTime? dateTime = null)
         {
             return Insert("fatalerror", component, process, context, type.GetType().ToString(), type.StackTrace,

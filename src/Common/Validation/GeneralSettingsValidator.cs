@@ -13,7 +13,7 @@ namespace Common.Validation
             }
             catch (Exception e)
             {
-                log?.WriteFatalError("GeneralSettings", "Validation", null, e);
+                log?.WriteFatalErrorAsync("GeneralSettings", "Validation", null, e);
 
                 throw;
             }

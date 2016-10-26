@@ -41,7 +41,7 @@ namespace WebAuth.Controllers
             }
             catch (Exception ex)
             {
-                _log.WriteError(ex.Source, "Signin", null, ex);
+                _log.WriteErrorAsync(ex.Source, "Signin", null, ex);
                 return Content(ex.Message);
             }
         }

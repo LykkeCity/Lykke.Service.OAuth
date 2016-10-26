@@ -30,7 +30,7 @@ namespace Common
         {
             try
             {
-                _log.WriteFatalError(_componentName, "Loop", "", exception).Wait();
+                _log.WriteFatalErrorAsync(_componentName, "Loop", "", exception).Wait();
             }
             catch (Exception)
             {
