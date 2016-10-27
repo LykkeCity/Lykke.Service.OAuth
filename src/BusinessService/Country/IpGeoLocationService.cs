@@ -14,9 +14,9 @@ namespace BusinessService.Country
 {
     public class IpGeoLocationService : IIpGeoLocationService, IApplicationService
     {
-        private readonly BaseSettings _baseSettings;
+        private readonly IBaseSettings _baseSettings;
 
-        public IpGeoLocationService(BaseSettings baseSettings)
+        public IpGeoLocationService(IBaseSettings baseSettings)
         {
             _baseSettings = baseSettings;
         }

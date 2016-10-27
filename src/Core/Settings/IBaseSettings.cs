@@ -2,10 +2,20 @@
 
 namespace Core.Settings
 {
+    public interface IBaseSettings
+    {
+        DbSettings Db { get; set; }
+
+        LykkeServiceApiSettings LykkeServiceApi { get; set; }
+
+        bool IsDebug { get; set; }
+    }
+
     public class DbSettings
     {
         [Required]
         public string ClientPersonalInfoConnString { get; set; }
+
         [Required]
         public string LogsConnString { get; set; }
     }
@@ -16,7 +26,7 @@ namespace Core.Settings
         public string ServiceUri { get; set; }
     }
 
-    public class BaseSettings
+    public class BaseSettings : IBaseSettings
     {
         [Required]
         public DbSettings Db { get; set; }
@@ -26,5 +36,4 @@ namespace Core.Settings
 
         public bool IsDebug { get; set; }
     }
-
 }

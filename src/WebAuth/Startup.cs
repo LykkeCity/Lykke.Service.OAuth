@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
 using AspNet.Security.OAuth.Validation;
 using AutoMapper;
-using AzureDataAccess.Settings;
-using Common.Validation;
 using Core.Application;
 using Core.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -34,17 +31,16 @@ namespace WebAuth
             Configuration = builder.Build();
         }
 
-        public virtual IConfigurationRoot Configuration { get; }
-        public BaseSettings Settings { get; set; }
+        public IConfigurationRoot Configuration { get; }
+        private IBaseSettings _settings;
 
-        public virtual IServiceProvider ConfigureServices(IServiceCollection services)
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            Settings = ReadGeneralSettings();
-            return ConfigureWebServices(services, Settings);
-        }
+            var provider = services.BuildServiceProvider();
+            _settings = provider.GetService<IBaseSettings>();
 
-        public IServiceProvider ConfigureWebServices(IServiceCollection services, BaseSettings settings)
-        {
+            services.AddSingleton(_settings);
+
             services.AddAuthentication(options => { options.SignInScheme = "ServerCookie"; });
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -62,7 +58,7 @@ namespace WebAuth
 
             WebDependencies.Create(services);
 
-            return ApiDependencies.Create(services, settings);
+            return ApiDependencies.Create(services, _settings);
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -74,7 +70,7 @@ namespace WebAuth
             }
             else
             {
-                if (Settings.IsDebug)
+                if (_settings.IsDebug)
                 {
                     app.UseDeveloperExceptionPage();
                 }
@@ -175,38 +171,6 @@ namespace WebAuth
             app.UseStaticFiles();
 
             app.UseMvc();
-        }
-
-        private static BaseSettings ReadGeneralSettings()
-        {
-            var settingsData = ReadSettingsFile();
-
-            if (string.IsNullOrWhiteSpace(settingsData))
-            {
-                throw new Exception("Please, provide generalsettings.json file");
-            }
-
-            var settings = GeneralSettingsReader.ReadSettingsFromData<BaseSettings>(settingsData);
-
-            GeneralSettingsValidator.Validate(settings);
-
-            return settings;
-        }
-
-        private static string ReadSettingsFile()
-        {
-            try
-            {
-#if DEBUG
-                return File.ReadAllText(@"..\..\..\settings\generalsettings.json");
-#else
-                return File.ReadAllText("generalsettings.json");
-#endif
-            }
-            catch (Exception)
-            {
-                return null;
-            }
         }
 
     }

@@ -9,9 +9,9 @@ namespace WebAuth.Configurations
 {
     public static class ApiDependencies
     {
-        public static BaseSettings Settings;
+        public static IBaseSettings Settings;
 
-        public static IServiceProvider Create(IServiceCollection services, BaseSettings baseSettings)
+        public static IServiceProvider Create(IServiceCollection services, IBaseSettings baseSettings)
         {
             var container = new Container();
 

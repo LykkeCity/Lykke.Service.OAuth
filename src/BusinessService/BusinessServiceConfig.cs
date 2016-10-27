@@ -11,7 +11,7 @@ namespace BusinessService
 {
     public class BusinessServiceConfig : Registry
     {
-        public BusinessServiceConfig(BaseSettings settings)
+        public BusinessServiceConfig(IBaseSettings settings)
         {
             Scan(_ =>
             {
@@ -25,8 +25,8 @@ namespace BusinessService
             });
 
             For<IRegistrationConsumer>().Use<JobGeolocationDataUpdater>();
-            For<ICountryService>().Use<CountryService>().Ctor<BaseSettings>().Is(settings);
-            For<IIpGeoLocationService>().Use<IpGeoLocationService>().Ctor<BaseSettings>().Is(settings);
+            For<ICountryService>().Use<CountryService>().Ctor<IBaseSettings>().Is(settings);
+            For<IIpGeoLocationService>().Use<IpGeoLocationService>().Ctor<IBaseSettings>().Is(settings);
         }
     }
 }

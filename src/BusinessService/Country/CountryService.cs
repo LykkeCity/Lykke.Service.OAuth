@@ -14,9 +14,9 @@ namespace BusinessService.Country
 {
     public class CountryService : ICountryService, IApplicationService
     {
-        private readonly BaseSettings _baseSettings;
+        private readonly IBaseSettings _baseSettings;
 
-        public CountryService(BaseSettings settings)
+        public CountryService(IBaseSettings settings)
         {
             _baseSettings = settings;
         }

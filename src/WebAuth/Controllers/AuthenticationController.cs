@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
 using BusinessService.Kyc;
 using Common.Extenstions;
 using Common.Log;
@@ -10,7 +9,6 @@ using Core.Clients;
 using Core.Kyc;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using WebAuth.Managers;
 using WebAuth.Models;
 

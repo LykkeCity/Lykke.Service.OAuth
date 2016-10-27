@@ -1,9 +1,7 @@
-﻿using System;
-using AzureDataAccess.AuditLog;
+﻿using AzureDataAccess.AuditLog;
 using AzureDataAccess.Email;
 using AzureDataAccess.Log;
 using AzureDataAccess.Settings;
-using AzureRepositories;
 using AzureRepositories.Assets;
 using AzureStorage.Queue;
 using AzureStorage.Tables;
@@ -23,7 +21,7 @@ namespace AzureDataAccess
 {
     public class AzureDataAccessConfig : Registry
     {
-        public AzureDataAccessConfig(BaseSettings settings)
+        public AzureDataAccessConfig(IBaseSettings settings)
         {
             var log = CreateLogToTable(settings.Db.LogsConnString);
             For<ILog>().Add(log);
