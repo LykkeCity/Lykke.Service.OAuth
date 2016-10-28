@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BusinessService.Kyc;
 using Common.Extenstions;
 using Common.Log;
+using Common.PasswordKeeping;
 using Core.Clients;
 using Core.Kyc;
 using Microsoft.AspNetCore.Http.Authentication;
@@ -56,7 +57,11 @@ namespace WebAuth.Controllers
             }
 
             var clientAccount =
-                await _clientAccountsRepository.AuthenticateAsync(loginModel.Username, loginModel.Password);
+                await _clientAccountsRepository.AuthenticateAsync(loginModel.Username, loginModel.Password) ??
+                //ToDo: to remove when migrated to hashes
+                await
+                    _clientAccountsRepository.AuthenticateAsync(loginModel.Username,
+                        PasswordKeepingUtils.GetClientHashedPwd(loginModel.Password));
 
             if (clientAccount == null)
             {

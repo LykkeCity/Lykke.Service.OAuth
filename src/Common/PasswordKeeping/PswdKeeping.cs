@@ -34,6 +34,11 @@ namespace Common.PasswordKeeping
             return entity.Hash == hash;
         }
 
+        public static string GetClientHashedPwd(string pwd)
+        {
+            var hash = SHA1.Create().ComputeHash(pwd.ToUtf8Bytes());
+            return hash.ToHexString().ToLower();
+        }
     }
 
 }

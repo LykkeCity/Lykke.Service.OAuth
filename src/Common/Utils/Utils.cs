@@ -8,6 +8,26 @@ namespace Common
 {
     public static class Utils
     {
+        private static readonly Dictionary<byte, string> Hex0 = new Dictionary<byte, string>
+        {
+            {0, "0"},
+            {1, "1"},
+            {2, "2"},
+            {3, "3"},
+            {4, "4"},
+            {5, "5"},
+            {6, "6"},
+            {7, "7"},
+            {8, "8"},
+            {9, "9"},
+            {10, "A"},
+            {11, "B"},
+            {12, "C"},
+            {13, "D"},
+            {14, "E"},
+            {15, "F"},
+        };
+
         public const string IsoDateTimeMask = "yyyy-MM-dd HH:mm:ss";
 
         public const string IsoDateMask = "yyyy-MM-dd";
@@ -83,6 +103,24 @@ namespace Common
             }
 
             return new MemoryStream(src) {Position = 0};
+        }
+
+        public static string ToHexString(this ICollection<byte> src)
+        {
+            var sb = new StringBuilder(src.Count * 2);
+
+            foreach (var b in src)
+                sb.Append(ByteToHex(b));
+
+            return sb.ToString();
+        }
+
+        public static string ByteToHex(byte src)
+        {
+            var d2 = (byte)(src * 0.0625);
+            src = (byte)(src - d2 * 16);
+
+            return Hex0[d2] + Hex0[src];
         }
     }
 }
