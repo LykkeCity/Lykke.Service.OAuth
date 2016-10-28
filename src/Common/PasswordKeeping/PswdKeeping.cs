@@ -36,7 +36,7 @@ namespace Common.PasswordKeeping
 
         public static string GetClientHashedPwd(string pwd)
         {
-            var hash = SHA1.Create().ComputeHash(pwd.ToUtf8Bytes());
+            var hash = SHA256.Create().ComputeHash(pwd.ToUtf8Bytes());
             return hash.ToHexString().ToLower();
         }
     }
