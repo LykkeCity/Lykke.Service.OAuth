@@ -13,12 +13,15 @@ namespace WebAuth.ActionHandlers
             _clientSettingsRepository = clientSettingsRepository;
         }
 
-        public async Task<bool> IsTrustedApplicationAsync(string clientId, string applicatinoId)
+        public Task<bool> IsTrustedApplicationAsync(string clientId, string applicatinoId)
         {
-            var userTrustedApplications = await _clientSettingsRepository.GetSettings<ApplicationsSettings>(clientId);
-            var isTrustedApplication = userTrustedApplications.TrustedApplicationIds.Contains(applicatinoId);
+            return Task.FromResult(true);
 
-            return isTrustedApplication;
+            //currently we assume that all users trust to our platforms
+//            var userTrustedApplications = await _clientSettingsRepository.GetSettings<ApplicationsSettings>(clientId);
+//            var isTrustedApplication = userTrustedApplications.TrustedApplicationIds.Contains(applicatinoId);
+//
+//            return isTrustedApplication;
         }
 
         public async Task AddTrustedApplication(string clientId, string applicatinoId)
