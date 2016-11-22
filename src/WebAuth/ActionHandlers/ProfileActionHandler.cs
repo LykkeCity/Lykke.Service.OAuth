@@ -59,7 +59,7 @@ namespace WebAuth.ActionHandlers
 
             var model = Mapper.Map<PersonalInformationViewModel>(userFullData) ?? new PersonalInformationViewModel();
             model.ReturnUrl = returnUrl;
-            model.NextStepUrl = GetStepUrl("CountryOfResidence", returnUrl);
+            model.NextStepUrl = null; /*GetStepUrl("CountryOfResidence", returnUrl);*/
             model.PrevStepUrl = null;
 
             return model;
