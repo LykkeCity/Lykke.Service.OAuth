@@ -41,13 +41,13 @@
 @*                <span asp-validation-for="DateOfBirth" class="text-danger"></span>*@
 @*            </div>*@
 
-            <div class="form-group">
-                <div class="form__input-wrap">
-                    <label>Phone number</label>
-                    <input class="form-control form-control_long js-input-change" asp-for="ContactPhone" data-changable="true"/>
-                </div>
-                <span asp-validation-for="ContactPhone" class="text-danger"></span>
-            </div>
+@*            <div class="form-group">*@
+@*                <div class="form__input-wrap">*@
+@*                    <label>Phone number</label>*@
+@*                    <input class="form-control form-control_long js-input-change" asp-for="ContactPhone" data-changable="true"/>*@
+@*                </div>*@
+@*                <span asp-validation-for="ContactPhone" class="text-danger"></span>*@
+@*            </div>*@
 
             <div class="form-group">
                 <div class="form__input-wrap">
@@ -59,7 +59,7 @@
 
             <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl"/>
             <div class="profile__btn-block">
-                <a class="btn btn-default btn-lg btn_left" href="@Model.NextStepUrl">Skip</a>
+@*                <a class="btn btn-default btn-lg btn_left" href="@Model.NextStepUrl">Skip</a>*@
                 <input class="btn btn-primary btn-lg btn_right disabled" disabled name="NextStep" type="submit"
                        value="Next step"/>
             </div>
