@@ -30,7 +30,9 @@ namespace WebAuth.Controllers
         {
             await _profileActionHandler.UpdatePersonalInformation(viewModel);
 
-            return RedirectToAction("CountryOfResidence", new {returnUrl = viewModel.ReturnUrl});
+            return RedirectToLocal(viewModel.ReturnUrl);
+//
+//            return RedirectToAction("CountryOfResidence", new {returnUrl = viewModel.ReturnUrl});
         }
 
         [HttpGet("~/country-of-residence")]
