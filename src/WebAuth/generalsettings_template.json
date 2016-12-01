@@ -1,10 +1,17 @@
 {
-	"Db": {
-		"ClientPersonalInfoConnString":"",
-		"LogsConnString":""
-	},
+  "Db": {
+    "ClientPersonalInfoConnString": "",
+    "LogsConnString": ""
+  },
 
-	"LykkeServiceApi": {
-		"ServiceUri": ""
-	}
+  "LykkeServiceApi": {
+    "ServiceUri": ""
+  },
+
+  "EmailServiceBus": {
+    "Key": "",
+    "QueueName": "",
+    "NamespaceUrl": "",
+    "PolicyName": ""
+  }
 }
