@@ -9,11 +9,11 @@ namespace BusinessService.Messages.Email
 {
     public class SrvEmailsFacade : ISrvEmailsFacade, IApplicationService
     {
-        private readonly IEmailRequestProducer _emailRequestProducer;
+        private readonly ITransactionalEmailSender _emailSender;
 
-        public SrvEmailsFacade(IEmailRequestProducer emailRequestProducer)
+        public SrvEmailsFacade(ITransactionalEmailSender emailSender)
         {
-            _emailRequestProducer = emailRequestProducer;
+            _emailSender = emailSender;
         }
 
         public async Task SendWelcomeEmail(string email, string clientId)
@@ -23,7 +23,8 @@ namespace BusinessService.Messages.Email
                 ClientId = clientId,
                 Year = DateTime.UtcNow.Year.ToString()
             };
-            await _emailRequestProducer.SendEmailAsync(email, msgData);
+
+            await _emailSender.SendWelcomeEmailAsync(email, msgData);
         }
     }
 }
