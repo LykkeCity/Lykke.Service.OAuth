@@ -64,6 +64,9 @@ namespace BusinessService.Messages.Email
                 SenderLink senderLink = new SenderLink(amqpSession, "sender-link", _settings.QueueName);
 
                 await senderLink.SendAsync(message);
+
+                amqpSession.Close();
+                connection.Close();
             }
             catch (Exception ex)
             {
