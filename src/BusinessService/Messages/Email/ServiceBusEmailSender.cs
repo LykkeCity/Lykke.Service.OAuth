@@ -65,8 +65,8 @@ namespace BusinessService.Messages.Email
 
                 await senderLink.SendAsync(message);
 
-                amqpSession.Close();
-                connection.Close();
+                amqpSession.Close(0);
+                connection.Close(0);
             }
             catch (Exception ex)
             {
