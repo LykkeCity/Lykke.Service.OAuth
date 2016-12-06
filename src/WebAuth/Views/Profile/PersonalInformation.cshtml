@@ -60,7 +60,7 @@
             <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl"/>
             <div class="profile__btn-block">
 @*                <a class="btn btn-default btn-lg btn_left" href="@Model.NextStepUrl">Skip</a>*@
-                <input class="btn btn-primary btn-lg btn_right disabled" disabled name="NextStep" type="submit"
+                <input class="btn btn-primary btn-lg btn_right @(string.IsNullOrEmpty(Model.FirstName) || string.IsNullOrEmpty(Model.LastName) ? "disabled": null)" @(string.IsNullOrEmpty(Model.FirstName) || string.IsNullOrEmpty(Model.LastName) ? "disabled": null) name="NextStep" type="submit"
                        value="Next step"/>
             </div>
         </form>
