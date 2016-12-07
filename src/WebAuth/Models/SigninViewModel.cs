@@ -12,11 +12,11 @@ namespace WebAuth.Models
         {
         }
 
-        [Required]
+        [Required(ErrorMessage = "E-mail is required")]
         [DataType(DataType.EmailAddress)]
         public string Username { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Passowrd is required")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
     }
