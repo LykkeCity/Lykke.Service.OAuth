@@ -16,7 +16,7 @@ namespace WebAuth.Models
         [DataType(DataType.EmailAddress)]
         public string Username { get; set; }
 
-        [Required(ErrorMessage = "Passowrd is required")]
+        [Required(ErrorMessage = "Password is required")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
     }
