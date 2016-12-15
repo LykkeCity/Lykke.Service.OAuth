@@ -28,11 +28,14 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> PersonalInformation(PersonalInformationViewModel viewModel)
         {
-            await _profileActionHandler.UpdatePersonalInformation(viewModel);
+            if (ModelState.IsValid)
+            {
+                await _profileActionHandler.UpdatePersonalInformation(viewModel);
 
-            return RedirectToLocal(viewModel.ReturnUrl);
-//
-//            return RedirectToAction("CountryOfResidence", new {returnUrl = viewModel.ReturnUrl});
+                return RedirectToLocal(viewModel.ReturnUrl);
+            }
+
+            return View("PersonalInformation", viewModel);
         }
 
         [HttpGet("~/country-of-residence")]
