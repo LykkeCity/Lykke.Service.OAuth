@@ -251,7 +251,6 @@ namespace WebAuth.Controllers
         }
 
         [HttpPost("~/connect/logout")]
-        [ValidateAntiForgeryToken]
         public ActionResult Logout()
         {
             return SignOut("ServerCookie", OpenIdConnectServerDefaults.AuthenticationScheme);
