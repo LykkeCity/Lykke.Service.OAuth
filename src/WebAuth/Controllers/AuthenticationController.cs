@@ -65,15 +65,8 @@ namespace WebAuth.Controllers
 
             if (clientAccount == null)
             {
-                ModelState.AddModelError("Username", "Invalid user");
-                return View("Login", model);
-            }
-
-            var passwordCorrect = await _clientAccountsRepository.IsPasswordCorrect(clientAccount.Id, loginModel.Password);
-
-            if (!passwordCorrect)
-            {
-                ModelState.AddModelError("Password", "Invalid password");
+                ModelState.AddModelError("Username", " ");
+                ModelState.AddModelError("Password", "Invalid user");
                 return View("Login", model);
             }
 
