@@ -63,13 +63,13 @@ namespace WebAuth.Controllers
                     _clientAccountsRepository.AuthenticateAsync(loginModel.Username,
                         PasswordKeepingUtils.GetClientHashedPwd(loginModel.Password));
 
-            var passwordCorrect = await _clientAccountsRepository.IsPasswordCorrect(loginModel.Username, loginModel.Password);
-
             if (clientAccount == null)
             {
                 ModelState.AddModelError("Username", "Invalid user");
                 return View("Login", model);
             }
+
+            var passwordCorrect = await _clientAccountsRepository.IsPasswordCorrect(clientAccount.Id, loginModel.Password);
 
             if (!passwordCorrect)
             {
