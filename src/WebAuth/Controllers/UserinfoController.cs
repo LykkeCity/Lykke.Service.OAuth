@@ -49,5 +49,29 @@ namespace WebAuth.Controllers
             var kycStatus = await _kycRepository.GetKycStatusAsync(client.Id);
             return Json(kycStatus.ToString());
         }
+
+        [HttpGet("~/getidbyemail")]
+        public async Task<IActionResult> GetIdByEmail(string email)
+        {
+            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var app = await _applicationRepository.GetByIdAsync(applicationId);
+
+            if (app == null) return Json("Application Id Incorrect!");
+
+            var client = await _clientAccountsRepository.GetByEmailAsync(email);
+            return Json(client.Id);
+        }
+
+        [HttpGet("~/getemailbyid")]
+        public async Task<IActionResult> GetEmailById(string id)
+        {
+            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var app = await _applicationRepository.GetByIdAsync(applicationId);
+
+            if (app == null) return Json("Application Id Incorrect!");
+
+            var client = await _clientAccountsRepository.GetByIdAsync(id);
+            return Json(client.Email);
+        }
     }
 }
