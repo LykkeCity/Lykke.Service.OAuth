@@ -95,6 +95,9 @@ namespace AzureDataAccess
 
             For<IPersonalDataRepository>().Add(
                 AzureRepoFactories.Clients.CreatePersonalDataRepository(clientPersonalInfoConnString, log));
+
+            For<IClientsSessionsRepository>().Add(
+                AzureRepoFactories.Clients.CreateClientSessionsRepository(clientPersonalInfoConnString, log));
         }
 
         private void BindLogs(string clientPersonalInfoConnString, ILog log)

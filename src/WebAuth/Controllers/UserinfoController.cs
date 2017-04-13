@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Application;
@@ -15,12 +17,18 @@ namespace WebAuth.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IKycRepository _kycRepository;
         private readonly IClientAccountsRepository _clientAccountsRepository;
+        private readonly IClientsSessionsRepository _clientsSessionsRepository;
 
-        public UserinfoController(IApplicationRepository applicationRepository, IKycRepository kycRepository, IClientAccountsRepository clientAccountsRepository)
+        public UserinfoController(
+            IApplicationRepository applicationRepository, 
+            IKycRepository kycRepository, 
+            IClientAccountsRepository clientAccountsRepository,
+            IClientsSessionsRepository clientsSessionsRepository)
         {
             _applicationRepository = applicationRepository;
             _kycRepository = kycRepository;
             _clientAccountsRepository = clientAccountsRepository;
+            _clientsSessionsRepository = clientsSessionsRepository;
         }
 
         [Authorize(ActiveAuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
@@ -72,6 +80,27 @@ namespace WebAuth.Controllers
 
             var client = await _clientAccountsRepository.GetByIdAsync(id);
             return Json(client.Email);
+        }
+
+        [HttpGet("~/getlykkewallettoken")]
+        public async Task<IActionResult> GetLykkewalletToken()
+        {
+            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var app = await _applicationRepository.GetByIdAsync(applicationId);
+
+            if (app == null) return Json("Application Id Incorrect!");
+
+            var clientId = User.GetClaim(ClaimTypes.NameIdentifier);
+            string token = string.Empty;
+
+            if (clientId != null)
+            {
+                var tokens = await _clientsSessionsRepository.GetByClientAsync(clientId);
+
+                token = tokens.FirstOrDefault()?.Token;
+            }
+
+            return Json(new { Token = token});
         }
     }
 }
