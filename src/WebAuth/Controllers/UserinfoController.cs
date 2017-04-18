@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
@@ -95,9 +96,31 @@ namespace WebAuth.Controllers
 
             if (clientId != null)
             {
-                var tokens = await _clientsSessionsRepository.GetByClientAsync(clientId);
+                var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
 
-                token = tokens.FirstOrDefault()?.Token;
+                if (clientAccount == null)
+                {
+                    return Json(new { Token = token });
+                }
+
+                var clientSession = (await _clientsSessionsRepository.GetByClientAsync(clientId)).FirstOrDefault();
+
+                if (clientSession != null)
+                {
+                    if (DateTime.UtcNow - clientSession.LastAction > TimeSpan.FromDays(3))  //ToDo: add session life parameter
+                    {
+                        await _clientsSessionsRepository.DeleteSessionAsync(clientId, clientSession.Token);
+                    }
+                    else
+                    {
+                        await _clientsSessionsRepository.UpdateClientInfoAsync(clientId, clientSession.Token, "oauth server");
+                        return Json(new { Token = clientSession.Token });
+                    }
+                }
+
+                var newtoken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+                await _clientsSessionsRepository.SaveAsync(clientAccount.Id, newtoken, "oauth server");
+                return Json(new { Token = newtoken });
             }
 
             return Json(new { Token = token});
