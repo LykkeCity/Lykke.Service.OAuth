@@ -45,6 +45,12 @@ namespace WebAuth
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAnyOrigin",
+                    builder => builder.AllowAnyOrigin());
+            });
+
             services.AddMvc()
                 .AddViewLocalization()
                 .AddDataAnnotationsLocalization()
@@ -112,6 +118,8 @@ namespace WebAuth
                 SupportedCultures = supportedCultures,
                 SupportedUICultures = supportedCultures
             });
+
+            app.UseCors("AllowAnyOrigin");
 
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseOAuthValidation(new OAuthValidationOptions
