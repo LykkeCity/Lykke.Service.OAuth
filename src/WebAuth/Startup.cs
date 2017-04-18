@@ -29,9 +29,11 @@ namespace WebAuth
                 .AddEnvironmentVariables();
 
             Configuration = builder.Build();
+            Environment = env;
         }
 
         public IConfigurationRoot Configuration { get; }
+        public IHostingEnvironment Environment { get; }
         private IBaseSettings _settings;
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
@@ -47,9 +49,28 @@ namespace WebAuth
 
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAnyOrigin",
-                    builder => builder.AllowAnyOrigin());
+                if (Environment.IsDevelopment())
+                {
+                    options.AddPolicy("Lykke", builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
+                }
+                else
+                {
+                    options.AddPolicy("Lykke", builder =>
+                    {
+                        builder
+                            .WithOrigins("https://auth.lykke.com/")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+                }
             });
+
 
             services.AddMvc()
                 .AddViewLocalization()
@@ -119,7 +140,7 @@ namespace WebAuth
                 SupportedUICultures = supportedCultures
             });
 
-            app.UseCors("AllowAnyOrigin");
+            app.UseCors("Lykke");
 
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseOAuthValidation(new OAuthValidationOptions
