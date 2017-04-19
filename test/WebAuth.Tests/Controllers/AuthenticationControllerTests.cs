@@ -9,6 +9,8 @@ using WebAuth.Controllers;
 using WebAuth.Managers;
 using WebAuth.Models;
 using Xunit;
+using BusinessService.Credentials;
+using Core.Partner;
 
 namespace WebAuth.Tests.Controllers
 {
@@ -50,11 +52,21 @@ namespace WebAuth.Tests.Controllers
         public async Task SigninPost_ReturnsErrorPage_WhenModelClientDoesntExist()
         {
             //arrange
-            var signinViewModel = new SigninViewModel();
+            var signinViewModel = new SigninViewModel()
+            {
+                Username = "username",
+                Password = "password"
+            };
 
             //act
             var clientRepository = Substitute.For<IClientAccountsRepository>();
-            clientRepository.AuthenticateAsync(null, null).Returns((IClientAccount)null);
+            clientRepository.AuthenticateAsync("username", "password").Returns(
+                (IClientAccount)new ClientAccount()
+                {
+                    Email = "test@email.com",
+                    Id = "testId",
+                    Phone = "11111111"
+                });
 
             var controller = CreateAuthenticationController(clientRepository);
 
@@ -76,8 +88,9 @@ namespace WebAuth.Tests.Controllers
             var userManager = Substitute.For<IUserManager>();
             var srvKycManager = Substitute.For<ISrvKycManager>();
             var log = Substitute.For<ILog>();
+            var clientAccountLogic = new ClientAccountLogic(clientRepository, Substitute.For<IPartnerAccountPolicyRepository>());
 
-            return new AuthenticationController(clientRepository, userManager, srvKycManager, log);
+            return new AuthenticationController(clientRepository, userManager, srvKycManager, log, clientAccountLogic);
         }
     }
 }

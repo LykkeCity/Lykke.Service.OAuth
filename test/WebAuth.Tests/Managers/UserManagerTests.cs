@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
-using Common.OpenIdConnect;
 using Core.Clients;
 using Core.Kyc;
 using Microsoft.AspNetCore.Http;

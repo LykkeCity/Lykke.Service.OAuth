@@ -1,7 +1,8 @@
 {
   "Db": {
     "ClientPersonalInfoConnString": "",
-    "LogsConnString": ""
+    "LogsConnString": "",
+    "SharedStorageConnString": ""
   },
 
   "LykkeServiceApi": {

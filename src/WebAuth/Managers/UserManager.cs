@@ -5,7 +5,6 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
-using Common.OpenIdConnect;
 using Core.Clients;
 using Core.Kyc;
 using Microsoft.AspNetCore.Http;
@@ -34,45 +33,45 @@ namespace WebAuth.Managers
                 switch (claim.Type)
                 {
                     case ClaimTypes.NameIdentifier:
-                    {
-                        identity.AddClaim(claim);
-                        break;
-                    }
+                        {
+                            identity.AddClaim(claim);
+                            break;
+                        }
                     case ClaimTypes.Name:
-                    {
-                        AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstants.Claims.Email:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Email))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Email))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstants.Claims.GivenName:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstants.Claims.FamilyName:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstantsExt.Claims.Country:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Address))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Address))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstantsExt.Claims.Documents:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                 }
 
             return identity;
@@ -131,4 +130,14 @@ namespace WebAuth.Managers
             identity.AddClaim(claim);
         }
     }
+
+    public class OpenIdConnectConstantsExt
+    {
+        public static class Claims
+        {
+            public const string Country = "country";
+            public const string Documents = "documents";
+        }
+    }
+
 }

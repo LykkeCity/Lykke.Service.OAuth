@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
 using AzureDataAccess.Settings;
-using Common.Validation;
+using Lykke.Common;
 using Core.Settings;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Core.Validation;
 
 namespace WebAuth
 {
@@ -45,11 +46,14 @@ namespace WebAuth
         {
             try
             {
+                string path;
 #if DEBUG
-                return File.ReadAllText(@"..\..\..\settings\generalsettings.json");
+                path = @"generalsettings.json";
 #else
-                return File.ReadAllText("generalsettings.json");
+                path = "generalsettings.json";
 #endif
+
+                return File.ReadAllText(path);
             }
             catch (Exception)
             {

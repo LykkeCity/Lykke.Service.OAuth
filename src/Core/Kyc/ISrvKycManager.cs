@@ -13,7 +13,7 @@ namespace Core.Kyc
         Task<bool> ChangeKycStatus(string clientId, KycStatus kycStatus, string changer);
         Task<IEnumerable<IPersonalData>> GetAccountsToCheck();
 
-        Task<IClientAccount> RegisterClientAsync(string email, string firstName, string lastName, string phone, string password, string hint, string clientInfo, string ip, string changer, string language);
+        Task<IClientAccount> RegisterClientAsync(string email, string firstName, string lastName, string phone, string password, string hint, string clientInfo, string ip, string changer, string language, string partnerPublicId);
 
         Task UpdatePersonalDataAsync(IPersonalData personalData, string changer);
         Task ChangePhoneAsync(string clientId, string phoneNumber, string changer);

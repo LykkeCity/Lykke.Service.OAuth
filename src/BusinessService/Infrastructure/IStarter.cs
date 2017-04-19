@@ -1,6 +1,4 @@
-﻿
-
-namespace Common
+﻿namespace BusinessService.Infrastructure
 {
     public interface IStarter
     {

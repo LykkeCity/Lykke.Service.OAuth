@@ -44,7 +44,7 @@ namespace WebAuth.Controllers
 
             if (app == null) return Json("Application Id Incorrect!");
 
-            var client = await _clientAccountsRepository.GetByEmailAsync(email);
+            var client = await _clientAccountsRepository.GetByEmailAndPartnerIdAsync(email, null);
 
             var kycStatus = await _kycRepository.GetKycStatusAsync(client.Id);
             return Json(kycStatus.ToString());
@@ -58,7 +58,7 @@ namespace WebAuth.Controllers
 
             if (app == null) return Json("Application Id Incorrect!");
 
-            var client = await _clientAccountsRepository.GetByEmailAsync(email);
+            var client = await _clientAccountsRepository.GetByEmailAndPartnerIdAsync(email, null);
             return Json(client.Id);
         }
 

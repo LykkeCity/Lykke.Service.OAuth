@@ -23,8 +23,10 @@ namespace AzureDataAccess
             public static ClientsRepository CreateTradersRepository(string connstring, ILog log)
             {
                 const string tableName = "Traders";
+                const string clientPartnerRelationEntityTableName = "ClientPartnerRelations";
                 return new ClientsRepository(
                     new AzureTableStorage<ClientAccountEntity>(connstring, tableName, log),
+                    new AzureTableStorage<ClientPartnerRelationEntity>(connstring, clientPartnerRelationEntityTableName, log),
                     new AzureTableStorage<AzureIndex>(connstring, tableName, log));
             }
 

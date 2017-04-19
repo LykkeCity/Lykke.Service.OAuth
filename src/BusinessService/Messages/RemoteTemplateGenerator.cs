@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
-using Common.HttpRemoteRequests;
 using Core.Messages;
 using System.Reflection;
 using BusinessService.Messages.Settings;
+using Core.Http;
 
 namespace BusinessService.Messages
 {

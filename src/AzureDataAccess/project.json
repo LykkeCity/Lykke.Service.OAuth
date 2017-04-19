@@ -2,13 +2,12 @@
   "version": "1.0.0-*",
 
   "dependencies": {
-    "AzureStorage": "1.0.0-*",
-    "Common": "1.0.0-*",
     "Core": "1.0.0-*",
+    "Lykke.AzureStorage": "1.2.18",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0",
-    "NETStandard.Library": "1.6.0",
+    "NETStandard.Library": "1.6.1",
     "StructureMap.Microsoft.DependencyInjection": "1.0.1",
-    "WindowsAzure.Storage": "7.1.3-preview"
+    "WindowsAzure.Storage": "8.1.1"
   },
 
   "frameworks": {

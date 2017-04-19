@@ -19,6 +19,9 @@ namespace Core.Settings
         public string ClientPersonalInfoConnString { get; set; }
 
         [Required]
+        public string SharedStorageConnString { get; set; }
+
+        [Required]
         public string LogsConnString { get; set; }
     }
 

@@ -1,12 +1,13 @@
-﻿using AzureDataAccess.AuditLog;
+﻿using System;
+using AzureDataAccess.AuditLog;
 using AzureDataAccess.Email;
 using AzureDataAccess.Log;
+using AzureDataAccess.Partner;
 using AzureDataAccess.Settings;
 using AzureRepositories.Assets;
 using AzureStorage.Queue;
 using AzureStorage.Tables;
 using Common.Log;
-using Common.Validation;
 using Core.Application;
 using Core.Assets.AssetGroup;
 using Core.AuditLog;
@@ -14,7 +15,9 @@ using Core.Clients;
 using Core.EventLogs;
 using Core.Kyc;
 using Core.Messages.Email;
+using Core.Partner;
 using Core.Settings;
+using Core.Validation;
 using StructureMap;
 
 namespace AzureDataAccess
@@ -34,6 +37,8 @@ namespace AzureDataAccess
 
             BindClients(clientPersonalInfoConnString, log);
 
+            BindPartners(settings.Db.SharedStorageConnString, log);
+
             BindKyc(clientPersonalInfoConnString, log);
 
             BindApplications(clientPersonalInfoConnString, log);
@@ -43,6 +48,17 @@ namespace AzureDataAccess
             BindSettings(clientPersonalInfoConnString, log);
 
             BindEmailMessages(clientPersonalInfoConnString);
+        }
+
+        private void BindPartners(string sharedStorageConnString, LogToTable log)
+        {
+            For<IPartnerAccountPolicyRepository>().Add
+             (new PartnerAccountPolicyRepository(
+                 new AzureTableStorage<PartnerAccountPolicyEntity>(sharedStorageConnString, "PartnerAccountPolicy", log)));
+
+            For<IPartnerClientAccountRepository>().Add
+            (new PartnerClientAccountRepository(
+                new AzureTableStorage<PartnerClientAccountEntity>(sharedStorageConnString, "PartnerClientAccounts", log)));
         }
 
         public static LogToTable CreateLogToTable(string connString)

@@ -3,12 +3,49 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AzureStorage;
 using AzureStorage.Tables.Templates.Index;
-using Common.PasswordKeeping;
 using Core.Clients;
 using Microsoft.WindowsAzure.Storage.Table;
+using Common.PasswordTools;
+using System.Linq;
 
 namespace AzureDataAccess.Clients
 {
+    public class ClientPartnerRelationEntity : TableEntity
+    {
+        public static string GeneratePartitionKey(string email)
+        {
+            return $"TraderPartnerRelation_{email}";
+        }
+
+        public static string GenerateRowKey(string partnerId)
+        {
+            return partnerId;
+        }
+
+        public DateTime Registered { get; set; }
+        public string Id => RowKey;
+        public string Email { get; set; }
+        public string PartnerId { get; set; }
+        public string ClientId { get; set; }
+
+        public static ClientPartnerRelationEntity CreateNew(string email, string clientId, string partnerId)
+        {
+            string partnerPublicId = partnerId ?? "";
+            string clientEmail = email.ToLower();
+            var result = new ClientPartnerRelationEntity
+            {
+                PartitionKey = GeneratePartitionKey(clientEmail),
+                RowKey = GenerateRowKey(partnerPublicId),
+                Email = clientEmail,
+                PartnerId = partnerPublicId,
+                ClientId = clientId,
+                Registered = DateTime.UtcNow
+            };
+
+            return result;
+        }
+    }
+
     public class ClientAccountEntity : TableEntity, IClientAccount, IPasswordKeeping
     {
         public static string GeneratePartitionKey()
@@ -25,9 +62,11 @@ namespace AzureDataAccess.Clients
         public string Id => RowKey;
         public string Email { get; set; }
         public string Phone { get; set; }
+        public string Pin { get; set; }
         public string NotificationsId { get; set; }
         public string Salt { get; set; }
         public string Hash { get; set; }
+        public string PartnerId { get; set; }
 
         public static ClientAccountEntity CreateNew(IClientAccount clientAccount, string password)
         {
@@ -38,7 +77,8 @@ namespace AzureDataAccess.Clients
                 NotificationsId = Guid.NewGuid().ToString("N"),
                 Email = clientAccount.Email.ToLower(),
                 Phone = clientAccount.Phone,
-                Registered = clientAccount.Registered
+                Registered = clientAccount.Registered,
+                PartnerId = clientAccount.PartnerId
             };
 
             result.SetPassword(password);
@@ -52,22 +92,30 @@ namespace AzureDataAccess.Clients
     {
         private readonly INoSQLTableStorage<ClientAccountEntity> _clientsTablestorage;
         private readonly INoSQLTableStorage<AzureIndex> _emailIndices;
-
+        private readonly INoSQLTableStorage<ClientPartnerRelationEntity> _clientPartnerTablestorage;
         private const string IndexEmail = "IndexEmail";
 
-        public ClientsRepository(INoSQLTableStorage<ClientAccountEntity> clientsTablestorage, INoSQLTableStorage<AzureIndex> emailIndices)
+        public ClientsRepository(INoSQLTableStorage<ClientAccountEntity> clientsTablestorage,
+            INoSQLTableStorage<ClientPartnerRelationEntity> clientPartnerTablestorage,
+            INoSQLTableStorage<AzureIndex> emailIndices)
         {
             _clientsTablestorage = clientsTablestorage;
             _emailIndices = emailIndices;
+            _clientPartnerTablestorage = clientPartnerTablestorage;
         }
 
         public async Task<IClientAccount> RegisterAsync(IClientAccount clientAccount, string password)
         {
             var newEntity = ClientAccountEntity.CreateNew(clientAccount, password);
-            var indexEntity = AzureIndex.Create(IndexEmail, newEntity.Email, newEntity);
+            string partnerId = clientAccount.PartnerId;
+            string indexRowKey = GetEmailPartnerIndexRowKey(newEntity);
+            var indexEntity = AzureIndex.Create(IndexEmail, indexRowKey, newEntity);
+            ClientPartnerRelationEntity clientPartner =
+                ClientPartnerRelationEntity.CreateNew(clientAccount.Email, newEntity.Id, newEntity.PartnerId);
 
             await _emailIndices.InsertAsync(indexEntity);
             await _clientsTablestorage.InsertAsync(newEntity);
+            await _clientPartnerTablestorage.InsertAsync(clientPartner);
 
             return newEntity;
         }
@@ -84,22 +132,24 @@ namespace AzureDataAccess.Clients
             });
         }
 
-        public async Task<bool> IsTraderWithEmailExistsAsync(string email)
+        public async Task<bool> IsTraderWithEmailExistsAsync(string email, string partnerId = null)
         {
             if (string.IsNullOrEmpty(email))
                 return false;
 
-            var indexEntity = await _emailIndices.GetDataAsync(IndexEmail, email.ToLower());
+            string indexRowKey = GetEmailPartnerIndexRowKey(email, partnerId);
+            var indexEntity = await _emailIndices.GetDataAsync(IndexEmail, indexRowKey);
 
             return indexEntity != null;
         }
 
-        public async Task<IClientAccount> AuthenticateAsync(string email, string password)
+        public async Task<IClientAccount> AuthenticateAsync(string email, string password, string partnerId = null)
         {
             if (email == null || password == null)
                 return null;
 
-            var indexEntity = await _emailIndices.GetDataAsync(IndexEmail, email.ToLower());
+            string indexRowKey = GetEmailPartnerIndexRowKey(email, partnerId);
+            var indexEntity = await _emailIndices.GetDataAsync(IndexEmail, indexRowKey);
 
             if (indexEntity == null)
                 return null;
@@ -140,12 +190,23 @@ namespace AzureDataAccess.Clients
             return await _clientsTablestorage.GetDataAsync(partitionKey, ids);
         }
 
-        public async Task<IClientAccount> GetByEmailAsync(string email)
+        public async Task<IClientAccount> GetByEmailAndPartnerIdAsync(string email, string partnerId)
         {
             if (string.IsNullOrEmpty(email))
                 return null;
 
-            return await _clientsTablestorage.GetDataAsync(_emailIndices, IndexEmail, email.ToLower());
+            return await _clientsTablestorage.GetDataAsync(_emailIndices, IndexEmail, GetEmailPartnerIndexRowKey(email, partnerId));
+        }
+        public async Task<IEnumerable<IClientAccount>> GetByEmailAsync(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return null;
+
+            IEnumerable<ClientPartnerRelationEntity> relations =
+                await _clientPartnerTablestorage.GetDataAsync(ClientPartnerRelationEntity.GeneratePartitionKey(email));
+            IEnumerable<string> rowKeys = relations.Select(x => x.ClientId);
+
+            return await _clientsTablestorage.GetDataAsync(ClientAccountEntity.GeneratePartitionKey(), rowKeys);
         }
 
 
@@ -173,6 +234,29 @@ namespace AzureDataAccess.Clients
                 return entity.CheckPassword(password);
 
             return false;
+        }
+
+        public Task SetPin(string clientId, string newPin)
+        {
+            var partitionKey = ClientAccountEntity.GeneratePartitionKey();
+            var rowKey = ClientAccountEntity.GenerateRowKey(clientId);
+
+            return _clientsTablestorage.ReplaceAsync(partitionKey, rowKey, itm =>
+            {
+                itm.Pin = newPin;
+                return itm;
+            });
+        }
+
+        private string GetEmailPartnerIndexRowKey(ClientAccountEntity clientAccount)
+        {
+            return GetEmailPartnerIndexRowKey(clientAccount.Email, clientAccount.PartnerId);
+        }
+
+        private string GetEmailPartnerIndexRowKey(string email, string partnerId)
+        {
+            string lowEmail = email.ToLower();
+            return string.IsNullOrEmpty(partnerId) ? $"{lowEmail}" : $"{lowEmail}_{partnerId}";
         }
     }
 }

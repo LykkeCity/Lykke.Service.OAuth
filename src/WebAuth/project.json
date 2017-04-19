@@ -9,7 +9,6 @@
     "AutoMapper.Extensions.Microsoft.DependencyInjection": "1.1.0",
     "AzureDataAccess": "1.0.0-*",
     "BusinessService": "1.0.0-*",
-    "Common": "1.0.0-*",
     "Core": "1.0.0-*",
     "Microsoft.ApplicationInsights.AspNetCore": "1.0.0",
     "Microsoft.AspNetCore.Authentication.Cookies": "1.0.0",
@@ -71,6 +70,7 @@
       "Views",
       "Areas/**/Views",
       "appsettings.json",
+      "generalsettings.json",
       "web.config",
       "Messages"
     ]

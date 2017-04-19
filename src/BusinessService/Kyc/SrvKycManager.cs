@@ -10,6 +10,7 @@ using Core.EventLogs;
 using Core.Kyc;
 using Core.Messages;
 using Core.Settings;
+using BusinessService.Credentials;
 
 namespace BusinessService.Kyc
 {
@@ -28,6 +29,7 @@ namespace BusinessService.Kyc
         private readonly IRegistrationConsumer[] _registrationConsumers;
         private readonly IRegistrationLogs _registrationLogs;
         private readonly ISrvEmailsFacade _srvEmailsFacade;
+        private readonly ClientAccountLogic _clientAccountLogic;
 
         public SrvKycManager(IKycDocumentsRepository kycDocumentsRepository,
             IKycDocumentsScansRepository kycDocumentsScansRepository,
@@ -36,7 +38,7 @@ namespace BusinessService.Kyc
             IRegistrationConsumer[] registrationConsumers, IAuditLogRepository auditLogRepository,
             IRegistrationLogs registrationLogs, IClientSettingsRepository clientSettingsRepository,
             IAppGlobalSettingsRepositry appGlobalSettingsRepositry, IAssetGroupRepository assetGroupRepository,
-            ISrvEmailsFacade srvEmailsFacade)
+            ISrvEmailsFacade srvEmailsFacade, ClientAccountLogic clientAccountLogic)
         {
             _kycDocumentsRepository = kycDocumentsRepository;
             _kycDocumentsScansRepository = kycDocumentsScansRepository;
@@ -50,6 +52,7 @@ namespace BusinessService.Kyc
             _appGlobalSettingsRepositry = appGlobalSettingsRepositry;
             _assetGroupRepository = assetGroupRepository;
             _srvEmailsFacade = srvEmailsFacade;
+            _clientAccountLogic = clientAccountLogic;
         }
 
         #region Documents
@@ -136,9 +139,10 @@ namespace BusinessService.Kyc
         #region Clients
 
         public async Task<IClientAccount> RegisterClientAsync(string email, string firstName, string lastName,
-            string phone, string password, string hint, string clientInfo, string ip, string changer, string language)
+            string phone, string password, string hint, string clientInfo, string ip, string changer, string language, string partnerPublicId = null)
         {
-            IClientAccount clientAccount = ClientAccount.Create(email, phone);
+            bool usePartnerCredentials = await _clientAccountLogic.UsePartnerCredentials(partnerPublicId);
+            IClientAccount clientAccount = ClientAccount.Create(email, phone, usePartnerCredentials ? partnerPublicId : null);
 
             clientAccount = await _clientAccountsRepository.RegisterAsync(clientAccount, password);
 

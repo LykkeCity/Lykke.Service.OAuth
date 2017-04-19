@@ -2,9 +2,10 @@
   "version": "1.0.0-*",
 
   "dependencies": {
-    "Common": "1.0.0-*",
-    "NETStandard.Library": "1.6.0",
-    "System.ComponentModel.Annotations": "4.1.0"
+    "Lykke.Common": "1.1.66",
+    "NETStandard.Library": "1.6.1",
+    "System.ComponentModel.Annotations": "4.1.0",
+    "System.Net.Requests": "4.3.0"
   },
 
   "frameworks": {

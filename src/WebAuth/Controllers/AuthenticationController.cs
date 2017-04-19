@@ -3,15 +3,17 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BusinessService.Kyc;
-using Common.Extenstions;
+using Lykke.Common;
 using Common.Log;
-using Common.PasswordKeeping;
 using Core.Clients;
 using Core.Kyc;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using WebAuth.Managers;
 using WebAuth.Models;
+using Common.PasswordTools;
+using Common.Extensions;
+using BusinessService.Credentials;
 
 namespace WebAuth.Controllers
 {
@@ -21,14 +23,16 @@ namespace WebAuth.Controllers
         private readonly ISrvKycManager _srvKycManager;
         private readonly IUserManager _userManager;
         private readonly ILog _log;
+        private readonly ClientAccountLogic _clientAccountLogic;
 
         public AuthenticationController(IClientAccountsRepository clientAccountsRepository,
-            IUserManager userManager, ISrvKycManager srvKycManager, ILog log)
+            IUserManager userManager, ISrvKycManager srvKycManager, ILog log, ClientAccountLogic clientAccountLogic)
         {
             _clientAccountsRepository = clientAccountsRepository;
             _userManager = userManager;
             _srvKycManager = srvKycManager;
             _log = log;
+            _clientAccountLogic = clientAccountLogic;
         }
 
         [HttpGet("~/signin")]
@@ -56,12 +60,8 @@ namespace WebAuth.Controllers
                 return View("Login", model);
             }
 
-            var clientAccount =
-                await _clientAccountsRepository.AuthenticateAsync(loginModel.Username, loginModel.Password) ??
-                //ToDo: to remove when migrated to hashes
-                await
-                    _clientAccountsRepository.AuthenticateAsync(loginModel.Username,
-                        PasswordKeepingUtils.GetClientHashedPwd(loginModel.Password));
+            IClientAccount clientAccount = 
+                await _clientAccountLogic.AuthenticateUser(loginModel.Username, loginModel.Password);
 
             if (clientAccount == null)
             {
@@ -88,14 +88,14 @@ namespace WebAuth.Controllers
 
             var userIp = HttpContext.Connection.RemoteIpAddress.ToString();
 
-            if (await _clientAccountsRepository.IsTraderWithEmailExistsAsync(registrationModel.Email))
+            if (await _clientAccountLogic.IsTraderWithEmailExistsForPartnerAsync(registrationModel.Email, null))
                 return View("Login", model);
 
             var user =
                 await
                     _srvKycManager.RegisterClientAsync(registrationModel.Email, string.Empty, string.Empty, string.Empty,
                         registrationModel.RegistrationPassword, string.Empty, string.Empty, userIp, RecordChanger.Client,
-                        CultureInfo.CurrentCulture.Name);
+                        CultureInfo.CurrentCulture.Name, null);
 
             var identity = await _userManager.CreateUserIdentityAsync(user, registrationModel.Email);
             await
