@@ -36,6 +36,7 @@ namespace BusinessService.Kyc
             IRegistrationConsumer[] registrationConsumers, IAuditLogRepository auditLogRepository,
             IRegistrationLogs registrationLogs, IClientSettingsRepository clientSettingsRepository,
             IAppGlobalSettingsRepositry appGlobalSettingsRepositry, IAssetGroupRepository assetGroupRepository,
+            IMenuBadgesRepository menuBadgesRepository,
             ISrvEmailsFacade srvEmailsFacade)
         {
             _kycDocumentsRepository = kycDocumentsRepository;
@@ -49,6 +50,7 @@ namespace BusinessService.Kyc
             _clientSettingsRepository = clientSettingsRepository;
             _appGlobalSettingsRepositry = appGlobalSettingsRepositry;
             _assetGroupRepository = assetGroupRepository;
+            _menuBadgesRepository = menuBadgesRepository;
             _srvEmailsFacade = srvEmailsFacade;
         }
 

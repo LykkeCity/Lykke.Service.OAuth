@@ -1,12 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{675C8CEF-C526-4839-BCCB-407C36AD0EB1}"
-	ProjectSection(SolutionItems) = preProject
-		global.json = global.json
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01.Infrastructure", "01.Infrastructure", "{0B8740C2-6FED-40FB-99E0-400D66A4B557}"
 EndProject
@@ -16,23 +13,23 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "03.Test", "03.Test", "{8BA2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "04.Hosts", "04.Hosts", "{ACE5E2EC-1384-4D3E-B5B1-BDA209E52EF0}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Common.Tests", "test\Common.Tests\Common.Tests.xproj", "{BC8A6B55-2F7A-42C5-9F8D-DC9DAA91F214}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Tests", "test\Common.Tests\Common.Tests.csproj", "{BC8A6B55-2F7A-42C5-9F8D-DC9DAA91F214}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "WebAuth.Tests", "test\WebAuth.Tests\WebAuth.Tests.xproj", "{A5ADA4F8-8E44-4F3D-9701-47E9F1398E27}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebAuth.Tests", "test\WebAuth.Tests\WebAuth.Tests.csproj", "{A5ADA4F8-8E44-4F3D-9701-47E9F1398E27}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "WebAuth", "src\WebAuth\WebAuth.xproj", "{C3EB7E00-4F91-47A1-9C22-42A59CE769A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebAuth", "src\WebAuth\WebAuth.csproj", "{C3EB7E00-4F91-47A1-9C22-42A59CE769A9}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AzureStorage", "src\AzureStorage\AzureStorage.xproj", "{6087AA29-055D-41AD-A8BB-5F99021DF84A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureStorage", "src\AzureStorage\AzureStorage.csproj", "{6087AA29-055D-41AD-A8BB-5F99021DF84A}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Common", "src\Common\Common.xproj", "{9FF3984A-1862-4618-9FEC-575939A29506}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "src\Common\Common.csproj", "{9FF3984A-1862-4618-9FEC-575939A29506}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Core", "src\Core\Core.xproj", "{BF9EE40D-E1CB-4695-A37B-8D8F8DAD2604}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "src\Core\Core.csproj", "{BF9EE40D-E1CB-4695-A37B-8D8F8DAD2604}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AzureDataAccess", "src\AzureDataAccess\AzureDataAccess.xproj", "{C2299A59-47C3-48D4-8319-417A935F28BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureDataAccess", "src\AzureDataAccess\AzureDataAccess.csproj", "{C2299A59-47C3-48D4-8319-417A935F28BB}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "BusinessService", "src\BusinessService\BusinessService.xproj", "{586E5F89-4B36-4185-870D-A033D426BA22}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusinessService", "src\BusinessService\BusinessService.csproj", "{586E5F89-4B36-4185-870D-A033D426BA22}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "BusinessService.Tests", "test\BusinessService.Tests\BusinessService.Tests.xproj", "{C68D2339-02AD-4CF4-9EF4-E106DBD060AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusinessService.Tests", "test\BusinessService.Tests\BusinessService.Tests.csproj", "{C68D2339-02AD-4CF4-9EF4-E106DBD060AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
