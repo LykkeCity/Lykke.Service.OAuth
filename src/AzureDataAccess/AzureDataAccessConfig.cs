@@ -10,6 +10,7 @@ using Core.Application;
 using Core.Assets.AssetGroup;
 using Core.AuditLog;
 using Core.BackOffice;
+using Core.Bitcoin;
 using Core.Clients;
 using Core.EventLogs;
 using Core.Kyc;
@@ -44,6 +45,8 @@ namespace AzureDataAccess
             BindEmailMessages(clientPersonalInfoConnString);
 
             BindBackOffice(backOfficeConnString, log);
+
+            BindBitcoin(clientPersonalInfoConnString, log);
         }
 
         public static LogToTable CreateLogToTable(string connString)
@@ -118,6 +121,12 @@ namespace AzureDataAccess
         {
             For<IMenuBadgesRepository>().Add(
                 AzureRepoFactories.BackOffice.CreateMenuBadgesRepository(backOfficeConnString, log));
+        }
+
+        private void BindBitcoin(string clientPersonalInfoConnString, ILog log)
+        {
+            For<IWalletCredentialsRepository>().Add(
+                AzureRepoFactories.Bitcoin.CreateWalletCredentialsRepository(clientPersonalInfoConnString, log));
         }
     }
 }

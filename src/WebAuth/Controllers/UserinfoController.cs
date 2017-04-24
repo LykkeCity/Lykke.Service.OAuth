@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Application;
+using Core.Bitcoin;
 using Core.Clients;
 using Core.Kyc;
 using Microsoft.AspNetCore.Authorization;
@@ -19,17 +20,20 @@ namespace WebAuth.Controllers
         private readonly IKycRepository _kycRepository;
         private readonly IClientAccountsRepository _clientAccountsRepository;
         private readonly IClientsSessionsRepository _clientsSessionsRepository;
+        private readonly IWalletCredentialsRepository _walletCredentialsRepository;
 
         public UserinfoController(
             IApplicationRepository applicationRepository, 
             IKycRepository kycRepository, 
             IClientAccountsRepository clientAccountsRepository,
-            IClientsSessionsRepository clientsSessionsRepository)
+            IClientsSessionsRepository clientsSessionsRepository,
+            IWalletCredentialsRepository walletCredentialsRepository)
         {
             _applicationRepository = applicationRepository;
             _kycRepository = kycRepository;
             _clientAccountsRepository = clientAccountsRepository;
             _clientsSessionsRepository = clientsSessionsRepository;
+            _walletCredentialsRepository = walletCredentialsRepository;
         }
 
         [Authorize(ActiveAuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
@@ -124,6 +128,27 @@ namespace WebAuth.Controllers
             }
 
             return Json(new { Token = token});
+        }
+
+        [HttpGet("~/getprivatekey")]
+        public async Task<IActionResult> GetPrivateKey()
+        {
+            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var app = await _applicationRepository.GetByIdAsync(applicationId);
+
+            if (app == null) return Json("Application Id Incorrect!");
+
+            var clientId = User.GetClaim(ClaimTypes.NameIdentifier);
+            string encodedPrivateKey = string.Empty;
+
+            if (clientId != null)
+            {
+                var walletCredential = await _walletCredentialsRepository.GetAsync(clientId);
+
+                return Json(new { EncodedPrivateKey = walletCredential?.EncodedPrivateKey });
+            }
+
+            return Json(new { EncodedPrivateKey = encodedPrivateKey });
         }
     }
 }

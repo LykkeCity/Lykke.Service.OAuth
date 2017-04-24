@@ -1,5 +1,6 @@
 ﻿using AzureDataAccess.Application;
 using AzureDataAccess.BackOffice;
+using AzureDataAccess.Bitcoin;
 using AzureDataAccess.Clients;
 using AzureDataAccess.EventLogs;
 using AzureDataAccess.Kyc;
@@ -7,6 +8,7 @@ using AzureStorage.Blob;
 using AzureStorage.Tables;
 using AzureStorage.Tables.Templates.Index;
 using Common.Log;
+using Core.Bitcoin;
 
 namespace AzureDataAccess
 {
@@ -82,6 +84,15 @@ namespace AzureDataAccess
             {
                 return
                     new MenuBadgesRepository(new AzureTableStorage<MenuBadgeEntity>(connecionString, "MenuBadges", log));
+            }
+        }
+
+        public static class Bitcoin
+        {
+            public static IWalletCredentialsRepository CreateWalletCredentialsRepository(string connecionString, ILog log)
+            {
+                return new WalletCredentialsRepository(new AzureTableStorage<WalletCredentialsEntity>(connecionString,
+                    "WalletCredentials", log));
             }
         }
     }
