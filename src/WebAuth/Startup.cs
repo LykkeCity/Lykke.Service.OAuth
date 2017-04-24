@@ -4,6 +4,7 @@ using AspNet.Security.OAuth.Validation;
 using AutoMapper;
 using Core.Application;
 using Core.Settings;
+using Flurl.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NWebsec.AspNetCore.Middleware;
 using WebAuth.Configurations;
 using WebAuth.EventFilter;
 using WebAuth.Providers;
@@ -20,30 +20,68 @@ namespace WebAuth
 {
     public class Startup
     {
+        public IConfigurationRoot Configuration { get; }
+        public IHostingEnvironment Environment { get; }
+
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
+                .AddJsonFile("appsettings.dev.json", true, true)
                 .AddEnvironmentVariables();
 
             Configuration = builder.Build();
+            Environment = env;
         }
-
-        public IConfigurationRoot Configuration { get; }
-        private IBaseSettings _settings;
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            var provider = services.BuildServiceProvider();
-            _settings = provider.GetService<IBaseSettings>();
+            OAuthSettings settings = new OAuthSettings();
 
-            services.AddSingleton(_settings);
+            if (Environment.IsDevelopment())
+            {
+                Configuration.Bind(settings);
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(Configuration["SettingsUrl"]))
+                {
+                    throw new Exception("SettingsUrl is not found");
+                }
+
+                settings = Configuration["SettingsUrl"].GetJsonAsync<OAuthSettings>().Result;
+            }
+
+            services.AddSingleton<IOAuthSettings>(settings);
 
             services.AddAuthentication(options => { options.SignInScheme = "ServerCookie"; });
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+            services.AddCors(options =>
+            {
+                if (Environment.IsDevelopment())
+                {
+                    options.AddPolicy("Lykke", builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
+                }
+                else
+                {
+                    options.AddPolicy("Lykke", builder =>
+                    {
+                        builder
+                            .WithOrigins(settings.OAuth.Cors.Origins)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+                }
+            });
 
             services.AddMvc()
                 .AddViewLocalization()
@@ -58,7 +96,7 @@ namespace WebAuth
 
             WebDependencies.Create(services);
 
-            return ApiDependencies.Create(services, _settings);
+            return ApiDependencies.Create(services, settings);
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -70,14 +108,7 @@ namespace WebAuth
             }
             else
             {
-                if (_settings.IsDebug)
-                {
-                    app.UseDeveloperExceptionPage();
-                }
-                else
-                {
-                    app.UseExceptionHandler("/Home/Error");
-                }
+                app.UseExceptionHandler("/Home/Error");
 
                 app.Use(async (context, next) =>
                 {
@@ -103,7 +134,7 @@ namespace WebAuth
                 new CultureInfo("ru-RU"),
                 new CultureInfo("ru"),
                 new CultureInfo("fr-FR"),
-                new CultureInfo("fr"),
+                new CultureInfo("fr")
             };
 
             app.UseRequestLocalization(new RequestLocalizationOptions
@@ -112,6 +143,8 @@ namespace WebAuth
                 SupportedCultures = supportedCultures,
                 SupportedUICultures = supportedCultures
             });
+
+            app.UseCors("Lykke");
 
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseOAuthValidation(new OAuthValidationOptions
@@ -172,6 +205,5 @@ namespace WebAuth
 
             app.UseMvc();
         }
-
     }
 }

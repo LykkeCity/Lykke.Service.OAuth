@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Application;
@@ -15,12 +18,18 @@ namespace WebAuth.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IKycRepository _kycRepository;
         private readonly IClientAccountsRepository _clientAccountsRepository;
+        private readonly IClientsSessionsRepository _clientsSessionsRepository;
 
-        public UserinfoController(IApplicationRepository applicationRepository, IKycRepository kycRepository, IClientAccountsRepository clientAccountsRepository)
+        public UserinfoController(
+            IApplicationRepository applicationRepository, 
+            IKycRepository kycRepository, 
+            IClientAccountsRepository clientAccountsRepository,
+            IClientsSessionsRepository clientsSessionsRepository)
         {
             _applicationRepository = applicationRepository;
             _kycRepository = kycRepository;
             _clientAccountsRepository = clientAccountsRepository;
+            _clientsSessionsRepository = clientsSessionsRepository;
         }
 
         [Authorize(ActiveAuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
@@ -72,6 +81,49 @@ namespace WebAuth.Controllers
 
             var client = await _clientAccountsRepository.GetByIdAsync(id);
             return Json(client.Email);
+        }
+
+        [HttpGet("~/getlykkewallettoken")]
+        public async Task<IActionResult> GetLykkewalletToken()
+        {
+            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var app = await _applicationRepository.GetByIdAsync(applicationId);
+
+            if (app == null) return Json("Application Id Incorrect!");
+
+            var clientId = User.GetClaim(ClaimTypes.NameIdentifier);
+            string token = string.Empty;
+
+            if (clientId != null)
+            {
+                var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
+
+                if (clientAccount == null)
+                {
+                    return Json(new { Token = token });
+                }
+
+                var clientSession = (await _clientsSessionsRepository.GetByClientAsync(clientId)).FirstOrDefault();
+
+                if (clientSession != null)
+                {
+                    if (DateTime.UtcNow - clientSession.LastAction > TimeSpan.FromDays(3))  //ToDo: add session life parameter
+                    {
+                        await _clientsSessionsRepository.DeleteSessionAsync(clientId, clientSession.Token);
+                    }
+                    else
+                    {
+                        await _clientsSessionsRepository.UpdateClientInfoAsync(clientId, clientSession.Token, "oauth server");
+                        return Json(new { Token = clientSession.Token });
+                    }
+                }
+
+                var newtoken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+                await _clientsSessionsRepository.SaveAsync(clientAccount.Id, newtoken, "oauth server");
+                return Json(new { Token = newtoken });
+            }
+
+            return Json(new { Token = token});
         }
     }
 }

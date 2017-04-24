@@ -60,10 +60,5 @@ namespace AzureDataAccess.Settings
             var rowKey = AppGlobalSettingsEntity.GenerateRowKey();
             return await _tableStorage.GetDataAsync(partitionKey, rowKey);
         }
-
     }
-
-
-
-
 }

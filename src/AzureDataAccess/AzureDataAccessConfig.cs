@@ -6,10 +6,10 @@ using AzureRepositories.Assets;
 using AzureStorage.Queue;
 using AzureStorage.Tables;
 using Common.Log;
-using Common.Validation;
 using Core.Application;
 using Core.Assets.AssetGroup;
 using Core.AuditLog;
+using Core.BackOffice;
 using Core.Clients;
 using Core.EventLogs;
 using Core.Kyc;
@@ -21,14 +21,13 @@ namespace AzureDataAccess
 {
     public class AzureDataAccessConfig : Registry
     {
-        public AzureDataAccessConfig(IBaseSettings settings)
+        public AzureDataAccessConfig(IOAuthSettings settings)
         {
-            var log = CreateLogToTable(settings.Db.LogsConnString);
+            var log = CreateLogToTable(settings.OAuth.Db.LogsConnString);
             For<ILog>().Add(log);
 
-            GeneralSettingsValidator.Validate(settings, log);
-
-            var clientPersonalInfoConnString = settings.Db.ClientPersonalInfoConnString;
+            var clientPersonalInfoConnString = settings.OAuth.Db.ClientPersonalInfoConnString;
+            var backOfficeConnString = settings.OAuth.Db.BackOfficeConnString;
 
             BindLogs(clientPersonalInfoConnString, log);
 
@@ -43,6 +42,8 @@ namespace AzureDataAccess
             BindSettings(clientPersonalInfoConnString, log);
 
             BindEmailMessages(clientPersonalInfoConnString);
+
+            BindBackOffice(backOfficeConnString, log);
         }
 
         public static LogToTable CreateLogToTable(string connString)
@@ -95,6 +96,9 @@ namespace AzureDataAccess
 
             For<IPersonalDataRepository>().Add(
                 AzureRepoFactories.Clients.CreatePersonalDataRepository(clientPersonalInfoConnString, log));
+
+            For<IClientsSessionsRepository>().Add(
+                AzureRepoFactories.Clients.CreateClientSessionsRepository(clientPersonalInfoConnString, log));
         }
 
         private void BindLogs(string clientPersonalInfoConnString, ILog log)
@@ -108,6 +112,12 @@ namespace AzureDataAccess
 
             For<IClientSettingsRepository>().Add(
                 AzureRepoFactories.CreateTraderSettingsRepository(clientPersonalInfoConnString, log));
+        }
+
+        private void BindBackOffice(string backOfficeConnString, ILog log)
+        {
+            For<IMenuBadgesRepository>().Add(
+                AzureRepoFactories.BackOffice.CreateMenuBadgesRepository(backOfficeConnString, log));
         }
     }
 }

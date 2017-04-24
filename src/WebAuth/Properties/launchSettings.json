@@ -12,7 +12,8 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SettingsUrl": "http://lykke-dev-settings.azurewebsites.net/926bbb2976804b7a875d99c0b20415bd_OAuth"
       }
     },
     "WebAuth": {
@@ -20,7 +21,8 @@
       "launchBrowser": true,
       "launchUrl": "http://localhost:5000",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SettingsUrl": "http://lykke-dev-settings.azurewebsites.net/926bbb2976804b7a875d99c0b20415bd_OAuth"
       }
     }
   }

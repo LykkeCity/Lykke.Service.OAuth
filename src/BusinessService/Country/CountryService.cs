@@ -14,16 +14,16 @@ namespace BusinessService.Country
 {
     public class CountryService : ICountryService, IApplicationService
     {
-        private readonly IBaseSettings _baseSettings;
+        private readonly IOAuthSettings _settings;
 
-        public CountryService(IBaseSettings settings)
+        public CountryService(IOAuthSettings settings)
         {
-            _baseSettings = settings;
+            _settings = settings;
         }
 
         public async Task<IEnumerable<CountryItem>> GetCountryListAsync(string language)
         {
-            var webApiServerUri = new UriBuilder($"{_baseSettings.LykkeServiceApi.ServiceUri}/api/country");
+            var webApiServerUri = new UriBuilder($"{_settings.LykkeServiceApi.ServiceUri}/api/country");
 
             var queryStrings = new Dictionary<string, string>
             {

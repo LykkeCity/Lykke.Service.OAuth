@@ -1,4 +1,5 @@
 ﻿using AzureDataAccess.Application;
+using AzureDataAccess.BackOffice;
 using AzureDataAccess.Clients;
 using AzureDataAccess.EventLogs;
 using AzureDataAccess.Kyc;
@@ -49,6 +50,11 @@ namespace AzureDataAccess
             {
                 return new KycDocumentsScansRepository(new AzureBlobStorage(connString));
             }
+
+            public static ClientSessionsRepository CreateClientSessionsRepository(string connstring, ILog log)
+            {
+                return new ClientSessionsRepository(new AzureTableStorage<ClientSessionEntity>(connstring, "Sessions", log));
+            }
         }
 
         public static class Applications
@@ -67,6 +73,15 @@ namespace AzureDataAccess
                 return
                     new RegistrationLogs(new AzureTableStorage<RegistrationLogEventEntity>(connecionString,
                         "LogRegistrations", log));
+            }
+        }
+
+        public static class BackOffice
+        {
+            public static MenuBadgesRepository CreateMenuBadgesRepository(string connecionString, ILog log)
+            {
+                return
+                    new MenuBadgesRepository(new AzureTableStorage<MenuBadgeEntity>(connecionString, "MenuBadges", log));
             }
         }
     }
