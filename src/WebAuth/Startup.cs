@@ -39,17 +39,17 @@ namespace WebAuth
         {
             OAuthSettings settings = new OAuthSettings();
 
-            if (Environment.IsDevelopment())
+            if (Environment.IsProduction() && string.IsNullOrEmpty(Configuration["SettingsUrl"]))
+            {
+                throw new Exception("SettingsUrl is not found");
+            }
+
+            if (string.IsNullOrEmpty(Configuration["SettingsUrl"]))
             {
                 Configuration.Bind(settings);
             }
             else
             {
-                if (string.IsNullOrEmpty(Configuration["SettingsUrl"]))
-                {
-                    throw new Exception("SettingsUrl is not found");
-                }
-
                 settings = Configuration["SettingsUrl"].GetJsonAsync<OAuthSettings>().Result;
             }
 
