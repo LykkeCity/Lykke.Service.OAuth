@@ -9,17 +9,15 @@ namespace WebAuth.Configurations
 {
     public static class ApiDependencies
     {
-        public static IBaseSettings Settings;
-
-        public static IServiceProvider Create(IServiceCollection services, IBaseSettings baseSettings)
+        public static IServiceProvider Create(IServiceCollection services, IOAuthSettings settings)
         {
             var container = new Container();
 
             container.Configure(
                 _ =>
                 {
-                    _.AddRegistry(new AzureDataAccessConfig(baseSettings));
-                    _.AddRegistry(new BusinessServiceConfig(baseSettings));
+                    _.AddRegistry(new AzureDataAccessConfig(settings));
+                    _.AddRegistry(new BusinessServiceConfig(settings));
                 });
 
             container.Populate(services);

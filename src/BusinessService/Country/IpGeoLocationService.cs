@@ -14,16 +14,16 @@ namespace BusinessService.Country
 {
     public class IpGeoLocationService : IIpGeoLocationService, IApplicationService
     {
-        private readonly IBaseSettings _baseSettings;
+        private readonly IOAuthSettings _settings;
 
-        public IpGeoLocationService(IBaseSettings baseSettings)
+        public IpGeoLocationService(IOAuthSettings baseSettings)
         {
-            _baseSettings = baseSettings;
+            _settings = baseSettings;
         }
 
         public async Task<IpGeoLocationData> GetLocationDetailsByIpAsync(string ip, string language)
         {
-            var webApiServerUri = new UriBuilder($"{_baseSettings.LykkeServiceApi.ServiceUri}/api/ipgeolocation");
+            var webApiServerUri = new UriBuilder($"{_settings.LykkeServiceApi.ServiceUri}/api/ipgeolocation");
 
             var queryStrings = new Dictionary<string, string>
             {

@@ -14,7 +14,7 @@ namespace BusinessService
 {
     public class BusinessServiceConfig : Registry
     {
-        public BusinessServiceConfig(IBaseSettings settings)
+        public BusinessServiceConfig(IOAuthSettings settings)
         {
             Scan(_ =>
             {
@@ -39,8 +39,8 @@ namespace BusinessService
             For<IEmailSender>().Use<ServiceBusEmailSender>();
 
             For<IRegistrationConsumer>().Use<JobGeolocationDataUpdater>();
-            For<ICountryService>().Use<CountryService>().Ctor<IBaseSettings>().Is(settings);
-            For<IIpGeoLocationService>().Use<IpGeoLocationService>().Ctor<IBaseSettings>().Is(settings);
+            For<ICountryService>().Use<CountryService>().Ctor<IOAuthSettings>().Is(settings);
+            For<IIpGeoLocationService>().Use<IpGeoLocationService>().Ctor<IOAuthSettings>().Is(settings);
         }
     }
 }
