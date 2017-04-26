@@ -56,7 +56,7 @@
                 </div>
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
-
+            <input type="hidden" asp-for="Email"/>
             <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl"/>
             <div class="profile__btn-block">
 @*                <a class="btn btn-default btn-lg btn_left" href="@Model.NextStepUrl">Skip</a>*@
