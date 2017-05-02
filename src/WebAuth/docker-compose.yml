@@ -1,0 +1,17 @@
+﻿version: '2'
+services:
+  oauthserver:
+    image: lykkex/oauth:dev
+    container_name: oauthserver
+    environment:
+      - SettingsUrl=${SettingsUrl}
+    ports:
+      - "5000:5000"
+    networks:
+      mynet:
+        aliases:
+          - oauthserver
+
+networks:
+  mynet:
+    driver: bridge

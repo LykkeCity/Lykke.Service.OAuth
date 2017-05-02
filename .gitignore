@@ -221,3 +221,4 @@ _Pvt_Extensions/
 ModelManifest.xml
 
 **/appsettings.dev.json
+**/docker-compose.dev.yml
