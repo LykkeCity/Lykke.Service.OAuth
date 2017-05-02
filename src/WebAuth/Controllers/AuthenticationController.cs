@@ -83,13 +83,17 @@ namespace WebAuth.Controllers
         public async Task<ActionResult> Register(RegistrationViewModel registrationModel)
         {
             var model = new LoginViewModel(new SigninViewModel(registrationModel.ReturnUrl), registrationModel);
+
             if (!ModelState.IsValid)
                 return View("Login", model);
 
             var userIp = HttpContext.Connection.RemoteIpAddress.ToString();
 
             if (await _clientAccountsRepository.IsTraderWithEmailExistsAsync(registrationModel.Email))
+            {
+                ModelState.AddModelError("", $"Email {registrationModel.Email} is already in use.");
                 return View("Login", model);
+            }
 
             var user =
                 await

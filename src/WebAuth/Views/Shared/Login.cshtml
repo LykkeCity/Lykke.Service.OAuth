@@ -23,3 +23,22 @@
 
 
 </div>
+
+@section scripts
+{
+    <script>
+        //Quick fix for multiple register form submit
+        $('#register-form').on('invalid-form.validate', function () {
+            var button = $(this).find('input[type="submit"]');
+            setTimeout(function () {
+                button.removeAttr('disabled');
+            }, 1);
+        });
+        $(document).on('submit', '#register-form', function () {
+            var button = $(this).find('input[type="submit"]');
+            setTimeout(function () {
+                button.attr('disabled', 'disabled');
+            }, 0);
+        });
+    </script>
+}
