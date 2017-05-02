@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="app.config" />
   </ItemGroup>
 
   <ItemGroup>
