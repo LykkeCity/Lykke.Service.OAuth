@@ -153,9 +153,7 @@ namespace WebAuth
                 options.UserinfoEndpointPath = "/connect/userinfo";
 
                 options.ApplicationCanDisplayErrors = true;
-
-                if (env.IsDevelopment())
-                    options.AllowInsecureHttp = true;
+                options.AllowInsecureHttp = true; //allow http, as its behind the nginx
             });
 
             app.UseCsp(options => options.DefaultSources(directive => directive.Self())
