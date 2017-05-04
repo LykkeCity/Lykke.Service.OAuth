@@ -61,26 +61,13 @@ namespace WebAuth
 
             services.AddCors(options =>
             {
-                if (Environment.IsDevelopment())
+                options.AddPolicy("Lykke", builder =>
                 {
-                    options.AddPolicy("Lykke", builder =>
-                    {
-                        builder.AllowAnyOrigin()
-                            .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials();
-                    });
-                }
-                else
-                {
-                    options.AddPolicy("Lykke", builder =>
-                    {
-                        builder
-                            .WithOrigins(settings.OAuth.Cors.Origins)
-                            .AllowAnyHeader()
-                            .AllowAnyMethod();
-                    });
-                }
+                    builder.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
             });
 
             services.AddMvc()
