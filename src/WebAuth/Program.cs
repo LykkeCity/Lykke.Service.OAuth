@@ -11,7 +11,7 @@ namespace WebAuth
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
-                .UseUrls("http://*:80")
+                .UseUrls("http://*:5000")
                 .UseStartup<Startup>()
                 .Build();
 

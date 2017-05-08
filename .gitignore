@@ -222,3 +222,4 @@ ModelManifest.xml
 
 **/appsettings.dev.json
 **/docker-compose.dev.yml
+**/launchSettings.json
