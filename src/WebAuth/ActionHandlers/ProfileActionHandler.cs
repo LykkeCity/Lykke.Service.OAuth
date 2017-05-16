@@ -29,19 +29,19 @@ namespace WebAuth.ActionHandlers
         private readonly ICountryService _countryService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IKycDocumentsRepository _kycDocumentsRepository;
-        private readonly IPersonalDataRepository _personalDataRepository;
+        private readonly IPersonalDataService _personalDataService;
         private readonly ISrvKycManager _srvKycManager;
         private readonly IUrlHelper _urlHelper;
         private readonly IUserManager _userManager;
 
-        public ProfileActionHandler(ISrvKycManager srvKycManager, IPersonalDataRepository personalDataRepository,
+        public ProfileActionHandler(ISrvKycManager srvKycManager, IPersonalDataService personalDataService,
             IKycDocumentsRepository kycDocumentsRepository, AuthenticationActionHandler authenticationActionHandler,
             IHttpContextAccessor httpContextAccessor, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor, IUserManager userManager,
             IClientAccountsRepository clientAccountsRepository, ICountryService countryService)
         {
             _srvKycManager = srvKycManager;
-            _personalDataRepository = personalDataRepository;
+            _personalDataService = personalDataService;
             _kycDocumentsRepository = kycDocumentsRepository;
             _authenticationActionHandler = authenticationActionHandler;
             _httpContextAccessor = httpContextAccessor;
@@ -55,7 +55,7 @@ namespace WebAuth.ActionHandlers
 
         public async Task<PersonalInformationViewModel> GetPersonalInformation(string returnUrl)
         {
-            var userFullData = await _personalDataRepository.GetAsync(CurrentClientId);
+            var userFullData = await _personalDataService.GetAsync(CurrentClientId);
 
             var model = Mapper.Map<PersonalInformationViewModel>(userFullData) ?? new PersonalInformationViewModel();
             model.ReturnUrl = returnUrl;
@@ -88,7 +88,7 @@ namespace WebAuth.ActionHandlers
 
         public async Task<CountryOfResidenceViewModel> GetCountryOfResidence(string returnUrl = null)
         {
-            var userFullData = await _personalDataRepository.GetAsync(CurrentClientId);
+            var userFullData = await _personalDataService.GetAsync(CurrentClientId);
 
             var model = Mapper.Map<CountryOfResidenceViewModel>(userFullData) ?? new CountryOfResidenceViewModel();
             model.ReturnUrl = returnUrl;
@@ -122,7 +122,7 @@ namespace WebAuth.ActionHandlers
 
         public async Task<AddressInformationViewModel> GetAddressInformation(string returnUrl = null)
         {
-            var userFullData = await _personalDataRepository.GetAsync(CurrentClientId);
+            var userFullData = await _personalDataService.GetAsync(CurrentClientId);
 
             var model = Mapper.Map<AddressInformationViewModel>(userFullData) ?? new AddressInformationViewModel();
             model.ReturnUrl = returnUrl;
@@ -240,7 +240,7 @@ namespace WebAuth.ActionHandlers
 
         public async Task<StatusBarViewModel> GetStatusBarModelAsync()
         {
-            var contactFullInfo = await _personalDataRepository.GetAsync(CurrentClientId);
+            var contactFullInfo = await _personalDataService.GetAsync(CurrentClientId);
             var documents = await _kycDocumentsRepository.GetAsync(CurrentClientId);
 
             var completionPercentage = CalculateCompletionPercentage(contactFullInfo, documents);

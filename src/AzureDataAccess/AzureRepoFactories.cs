@@ -31,12 +31,6 @@ namespace AzureDataAccess
                     new AzureTableStorage<AzureIndex>(connstring, tableName, log));
             }
 
-            public static PersonalDataRepository CreatePersonalDataRepository(string connString, ILog log)
-            {
-                return
-                    new PersonalDataRepository(new AzureTableStorage<PersonalDataEntity>(connString, "PersonalData", log));
-            }
-
             public static KycRepository CreateKycRepository(string connString, ILog log)
             {
                 return new KycRepository(new AzureTableStorage<KycEntity>(connString, "KycStatuses", log));

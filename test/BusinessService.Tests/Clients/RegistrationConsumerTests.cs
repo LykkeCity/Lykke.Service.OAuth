@@ -31,10 +31,10 @@ namespace BusinessService.Tests.Clients
         private static JobGeolocationDataUpdater CreateJobGeolocationDataUpdater()
         {
             var srvGeoLocation = Substitute.For<IIpGeoLocationService>();
-            var personalDataRepository = Substitute.For<IPersonalDataRepository>();
+            var personalDataService = Substitute.For<IPersonalDataService>();
             var log = Substitute.For<ILog>();
             var auditLogRepository = Substitute.For<IAuditLogRepository>();
-            var jobGeoLocationUpdate = new JobGeolocationDataUpdater(personalDataRepository,
+            var jobGeoLocationUpdate = new JobGeolocationDataUpdater(personalDataService,
                 auditLogRepository, srvGeoLocation);
             return jobGeoLocationUpdate;
         }

@@ -12,15 +12,15 @@ namespace BusinessService.Clients
         private readonly IAuditLogRepository _auditLogRepository;
         private readonly IIpGeoLocationService _ipGeoLocationService;
         private readonly object _lockObject = new object();
-        private readonly IPersonalDataRepository _personalDataRepository;
+        private readonly IPersonalDataService _personalDataService;
 
         private readonly ConcurrentQueue<RegistrationEvent> _queue = new ConcurrentQueue<RegistrationEvent>();
 
         public JobGeolocationDataUpdater(
-            IPersonalDataRepository personalDataRepository, IAuditLogRepository auditLogRepository,
+            IPersonalDataService personalDataService, IAuditLogRepository auditLogRepository,
             IIpGeoLocationService ipGeoLocationService)
         {
-            _personalDataRepository = personalDataRepository;
+            _personalDataService = personalDataService;
             _auditLogRepository = auditLogRepository;
             _ipGeoLocationService = ipGeoLocationService;
         }
@@ -64,10 +64,10 @@ namespace BusinessService.Clients
             {
                 var geo = await _ipGeoLocationService.GetLocationDetailsByIpAsync(evnt.Ip, evnt.Language);
                 var clientId = evnt.ClientAccount.Id;
-                var dataBefore = await _personalDataRepository.GetAsync(clientId);
+                var dataBefore = await _personalDataService.GetAsync(clientId);
                 await
-                    _personalDataRepository.UpdateGeolocationDataAsync(clientId, geo.CountryCode, geo.City);
-                var dataAfter = await _personalDataRepository.GetAsync(clientId);
+                    _personalDataService.UpdateGeolocationDataAsync(clientId, geo.CountryCode, geo.City);
+                var dataAfter = await _personalDataService.GetAsync(clientId);
                 await
                     _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter,
                         AuditRecordType.PersonalData, "JobGeolocationDataUpdater");

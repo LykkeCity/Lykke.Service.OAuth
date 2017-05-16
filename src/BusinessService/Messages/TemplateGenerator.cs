@@ -17,8 +17,8 @@ namespace BusinessService.Messages
 
         public async Task<string> GenerateAsync<T>(string templateName, T templateModel, TemplateType type)
         {
-            var templatesFolder = Path.Combine(_hostingEnvironment.ContentRootPath,
-                type == TemplateType.Email ? "Messages\\EmailTemplates" : "Messages\\SmsTemplates");
+            var templatesFolder = Path.Combine(_hostingEnvironment.ContentRootPath, "Messages",
+                type == TemplateType.Email ? "EmailTemplates" : "SmsTemplates");
 
             var path = Path.Combine(templatesFolder, templateName + ".mustache");
 

@@ -16,11 +16,11 @@ namespace WebAuth.Tests.ActionHandlers
 {
     public class ProfileActionHandlerTests
     {
-        private ProfileActionHandler CreateProfileActionHandler(IPersonalDataRepository personalDataRepository,
+        private ProfileActionHandler CreateProfileActionHandler(IPersonalDataService personalDataService,
             IKycDocumentsRepository kycDocumentsRepository)
         {
             var srvManager = Substitute.For<ISrvKycManager>();
-            var personalDataRepo = personalDataRepository ?? Substitute.For<IPersonalDataRepository>();
+            var personalDataRepo = personalDataService ?? Substitute.For<IPersonalDataService>();
             var kycDocRepo = kycDocumentsRepository ?? Substitute.For<IKycDocumentsRepository>();
             var kycRepo = Substitute.For<IKycRepository>();
             var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
@@ -75,12 +75,12 @@ namespace WebAuth.Tests.ActionHandlers
                 new KycDocument {Type = KycDocumentTypes.AdditionalDocuments}
             };
 
-            var personalDataRepo = Substitute.For<IPersonalDataRepository>();
-            personalDataRepo.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(fullPersonalData);
+            var personalDataService = Substitute.For<IPersonalDataService>();
+            personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(fullPersonalData);
             var kycDocRepo = Substitute.For<IKycDocumentsRepository>();
             kycDocRepo.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(kycDocuments);
 
-            var profileActionHandler = CreateProfileActionHandler(personalDataRepo, kycDocRepo);
+            var profileActionHandler = CreateProfileActionHandler(personalDataService, kycDocRepo);
 
             //act
             var completionPercentage = await profileActionHandler.GetStatusBarModelAsync();
@@ -96,12 +96,12 @@ namespace WebAuth.Tests.ActionHandlers
 
             var kycDocuments = new List<KycDocument>();
 
-            var personalDataRepo = Substitute.For<IPersonalDataRepository>();
-            personalDataRepo.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(fullPersonalData);
+            var personalDataService = Substitute.For<IPersonalDataService>();
+            personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(fullPersonalData);
             var kycDocRepo = Substitute.For<IKycDocumentsRepository>();
             kycDocRepo.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(kycDocuments);
 
-            var profileActionHandler = CreateProfileActionHandler(personalDataRepo, kycDocRepo);
+            var profileActionHandler = CreateProfileActionHandler(personalDataService, kycDocRepo);
 
             //act
             var completionPercentage = await profileActionHandler.GetStatusBarModelAsync();
@@ -127,12 +127,12 @@ namespace WebAuth.Tests.ActionHandlers
                 new KycDocument {Type = KycDocumentTypes.BankAccount}
             };
 
-            var personalDataRepo = Substitute.For<IPersonalDataRepository>();
-            personalDataRepo.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(fullPersonalData);
+            var personalDataService = Substitute.For<IPersonalDataService>();
+            personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(fullPersonalData);
             var kycDocRepo = Substitute.For<IKycDocumentsRepository>();
             kycDocRepo.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(kycDocuments);
 
-            var profileActionHandler = CreateProfileActionHandler(personalDataRepo, kycDocRepo);
+            var profileActionHandler = CreateProfileActionHandler(personalDataService, kycDocRepo);
 
             //act
             var completionPercentage = await profileActionHandler.GetStatusBarModelAsync();

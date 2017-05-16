@@ -97,9 +97,6 @@ namespace AzureDataAccess
             For<IClientAccountsRepository>().Add(
                 AzureRepoFactories.Clients.CreateTradersRepository(clientPersonalInfoConnString, log));
 
-            For<IPersonalDataRepository>().Add(
-                AzureRepoFactories.Clients.CreatePersonalDataRepository(clientPersonalInfoConnString, log));
-
             For<IClientsSessionsRepository>().Add(
                 AzureRepoFactories.Clients.CreateClientSessionsRepository(clientPersonalInfoConnString, log));
         }

@@ -16,16 +16,16 @@ namespace WebAuth.Tests.Managers
 {
     public class UserManagerTests
     {
-        private static UserManager CreateUserManager(IPersonalDataRepository personalDataRepository = null)
+        private static UserManager CreateUserManager(IPersonalDataService personalDataService = null)
         {
-            if (personalDataRepository == null)
+            if (personalDataService == null)
             {
-                personalDataRepository = Substitute.For<IPersonalDataRepository>();
+                personalDataService = Substitute.For<IPersonalDataService>();
             }
 
             var kycDocumentRepository = Substitute.For<IKycDocumentsRepository>();
             var httpAccessor = Substitute.For<IHttpContextAccessor>();
-            var userManager = new UserManager(personalDataRepository, kycDocumentRepository, httpAccessor);
+            var userManager = new UserManager(personalDataService, kycDocumentRepository, httpAccessor);
             return userManager;
         }
 
@@ -42,10 +42,10 @@ namespace WebAuth.Tests.Managers
             var personalData = new FullPersonalData();
 
             //act
-            var personalDataRepository = Substitute.For<IPersonalDataRepository>();
-            personalDataRepository.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(personalData);
+            var personalDataService = Substitute.For<IPersonalDataService>();
+            personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(personalData);
 
-            var userManager = CreateUserManager(personalDataRepository);
+            var userManager = CreateUserManager(personalDataService);
 
             //assert
             await
@@ -224,10 +224,10 @@ namespace WebAuth.Tests.Managers
             };
 
             //act
-            var personalDataRepository = Substitute.For<IPersonalDataRepository>();
-            personalDataRepository.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(personalData);
+            var personalDataService = Substitute.For<IPersonalDataService>();
+            personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(personalData);
 
-            var userManager = CreateUserManager(personalDataRepository);
+            var userManager = CreateUserManager(personalDataService);
             var result = await userManager.CreateUserIdentityAsync(client, "test");
 
             //assert

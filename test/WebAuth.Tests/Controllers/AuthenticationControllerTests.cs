@@ -57,9 +57,11 @@ namespace WebAuth.Tests.Controllers
             clientRepository.AuthenticateAsync(null, null).Returns((IClientAccount)null);
 
             var controller = CreateAuthenticationController(clientRepository);
+            controller.ModelState.AddModelError("Username", "E-mail is required");
+            controller.ModelState.AddModelError("Password", "Password is required");
 
             var result = await controller.Signin(signinViewModel);
-
+            
             //assert
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.IsAssignableFrom<LoginViewModel>(viewResult.ViewData.Model);

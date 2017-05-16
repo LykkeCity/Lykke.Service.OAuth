@@ -24,7 +24,7 @@ namespace BusinessService.Kyc
         private readonly IKycDocumentsScansRepository _kycDocumentsScansRepository;
         private readonly IKycRepository _kycRepository;
         private readonly IMenuBadgesRepository _menuBadgesRepository;
-        private readonly IPersonalDataRepository _personalDataRepository;
+        private readonly IPersonalDataService _personalDataService;
         private readonly IRegistrationConsumer[] _registrationConsumers;
         private readonly IRegistrationLogs _registrationLogs;
         private readonly ISrvEmailsFacade _srvEmailsFacade;
@@ -32,7 +32,7 @@ namespace BusinessService.Kyc
         public SrvKycManager(IKycDocumentsRepository kycDocumentsRepository,
             IKycDocumentsScansRepository kycDocumentsScansRepository,
             IKycRepository kycRepository,
-            IPersonalDataRepository personalDataRepository, IClientAccountsRepository clientAccountsRepository,
+            IPersonalDataService personalDataService, IClientAccountsRepository clientAccountsRepository,
             IRegistrationConsumer[] registrationConsumers, IAuditLogRepository auditLogRepository,
             IRegistrationLogs registrationLogs, IClientSettingsRepository clientSettingsRepository,
             IAppGlobalSettingsRepositry appGlobalSettingsRepositry, IAssetGroupRepository assetGroupRepository,
@@ -42,7 +42,7 @@ namespace BusinessService.Kyc
             _kycDocumentsRepository = kycDocumentsRepository;
             _kycDocumentsScansRepository = kycDocumentsScansRepository;
             _kycRepository = kycRepository;
-            _personalDataRepository = personalDataRepository;
+            _personalDataService = personalDataService;
             _clientAccountsRepository = clientAccountsRepository;
             _registrationConsumers = registrationConsumers;
             _auditLogRepository = auditLogRepository;
@@ -130,7 +130,7 @@ namespace BusinessService.Kyc
         public async Task<IEnumerable<IPersonalData>> GetAccountsToCheck()
         {
             var ids = await _kycRepository.GetClientsByStatus(KycStatus.Pending);
-            return await _personalDataRepository.GetAsync(ids);
+            return await _personalDataService.GetAsync(ids);
         }
 
         #endregion
@@ -145,7 +145,7 @@ namespace BusinessService.Kyc
             clientAccount = await _clientAccountsRepository.RegisterAsync(clientAccount, password);
 
             var personalData = FullPersonalData.Create(clientAccount, firstName, lastName, hint);
-            await _personalDataRepository.SaveAsync(personalData);
+            await _personalDataService.SaveAsync(personalData);
 
             await SetDefaultAssetGroups(clientAccount.Id);
 
@@ -174,9 +174,9 @@ namespace BusinessService.Kyc
 
         public async Task UpdatePersonalDataAsync(IPersonalData personalData, string changer)
         {
-            var dataBefore = await _personalDataRepository.GetAsync(personalData.Id);
-            await _personalDataRepository.UpdateAsync(personalData);
-            var dataAfter = await _personalDataRepository.GetAsync(personalData.Id);
+            var dataBefore = await _personalDataService.GetAsync(personalData.Id);
+            await _personalDataService.UpdateAsync(personalData);
+            var dataAfter = await _personalDataService.GetAsync(personalData.Id);
 
             await _auditLogRepository.AddAuditRecordAsync(personalData.Id, dataBefore, dataAfter,
                 AuditRecordType.PersonalData, changer);
@@ -184,10 +184,10 @@ namespace BusinessService.Kyc
 
         public async Task ChangePhoneAsync(string clientId, string phoneNumber, string changer)
         {
-            var dataBefore = await _personalDataRepository.GetAsync(clientId);
+            var dataBefore = await _personalDataService.GetAsync(clientId);
             await _clientAccountsRepository.ChangePhoneAsync(clientId, phoneNumber);
-            await _personalDataRepository.ChangeContactPhoneAsync(clientId, phoneNumber);
-            var dataAfter = await _personalDataRepository.GetAsync(clientId);
+            await _personalDataService.ChangeContactPhoneAsync(clientId, phoneNumber);
+            var dataAfter = await _personalDataService.GetAsync(clientId);
 
             await
                 _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter, AuditRecordType.PersonalData,
@@ -196,9 +196,9 @@ namespace BusinessService.Kyc
 
         public async Task ChangeFullNameAsync(string clientId, string fullName, string changer)
         {
-            var dataBefore = await _personalDataRepository.GetAsync(clientId);
-            await _personalDataRepository.ChangeFullNameAsync(clientId, fullName);
-            var dataAfter = await _personalDataRepository.GetAsync(clientId);
+            var dataBefore = await _personalDataService.GetAsync(clientId);
+            await _personalDataService.ChangeFullNameAsync(clientId, fullName);
+            var dataAfter = await _personalDataService.GetAsync(clientId);
 
             await
                 _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter, AuditRecordType.PersonalData,
@@ -207,9 +207,9 @@ namespace BusinessService.Kyc
 
         public async Task ChangeFirstNameAsync(string clientId, string firstName, string changer)
         {
-            var dataBefore = await _personalDataRepository.GetAsync(clientId);
-            await _personalDataRepository.ChangeFirstNameAsync(clientId, firstName);
-            var dataAfter = await _personalDataRepository.GetAsync(clientId);
+            var dataBefore = await _personalDataService.GetAsync(clientId);
+            await _personalDataService.ChangeFirstNameAsync(clientId, firstName);
+            var dataAfter = await _personalDataService.GetAsync(clientId);
 
             await
                 _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter, AuditRecordType.PersonalData,
@@ -218,9 +218,9 @@ namespace BusinessService.Kyc
 
         public async Task ChangeLastNameAsync(string clientId, string lastName, string changer)
         {
-            var dataBefore = await _personalDataRepository.GetAsync(clientId);
-            await _personalDataRepository.ChangeLastNameAsync(clientId, lastName);
-            var dataAfter = await _personalDataRepository.GetAsync(clientId);
+            var dataBefore = await _personalDataService.GetAsync(clientId);
+            await _personalDataService.ChangeLastNameAsync(clientId, lastName);
+            var dataAfter = await _personalDataService.GetAsync(clientId);
 
             await
                 _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter, AuditRecordType.PersonalData,
@@ -229,9 +229,9 @@ namespace BusinessService.Kyc
 
         public async Task ChangeZipAsync(string clientId, string zip, string changer)
         {
-            var dataBefore = await _personalDataRepository.GetAsync(clientId);
-            await _personalDataRepository.ChangeZipAsync(clientId, zip);
-            var dataAfter = await _personalDataRepository.GetAsync(clientId);
+            var dataBefore = await _personalDataService.GetAsync(clientId);
+            await _personalDataService.ChangeZipAsync(clientId, zip);
+            var dataAfter = await _personalDataService.GetAsync(clientId);
 
             await
                 _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter, AuditRecordType.PersonalData,
@@ -240,9 +240,9 @@ namespace BusinessService.Kyc
 
         public async Task ChangeCityAsync(string clientId, string city, string changer)
         {
-            var dataBefore = await _personalDataRepository.GetAsync(clientId);
-            await _personalDataRepository.ChangeCityAsync(clientId, city);
-            var dataAfter = await _personalDataRepository.GetAsync(clientId);
+            var dataBefore = await _personalDataService.GetAsync(clientId);
+            await _personalDataService.ChangeCityAsync(clientId, city);
+            var dataAfter = await _personalDataService.GetAsync(clientId);
 
             await
                 _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter, AuditRecordType.PersonalData,
@@ -251,9 +251,9 @@ namespace BusinessService.Kyc
 
         public async Task ChangeAddressAsync(string clientId, string address, string changer)
         {
-            var dataBefore = await _personalDataRepository.GetAsync(clientId);
-            await _personalDataRepository.ChangeAddressAsync(clientId, address);
-            var dataAfter = await _personalDataRepository.GetAsync(clientId);
+            var dataBefore = await _personalDataService.GetAsync(clientId);
+            await _personalDataService.ChangeAddressAsync(clientId, address);
+            var dataAfter = await _personalDataService.GetAsync(clientId);
 
             await
                 _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter, AuditRecordType.PersonalData,
@@ -262,9 +262,9 @@ namespace BusinessService.Kyc
 
         public async Task ChangeCountryAsync(string clientId, string country, string changer)
         {
-            var dataBefore = await _personalDataRepository.GetAsync(clientId);
-            await _personalDataRepository.ChangeCountryAsync(clientId, country);
-            var dataAfter = await _personalDataRepository.GetAsync(clientId);
+            var dataBefore = await _personalDataService.GetAsync(clientId);
+            await _personalDataService.ChangeCountryAsync(clientId, country);
+            var dataAfter = await _personalDataService.GetAsync(clientId);
 
             await
                 _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter, AuditRecordType.PersonalData,

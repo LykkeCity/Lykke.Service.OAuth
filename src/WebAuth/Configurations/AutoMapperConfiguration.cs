@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using AzureDataAccess.Clients;
+using Core.Clients;
 using WebAuth.Models.Profile;
 
 namespace WebAuth.Configurations
@@ -8,9 +8,9 @@ namespace WebAuth.Configurations
     {
         public AutoMapperConfiguration()
         {
-            CreateMap<PersonalDataEntity, PersonalInformationViewModel>();
-            CreateMap<PersonalDataEntity, CountryOfResidenceViewModel>();
-            CreateMap<PersonalDataEntity, AddressInformationViewModel>();
+            CreateMap<IPersonalData, PersonalInformationViewModel>();
+            CreateMap<IPersonalData, CountryOfResidenceViewModel>();
+            CreateMap<IPersonalData, AddressInformationViewModel>();
         }
     }
 }

@@ -41,6 +41,8 @@ namespace BusinessService
             For<IRegistrationConsumer>().Use<JobGeolocationDataUpdater>();
             For<ICountryService>().Use<CountryService>().Ctor<IOAuthSettings>().Is(settings);
             For<IIpGeoLocationService>().Use<IpGeoLocationService>().Ctor<IOAuthSettings>().Is(settings);
+
+            For<IPersonalDataService>().Use<PersonalDataService>().Ctor<PersonalDataServiceSettings>().Is(settings.PersonalDataServiceSettings);
         }
     }
 }

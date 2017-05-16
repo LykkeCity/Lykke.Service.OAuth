@@ -15,13 +15,13 @@ namespace WebAuth.Managers
     public class UserManager : IUserManager
     {
         private readonly IKycDocumentsRepository _kycDocumentsRepository;
-        private readonly IPersonalDataRepository _personalDataRepository;
+        private readonly IPersonalDataService _personalDataService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserManager(IPersonalDataRepository personalDataRepository,
+        public UserManager(IPersonalDataService personalDataService,
             IKycDocumentsRepository kycDocumentsRepository, IHttpContextAccessor httpContextAccessor)
         {
-            _personalDataRepository = personalDataRepository;
+            _personalDataService = personalDataService;
             _kycDocumentsRepository = kycDocumentsRepository;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -80,7 +80,7 @@ namespace WebAuth.Managers
 
         public async Task<ClaimsIdentity> CreateUserIdentityAsync(IClientAccount clientAccount, string userName)
         {
-            var personalData = await _personalDataRepository.GetAsync(clientAccount.Id);
+            var personalData = await _personalDataService.GetAsync(clientAccount.Id);
 
             var claims = new List<Claim>
             {
