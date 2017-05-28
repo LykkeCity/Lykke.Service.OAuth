@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using WebAuth.Configurations;
 using WebAuth.EventFilter;
 using WebAuth.Providers;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace WebAuth
 {
@@ -80,6 +81,11 @@ namespace WebAuth
             services.AddAutoMapper();
 
             services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(30); });
+
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+            });
 
             WebDependencies.Create(services);
 
