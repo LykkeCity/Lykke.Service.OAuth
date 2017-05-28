@@ -36,8 +36,6 @@ namespace WebAuth
                 var certBlob = new AzureBlobStorage(sertConnString);
                 var cert = certBlob.GetAsync(sertContainer, sertFilename).Result.ToBytes();
                 
-                Console.WriteLine(sertPassword);
-
                 X509Certificate2 xcert = new X509Certificate2(cert, sertPassword);
 
                 var host = new WebHostBuilder()

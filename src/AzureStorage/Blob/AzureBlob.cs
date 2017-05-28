@@ -11,12 +11,15 @@ namespace AzureStorage.Blob
 {
     public class AzureBlobStorage : IBlobStorage
     {
+        private readonly CloudStorageAccount _storageAccount;
         private readonly CloudBlobClient _blobClient;
+        private readonly TimeSpan _maxExecutionTime;
 
         public AzureBlobStorage(string connectionString)
         {
-            var storageAccount = CloudStorageAccount.Parse(connectionString);
-            _blobClient = storageAccount.CreateCloudBlobClient();
+            _storageAccount = CloudStorageAccount.Parse(connectionString);
+            _blobClient = _storageAccount.CreateCloudBlobClient();
+            _maxExecutionTime = TimeSpan.FromSeconds(30);
         }
 
         public Task SaveBlobAsync(string container, string key, Stream bloblStream)
@@ -67,14 +70,28 @@ namespace AzureStorage.Blob
             return dateTimeOffset.GetValueOrDefault().UtcDateTime;
         }
 
+        private CloudBlobContainer GetContainerReference(string container)
+        {
+            var blobClient = _storageAccount.CreateCloudBlobClient();
+            return blobClient.GetContainerReference(container.ToLower());
+        }
+
+        private BlobRequestOptions GetRequestOptions()
+        {
+            return new BlobRequestOptions
+            {
+                MaximumExecutionTime = _maxExecutionTime
+            };
+        }
+
         public async Task<Stream> GetAsync(string blobContainer, string key)
         {
-            var containerRef = _blobClient.GetContainerReference(blobContainer);
-
+            var containerRef = GetContainerReference(blobContainer);
             var blockBlob = containerRef.GetBlockBlobReference(key);
-            var result = await blockBlob.DownloadTextAsync();
-            var byteArray = Encoding.UTF8.GetBytes(result);
-            var ms = new MemoryStream(byteArray);
+
+            var ms = new MemoryStream();
+            await blockBlob.DownloadToStreamAsync(ms, null, GetRequestOptions(), null);
+            ms.Position = 0;
             return ms;
         }
 
