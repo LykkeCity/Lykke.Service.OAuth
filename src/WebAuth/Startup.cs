@@ -104,6 +104,11 @@ namespace WebAuth
                 app.UseExceptionHandler("/Home/Error");
             }
 
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             var supportedCultures = new[]
             {
                 new CultureInfo("en-US"),
@@ -159,7 +164,7 @@ namespace WebAuth
                 options.UserinfoEndpointPath = "/connect/userinfo";
 
                 options.ApplicationCanDisplayErrors = true;
-                options.AllowInsecureHttp = true; //allow http, as its behind the nginx
+                options.AllowInsecureHttp = false; //allow http, as its behind the nginx
             });
 
             app.UseCsp(options => options.DefaultSources(directive => directive.Self())
