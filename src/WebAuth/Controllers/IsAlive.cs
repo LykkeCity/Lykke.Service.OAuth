@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace WebAuth.Controllers
 {
@@ -7,14 +8,16 @@ namespace WebAuth.Controllers
     public class IsAlive : Controller
     {
         [HttpGet]
-        public IsAliveResponse Get()
+        public string Get()
         {
-            return new IsAliveResponse
+            var response = new IsAliveResponse
             {
                 Version =
                     Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationVersion,
                 Env = Environment.GetEnvironmentVariable("ENV_INFO")
             };
+
+            return JsonConvert.SerializeObject(response);
         }
 
         public class IsAliveResponse
