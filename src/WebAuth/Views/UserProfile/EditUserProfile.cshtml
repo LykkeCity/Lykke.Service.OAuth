@@ -3,6 +3,7 @@
 @{
     Layout = "~/Views/Shared/_UserProfileLayout.cshtml";
     var firstName = string.IsNullOrEmpty(Model.FirstName) ? "" : Model.FirstName;
+    var lastName = string.IsNullOrEmpty(Model.LastName) ? "" : Model.LastName;
 }
 
 <div class="header_container">
@@ -55,7 +56,7 @@
                     <div class="user_badge__img">
                         <img src="~/public/img/user_default.svg" alt="user_badge__img">
                     </div>
-                    <h2 class="user_badge__title">Leroy Cox</h2>
+                    <h2 class="user_badge__title">@firstName @lastName</h2>
 
                     <div class="card__actions text-center visible-xs">
                         <button type="button" class="action_link"><i class="icon icon--exit"></i> Sign Out</button>
