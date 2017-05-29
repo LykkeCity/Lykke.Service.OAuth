@@ -1,0 +1,455 @@
+.checkbox,
+.radio {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  display: inline-block;
+  vertical-align: top;
+  margin-top: 0 !important;
+
+  @extend %noselect;
+
+  &__control {
+    position: absolute;
+    right: 100%;
+    opacity: 0;
+    visibility: hidden;
+
+    &:checked {
+      ~ .control-label {
+        &:before {
+          background: $primary !important;
+          border-color: $primary !important;
+        }
+
+        &:after {
+          opacity: 1 !important;
+          visibility: visible !important;
+
+          @include transform(scale(1));
+        }
+      }
+    }
+
+    &[disabled] {
+      ~ .control-label {
+        &:before {
+          background: $gray-5 !important;
+          border-color: $gray-25 !important;
+        }
+
+        &:after {
+          color: $gray-25 !important;
+        }
+      }
+    }
+  }
+
+  &__label, label {
+    position: relative;
+
+    @include rem(padding, 5px 0 5px 30px);
+
+    &:hover {
+      &:before {
+        border-color: $gray-25;
+      }
+    }
+
+    &:before {
+      content: '';
+      border: 1px solid $gray-25;
+      position: absolute;
+      left: 0;
+
+      @include rem(top, 5px);
+      @include rem(width, 20px);
+      @include rem(height, 20px);
+
+      @include transition(background $transition-default, border $transition-default);
+    }
+
+    &:after {
+      content: '';
+      color: $white;
+      position: absolute;
+
+      @include transform(scale(0));
+      @include transition(opacity $transition-default, visibility $transition-default, transform $transition-default);
+    }
+  }
+}
+
+.checkbox {
+  &__label, label {
+    &:before {
+      @include border-radius(4px);
+    }
+
+    &:after {
+      font-family: 'icon' !important;
+      color: $white;
+      content: "\e90b";
+      left: 0;
+      text-align: center;
+
+      @include rem(width, 20px);
+      @include rem(top, 6px);
+      @include rem(font-size, 16px);
+    }
+  }
+}
+
+.radio {
+  &__control {
+    &[disabled] {
+      ~ .control-label {
+        &:after {
+          background: $gray-25 !important;
+        }
+      }
+    }
+  }
+
+  &__label, label {
+    &:before {
+      background: $white;
+
+      @include border-radius(100px);
+    }
+
+    &:after {
+      background: $white;
+
+      @include border-radius(100px);
+      @include rem(width, 6px);
+      @include rem(height, 6px);
+      @include rem(top, 12px);
+      @include rem(left, 7px);
+    }
+  }
+}
+
+.form_header {
+  @include rem(padding, 22px 0 20px);
+  @include clearfix;
+
+  h5 {
+    line-height: 1.9;
+    margin-bottom: 0;
+
+    @include rem(font-size, 21px);
+  }
+
+  h3 {
+    @include rem(margin-bottom, 0px);
+  }
+
+  p {
+
+    @include rem(margin-top, 10px);
+    @include rem(margin-bottom, 10px);
+    @include rem(line-height, 24px);
+  }
+
+  .btn {
+    @include rem(min-width, 120px);
+  }
+
+  .asset_link__desc {
+    @include rem(margin-bottom, 4px);
+  }
+
+  .action_link {
+    @include rem(margin-top, 10px)
+  }
+
+  &__img {
+    @include rem(margin, -5px 0)
+  }
+
+  &__switch {
+    float: right;
+
+    @include rem(margin-top, 6px);
+
+    .radio + .radio,
+    .checkbox + .checkbox {
+      @include rem(margin-left, 25px);
+    }
+  }
+
+  @media all and (max-width: 370px) {
+    &__switch {
+      margin-top: 2px;
+
+      .radio, .checkbox {
+        display: block;
+        margin: 0 !important;
+      }
+    }
+  }
+}
+
+.control-label {
+  @include rem(margin-bottom, 15px);
+
+  .btn {
+    @include rem(margin, -3px 0);
+  }
+}
+
+.form-group {
+  @include rem(margin-bottom, 24px);
+}
+
+textarea.form-control {
+  min-height: 170px;
+
+  @include rem(padding, 16px 20px);
+}
+
+.form-control {
+  @include rem(padding-left, 20px);
+  @include rem(padding-right, 20px);
+}
+
+.form_fieldset {
+  @include rem(margin-bottom, 35px);
+}
+
+.fileupload_preview,
+.asset_preview {
+  .asset_link__icon,
+  &__img {
+    float: right;
+    margin-right: 0;
+
+    @include rem(margin-left, 15px);
+  }
+
+  .asset_icon {
+    @include rem(width, 40px);
+    @include rem(height, 40px);
+    @include rem(line-height, 41px);
+    @include rem(font-size, 13px);
+
+    .icon {
+      margin-right: 0;
+      
+      @include rem(font-size, 24px);
+      
+      &--instagram,
+      &--fb_simple,
+      &--linkedin-icn,
+      &--github,
+      &--tw {
+        position: relative;
+
+        @include rem(left, 2px)
+      }
+    }
+  }
+
+  &__img {
+    border-radius: $border-radius;
+    box-shadow: inset 0 0 0 1px #CFD2D7;
+
+    img {
+      border-radius: $border-radius;
+    }
+  }
+  
+  &__info {
+    overflow: hidden;
+    text-align: right;
+  }
+
+  &__title {
+    @include rem(margin-bottom, 2px);
+  }
+
+  .btn--link {
+    font-size: 16px;
+    color: rgba($secondary, .6);
+    letter-spacing: 0;
+
+    @include rem(font-size, 16px);
+    @include rem(line-height, 24px);
+  }
+}
+
+.btn--link {
+  padding: 0 !important;
+  background: transparent !important;
+  color: inherit;
+  font-weight: normal;
+
+  &:hover {
+    color: inherit !important;
+  }
+}
+
+.form-control {
+  &--sm {
+    @include rem(height, 42px);
+  }
+}
+
+.fileupload {
+  @include clearfix;
+
+  &__preview {
+    border-radius: 100px;
+    box-shadow: inset 0 0 0 1px rgba($gray-light, .7);
+    float: left;
+
+    @include rem(margin-right, 20px);
+    @include rem(width, 120px);
+    @include rem(height, 120px);
+
+    img {
+      border-radius: 100px;
+    }
+  }
+
+  &__buttons {
+    overflow: hidden;
+
+    @include rem(padding, 36px 0 20px);
+
+    .btn {
+      @include rem(margin-right, 4px);
+      @include rem(margin-bottom, 10px);
+    }
+  }
+}
+
+.fileupload_userimg {
+
+}
+
+.form_profile {
+  textarea.form-control {
+    @include rem(min-height, 115px);
+  }
+}
+
+.btn--social {
+  @include rem(width, 150px);
+}
+
+.btn_facebook {
+  background: #32599D;
+
+  &.btn, &[href] {
+    &:hover { background: lighten(#32599D, 5%) !important }
+  }
+}
+
+.btn_twitter {
+  background: #28AEF4;
+
+  &.btn, &[href] {
+    &:hover { background: lighten(#28AEF4, 5%) !important }
+  }
+}
+
+.btn_linkedin {
+  background: #0077B5;
+
+  &.btn, &[href] {
+    &:hover { background: lighten(#0077B5, 5%) !important }
+  }
+}
+
+.btn_instagram {
+  background: #EF0075;
+
+  &.btn, &[href] {
+    &:hover { background: lighten(#EF0075, 5%) !important }
+  }
+}
+
+.btn_vk {
+  background: #46739D;
+
+  &.btn, &[href] {
+    &:hover { background: lighten(#46739D, 5%) !important }
+  }
+
+  .icon--vk:before {
+    font-size: 90%;
+    position: relative;
+    top: -1px;
+  }
+}
+
+.btn_github {
+  background: #171515;
+
+  &.btn, &[href] {
+    &:hover { background: lighten(#171515, 5%) !important }
+  }
+}
+
+.btn {
+  &:not(.btn--icon):not(.btn--link):not(.btn-sm):not(.btn--default) {
+    @include rem(padding-left, 40px);
+    @include rem(padding-right, 40px);
+  }
+
+  &.btn--default {
+    @include rem(padding-left, 30px);
+    @include rem(padding-right, 30px);
+
+    &.btn-sm {
+      @include rem(padding, 7px 24px !important);
+    }
+  }
+}
+
+.fileupload__preview {
+  img {
+    width: 100%;
+  }
+}
+
+.form_submit {
+  @include rem(padding, 24px 0);
+
+  .checkbox, .radio {
+    @include rem(padding, 10px 0);
+  }
+
+  .btn {
+    @include rem(padding-left, 40px);
+    @include rem(padding-right, 40px);
+  }
+
+  @media all and (max-width: $screen-landscape) {
+    .text-right {
+      text-align: left !important;
+    }
+
+    .btn {
+      margin-top: 10px;
+    }
+  }
+
+  @media all and (max-width: $screen-mobile-tiny) {
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+.select__elem[disabled] {
+  border-color: #CFD2D7;
+}
+
+.form_fieldset:first-child {
+  .form_header {
+    padding-top: 0;
+  }
+}
