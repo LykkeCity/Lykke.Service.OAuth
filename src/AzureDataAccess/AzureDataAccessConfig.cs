@@ -16,6 +16,7 @@ using Core.EventLogs;
 using Core.Kyc;
 using Core.Messages.Email;
 using Core.Settings;
+using Core.UserProfile;
 using StructureMap;
 
 namespace AzureDataAccess
@@ -47,6 +48,8 @@ namespace AzureDataAccess
             BindBackOffice(backOfficeConnString, log);
 
             BindBitcoin(clientPersonalInfoConnString, log);
+
+            BindUserProfile(clientPersonalInfoConnString, log);
         }
 
         public static LogToTable CreateLogToTable(string connString)
@@ -124,6 +127,12 @@ namespace AzureDataAccess
         {
             For<IWalletCredentialsRepository>().Add(
                 AzureRepoFactories.Bitcoin.CreateWalletCredentialsRepository(clientPersonalInfoConnString, log));
+        }
+
+        private void BindUserProfile(string clientPersonalInfoConnString, ILog log)
+        {
+            For<IUserProfileRepository>().Add(
+                AzureRepoFactories.UserProfile.CreateUserProfileRepository(clientPersonalInfoConnString, log));
         }
     }
 }

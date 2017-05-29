@@ -4,11 +4,13 @@ using AzureDataAccess.Bitcoin;
 using AzureDataAccess.Clients;
 using AzureDataAccess.EventLogs;
 using AzureDataAccess.Kyc;
+using AzureDataAccess.UserProfile;
 using AzureStorage.Blob;
 using AzureStorage.Tables;
 using AzureStorage.Tables.Templates.Index;
 using Common.Log;
 using Core.Bitcoin;
+using Core.UserProfile;
 
 namespace AzureDataAccess
 {
@@ -87,6 +89,15 @@ namespace AzureDataAccess
             {
                 return new WalletCredentialsRepository(new AzureTableStorage<WalletCredentialsEntity>(connecionString,
                     "WalletCredentials", log));
+            }
+        }
+
+        public static class UserProfile
+        {
+            public static IUserProfileRepository CreateUserProfileRepository(string connectionString, ILog log)
+            {
+                return new UserProfileRepository(new AzureTableStorage<UserProfileEntity>(connectionString,
+                    "UserProfiles", log));
             }
         }
     }
