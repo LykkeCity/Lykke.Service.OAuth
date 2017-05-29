@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
-using Common.HttpRemoteRequests;
 using Core.Messages;
 using System.Reflection;
+using BusinessService.Http;
 using BusinessService.Messages.Settings;
 
 namespace BusinessService.Messages

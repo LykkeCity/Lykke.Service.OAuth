@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AzureStorage;
 using AzureStorage.Tables.Templates.Index;
-using Common.PasswordKeeping;
+using Common.PasswordTools;
 using Core.Clients;
 using Microsoft.WindowsAzure.Storage.Table;
 

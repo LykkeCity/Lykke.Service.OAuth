@@ -17,13 +17,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Lykke.Common" Version="1.1.69" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
     <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="1.0.0-beta6-final" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="1.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="1.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="1.1.2" />
     <PackageReference Include="xunit" Version="2.2.0" />
-    <PackageReference Include="NSubstitute" Version="2.0.2" />
+    <PackageReference Include="NSubstitute" Version="2.0.3" />
   </ItemGroup>
 
   <ItemGroup>

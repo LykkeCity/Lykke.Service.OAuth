@@ -21,8 +21,6 @@ namespace BusinessService
                 // Declare which assemblies to scan
                 _.TheCallingAssembly();
 
-                // Built in registration conventions
-                _.AddAllTypesOf<IStarter>();
                 _.AddAllTypesOf<IApplicationService>();
                 _.WithDefaultConventions();
             });

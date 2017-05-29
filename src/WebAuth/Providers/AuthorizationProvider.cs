@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
-using Common.Extenstions;
+using Common.Extensions;
 using Core.Application;
 using Microsoft.AspNetCore.Http;
 
@@ -28,7 +28,7 @@ namespace WebAuth.Providers
                 context.MatchesAuthorizationEndpoint();
             }
 
-            return TaskEx.Empty;
+            return Task.FromResult(0);
         }
 
         public override Task ExtractAuthorizationRequest(ExtractAuthorizationRequestContext context)
@@ -44,14 +44,14 @@ namespace WebAuth.Providers
                         OpenIdConnectConstants.Errors.InvalidRequest,
                         "Invalid request: timeout expired.");
 
-                    return TaskEx.Empty;
+                    return Task.FromResult(0);
                 }
 
                 // Restore the authorization request parameters.
                 context.Request.Import(payload);
             }
 
-            return TaskEx.Empty;
+            return Task.FromResult(0);
         }
 
         public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context)
@@ -177,7 +177,7 @@ namespace WebAuth.Providers
             // and delegates it to a custom ASP.NET Core MVC controller (UserinfoController).
             context.SkipToNextMiddleware();
 
-            return TaskEx.Empty;
+            return Task.FromResult(0);
         }
     }
 }

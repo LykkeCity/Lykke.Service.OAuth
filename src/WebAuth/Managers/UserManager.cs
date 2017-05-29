@@ -5,8 +5,8 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
-using Common.OpenIdConnect;
 using Core.Clients;
+using Core.Extensions;
 using Core.Kyc;
 using Microsoft.AspNetCore.Http;
 

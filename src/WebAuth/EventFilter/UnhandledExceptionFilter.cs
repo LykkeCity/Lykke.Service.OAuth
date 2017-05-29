@@ -1,4 +1,4 @@
-﻿using Common.Extenstions;
+﻿using Common.Extensions;
 using Common.Log;
 using Microsoft.AspNetCore.Mvc.Filters;
 
