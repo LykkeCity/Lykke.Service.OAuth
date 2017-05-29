@@ -1,0 +1,172 @@
+﻿@model Core.UserProfile.IUserProfileData
+
+@{
+    Layout = "~/Views/Shared/_UserProfileLayout.cshtml";
+    var firstName = string.IsNullOrEmpty(Model.FirstName) ? "" : Model.FirstName;
+}
+
+<div class="header_container">
+    <header class="header">
+        <div class="container">
+            <div class="header__menu_button">
+                @*<button class="btn btn_menu btn--icon" type="button">
+                        <span></span>
+                    </button>*@
+            </div>
+            <div class="header__logo header_logo">
+                <a href="/">
+                    <img class="header_logo__img" src="~/public/img/lykke_new.svg" height="36" alt="lykke_logo">
+                </a>
+            </div>
+            <div class="header__actions header_actions pull-right">
+                <div class="header_actions__login header_login pull-right">
+
+                    <div class="header_user dropdown__control">
+                        <a href="/Home/SignIn">
+                            <div class="header_user__img">
+                                <img src="~/public/img/user_default.svg" width="40" alt="user_image">
+                            </div>
+
+                            <div class="header_login__title">@firstName</div>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+</div>
+
+<div class="container body-content">
+    <article class="content page page--profile">
+
+        @{
+            var receiveLykkeNewsletterchecked = "";
+            if (Model.ReceiveLykkeNewsletter)
+            {
+                receiveLykkeNewsletterchecked = "checked";
+            }
+        }
+
+        <section class="section section--padding">
+            <div class="container container--extend">
+
+                <div class="user_badge user_badge--large">
+                    <div class="user_badge__img">
+                        <img src="~/public/img/user_default.svg" alt="user_badge__img">
+                    </div>
+                    <h2 class="user_badge__title">Leroy Cox</h2>
+
+                    <div class="card__actions text-center visible-xs">
+                        <button type="button" class="action_link"><i class="icon icon--exit"></i> Sign Out</button>
+                    </div>
+                </div>
+
+
+                <div class="nav_scroll">
+                    <div class="card__actions text-right pull-right hidden-xs">
+                    </div>
+                    <ul class="nav nav-tabs" role="tablist"></ul>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-8 col-md-6 automargin">
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="settings">
+                                <form action="SaveUserProfile" method="post" class="form form--default form_profile">
+                                    <input asp-for="@Model.UserId" type="hidden" />
+                                    <fieldset class="form_fieldset">
+                                        <div class="form_header">
+                                            <h3>Profile</h3>
+                                        </div>
+
+                                    </fieldset>
+
+                                    <fieldset class="form_fieldset">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label asp-for="FirstName" class="control-label"></label>
+                                                    <input asp-for="FirstName" class="form-control">
+                                                    <span asp-validation-for="FirstName" class="text-danger" />
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label asp-for="LastName" class="control-label"></label>
+                                                    <input asp-for="LastName" class="form-control">
+                                                    <span asp-validation-for="LastName" class="text-danger" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label pull-right">Optional</label>
+                                            <label asp-for="Website" class="control-label"></label>
+                                            <input asp-for="Website" class="form-control">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label pull-right">Say something about yourself in one sentence</label>
+                                            <label asp-for="Bio" class="control-label"></label>
+                                            <textarea asp-for="Bio" class="form-control"></textarea>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label pull-right">Optional</label>
+                                            <label asp-for="FacebookLink" class="control-label"></label>
+                                            <input asp-for="FacebookLink" class="form-control">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label pull-right">Optional</label>
+                                            <label asp-for="TwitterLink" class="control-label"></label>
+                                            <input asp-for="TwitterLink" class="form-control">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label pull-right">Optional</label>
+                                            <label asp-for="GithubLink" class="control-label"></label>
+                                            <input asp-for="GithubLink" class="form-control">
+                                        </div>
+
+
+                                        <fieldset class="form_fieldset">
+                                            <div class="form_header">
+                                                <img class="pull-right form_header__img" src="~/public/img/streams_logo.svg" width="50">
+                                                <h3>Streams</h3>
+                                            </div>
+                                            <div class="asset_link_list asset_link_list--alt">
+                                                <div class="asset_link">
+                                                    <div class="asset_link__info">
+                                                        <div class="asset_link__title">Streams Newsletter</div>
+                                                        <div class="asset_link__desc">Receive streams newsletter</div>
+                                                    </div>
+                                                    <div class="asset_link__action">
+                                                        <div class="switcher">
+                                                            <input id="receiveLykkeNewsletter" name="receiveLykkeNewsletter" type="checkbox" class="switcher__elem" value="true" @receiveLykkeNewsletterchecked>
+                                                            <label for="receiveLykkeNewsletter" class="switcher__control"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </fieldset>
+                                    <div class="form_submit">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                            </div>
+                                            <div class="col-xs-12 col-sm-6 text-right pull-right">
+                                                <button type="submit" class="btn">Save Profile</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </article>
+</div>

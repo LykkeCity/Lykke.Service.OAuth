@@ -1,0 +1,234 @@
+﻿@model Core.UserProfile.IUserProfileData
+
+@{
+    Layout = "~/Views/Shared/_UserProfileLayout.cshtml";
+    var firstName = string.IsNullOrEmpty(Model.FirstName) ? "" : Model.FirstName;
+}
+
+<div class="header_container">
+    <header class="header">
+        <div class="container">
+            <div class="header__menu_button">
+                @*<button class="btn btn_menu btn--icon" type="button">
+                        <span></span>
+                    </button>*@
+            </div>
+            <div class="header__logo header_logo">
+                <a href="/">
+                    <img class="header_logo__img" src="~/public/img/lykke_new.svg" height="36" alt="lykke_logo">
+                </a>
+            </div>
+            <div class="header__actions header_actions pull-right">
+                <div class="header_actions__login header_login pull-right">
+
+                    <div class="header_user dropdown__control">
+                        <a href="/Home/SignIn">
+                            <div class="header_user__img">
+                                <img src="~/public/img/user_default.svg" width="40" alt="user_image">
+                            </div>
+
+                            <div class="header_login__title">@firstName</div>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+</div>
+
+<div class="container body-content">
+    <article class="content page page--profile">
+
+        @{
+            var receiveLykkeNewsletterchecked = "";
+            if (Model.ReceiveLykkeNewsletter)
+            {
+                receiveLykkeNewsletterchecked = "checked";
+            }
+        }
+
+        <section class="section section--padding">
+            <div class="container container--extend">
+
+                <div class="user_badge user_badge--large">
+                    <div class="user_badge__img">
+                        <img src="~/public/img/user_default.svg" alt="user_badge__img">
+                    </div>
+                    <h2 class="user_badge__title">Leroy Cox</h2>
+                    @*<div class="user_badge__desc hint">leroycox@gmail.com</div>*@
+
+                    <div class="card__actions text-center visible-xs">
+                        <button type="button" class="action_link"><i class="icon icon--exit"></i> Sign Out</button>
+                    </div>
+                </div>
+
+
+                <div class="nav_scroll">
+                    <div class="card__actions text-right pull-right hidden-xs">
+                        @*<button type="button" class="action_link"><i class="icon icon--exit"></i> Sign Out</button>*@
+                    </div>
+                    <ul class="nav nav-tabs" role="tablist">
+                        @*<li role="presentation" class="active"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Account settings</a></li>
+                            <li role="presentation"><a href="#subscriptions" aria-controls="subscriptions" role="tab" data-toggle="tab">Subscriptions</a></li>*@
+                    </ul>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-8 col-md-6 automargin">
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="settings">
+                                <form class="form form--default form_profile">
+
+                                    <fieldset class="form_fieldset">
+                                        <div class="form_header">
+                                            <a href="EditUserProfile/@Model.UserId" class="btn btn-sm pull-right">Edit</a>
+                                            <h3>Profile</h3>
+                                        </div>
+
+                                    </fieldset>
+
+                                    <fieldset class="form_fieldset">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label asp-for="FirstName" class="control-label">First name</label>
+                                                    <input asp-for="FirstName" class="form-control" id="first_name" disabled>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="form-group">
+                                                    <label asp-for="LastName" class="control-label">Last name</label>
+                                                    <input asp-for="LastName" class="form-control" id="last_name" disabled>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @*<div class="form-group">
+                                                <label class="control-label pull-right">Optional</label>
+                                                <label for="website" class="control-label">Website</label>
+                                                <input type="url" class="form-control" id="website" value="http://" disabled>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="control-label pull-right">Say something about yourself in one sentence</label>
+                                                <label for="bio" class="control-label">Bio</label>
+                                                <textarea name="bio" id="bio" class="form-control" disabled></textarea>
+                                            </div>*@
+
+                                        <div class="form-group">
+                                            <label asp-for="Website" class="control-label">Website</label>
+                                            <input asp-for="Website" class="form-control" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label pull-right">Say something about yourself in one sentence</label>
+                                            <label asp-for="Bio" class="control-label">Bio</label>
+                                            <textarea asp-for="Bio" id="bio" class="form-control" disabled></textarea>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label pull-right">Optional</label>
+                                            <label asp-for="FacebookLink" class="control-label"></label>
+                                            <input asp-for="FacebookLink" class="form-control" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label pull-right">Optional</label>
+                                            <label asp-for="TwitterLink" class="control-label"></label>
+                                            <input asp-for="TwitterLink" class="form-control" disabled>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="control-label pull-right">Optional</label>
+                                            <label asp-for="GithubLink" class="control-label"></label>
+                                            <input asp-for="GithubLink" class="form-control" disabled>
+                                        </div>
+
+                                        <fieldset class="form_fieldset">
+                                            <div class="form_header">
+                                                <img class="pull-right form_header__img" src="~/public/img/streams_logo.svg" width="50">
+                                                <h3>Streams</h3>
+                                            </div>
+
+                                            <div class="asset_link_list asset_link_list--alt">
+                                                <div class="asset_link">
+                                                    <div class="asset_link__info">
+                                                        <div class="asset_link__title">Streams Newsletter</div>
+                                                        <div class="asset_link__desc">Receive streams newsletter</div>
+                                                    </div>
+                                                    <div class="asset_link__action">
+                                                        <div class="switcher">
+                                                            <input asp-for="ReceiveLykkeNewsletter" type="checkbox" class="switcher__elem" @receiveLykkeNewsletterchecked disabled>
+                                                            <label for="ReceiveLykkeNewsletter" class="switcher__control"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </fieldset>
+
+                                    @*<fieldset class="form_fieldset">
+                                            <div class="form_header">
+                                                <h3>Access to Lykke Services</h3>
+                                                <p class="text-muted">Use your data profile in other Lykke Services</p>
+                                            </div>
+
+                                            <div class="asset_link_list asset_link_list--alt">
+                                                <div class="asset_link">
+                                                    <div class="asset_link__icon">
+                                                        <img src="img/logo-lykke.svg" alt="lykke" width="50">
+                                                    </div>
+                                                    <div class="asset_link__info">
+                                                        <div class="asset_link__title">News and blog in Lykke</div>
+                                                        <div class="asset_link__desc"><a href="http://lykke.com">lykke.com</a></div>
+                                                    </div>
+                                                    <div class="asset_link__action">
+                                                        <div class="switcher">
+                                                            <input id="ch1" type="checkbox" class="switcher__elem" checked>
+                                                            <label for="ch1" class="switcher__control"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="asset_link">
+                                                    <div class="asset_link__icon">
+                                                        <img src="img/streams_logo.svg" alt="streams" width="50">
+                                                    </div>
+                                                    <div class="asset_link__info">
+                                                        <div class="asset_link__title">Lykke Streams</div>
+                                                        <div class="asset_link__desc"><a href="http://streams.lykke.com">streams.lykke.com</a></div>
+                                                    </div>
+                                                    <div class="asset_link__action">
+                                                        <div class="switcher">
+                                                            <input id="ch2" type="checkbox" class="switcher__elem" checked>
+                                                            <label for="ch2" class="switcher__control"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="asset_link">
+                                                    <div class="asset_link__icon">
+                                                        <img src="img/issuer_portal_logo.svg" alt="issuer_portal" width="50">
+                                                    </div>
+                                                    <div class="asset_link__info">
+                                                        <div class="asset_link__title">Issuer Portal</div>
+                                                        <div class="asset_link__desc"><a href="http://issuerportal.lykke.com">issuerportal.lykke.com</a></div>
+                                                    </div>
+                                                    <div class="asset_link__action">
+                                                        <div class="switcher">
+                                                            <input id="ch3" type="checkbox" class="switcher__elem">
+                                                            <label for="ch3" class="switcher__control"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>*@
+
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </article>
+</div>
