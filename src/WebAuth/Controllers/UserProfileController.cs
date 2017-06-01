@@ -27,6 +27,7 @@ namespace WebAuth.Controllers
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
         private readonly IUserManager _userManager;
         private readonly IUserProfileRepository _userProfileRepository;
+        private readonly IPersonalDataService _personalDataService;
 
         public UserProfileController(
             IApplicationRepository applicationRepository,
@@ -35,7 +36,8 @@ namespace WebAuth.Controllers
             IClientsSessionsRepository clientsSessionsRepository,
             IWalletCredentialsRepository walletCredentialsRepository,
             IUserManager userManager,
-            IUserProfileRepository userProfileRepository
+            IUserProfileRepository userProfileRepository,
+            IPersonalDataService personalDataService
             )
         {
             _applicationRepository = applicationRepository;
@@ -45,6 +47,7 @@ namespace WebAuth.Controllers
             _walletCredentialsRepository = walletCredentialsRepository;
             _userManager = userManager;
             _userProfileRepository = userProfileRepository;
+            _personalDataService = personalDataService;
         }
 
         [HttpGet("~/userprofile/{id}")]
@@ -136,6 +139,15 @@ namespace WebAuth.Controllers
             if (app == null) return Json("Application Id Incorrect!");
 
             var profile = await _userProfileRepository.GetAsync(id);
+            if (profile == null)
+            {
+                var client = await _personalDataService.GetAsync(id);
+                profile = new UserProfileViewModel
+                {
+                    FirstName = client.FirstName,
+                    LastName = client.LastName
+                };
+            }
 
             return Json(profile);
         }
