@@ -94,9 +94,13 @@ namespace WebAuth.Controllers
 
             if (userProfile == null)
             {
+                var personalData = await _personalDataService.GetAsync(id);
+
                 userProfile = new UserProfileViewModel
                 {
-                    UserId = id
+                    UserId = id,
+                    FirstName = personalData.FirstName,
+                    LastName = personalData.LastName
                 };
             }
 
