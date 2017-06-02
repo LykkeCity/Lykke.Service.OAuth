@@ -27,6 +27,7 @@ namespace WebAuth.Controllers
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
         private readonly IUserManager _userManager;
         private readonly IUserProfileRepository _userProfileRepository;
+        private readonly IPersonalDataService _personalDataService;
 
         public UserProfileController(
             IApplicationRepository applicationRepository,
@@ -35,7 +36,8 @@ namespace WebAuth.Controllers
             IClientsSessionsRepository clientsSessionsRepository,
             IWalletCredentialsRepository walletCredentialsRepository,
             IUserManager userManager,
-            IUserProfileRepository userProfileRepository
+            IUserProfileRepository userProfileRepository,
+            IPersonalDataService personalDataService
             )
         {
             _applicationRepository = applicationRepository;
@@ -45,6 +47,7 @@ namespace WebAuth.Controllers
             _walletCredentialsRepository = walletCredentialsRepository;
             _userManager = userManager;
             _userProfileRepository = userProfileRepository;
+            _personalDataService = personalDataService;
         }
 
         [HttpGet("~/userprofile/{id}")]
@@ -62,12 +65,15 @@ namespace WebAuth.Controllers
             if (currentUserId == client.Id)
             {
                 var profile = await _userProfileRepository.GetAsync(id);
+                var personalData = await _personalDataService.GetAsync(id);
 
                 if (profile == null)
                 {
                     var userProfileModel = new UserProfileViewModel
                     {
-                        UserId = id
+                        UserId = id,
+                        FirstName = personalData.FirstName,
+                        LastName = personalData.LastName
                     };
 
                     return View("~/Views/UserProfile/UserProfile.cshtml", userProfileModel);
@@ -87,13 +93,17 @@ namespace WebAuth.Controllers
         [HttpGet("~/userprofile/edituserprofile/{id}")]
         public async Task<IActionResult> EditUserProfile(string id)
         {
-            var userProfile = await _userProfileRepository.GetAsync(id);
+            var userProfile = await GetUserProfileViewModel(id);
 
             if (userProfile == null)
             {
+                var personalData = await _personalDataService.GetAsync(id);
+
                 userProfile = new UserProfileViewModel
                 {
-                    UserId = id
+                    UserId = id,
+                    FirstName = personalData.FirstName,
+                    LastName = personalData.LastName
                 };
             }
 
@@ -113,6 +123,9 @@ namespace WebAuth.Controllers
         public async Task<IActionResult> SaveUserProfile(UserProfileViewModel userProfile, bool receiveLykkeNewsletter = false)
         {
             var profile = await _userProfileRepository.GetAsync(userProfile.UserId);
+            var personalData = await _personalDataService.GetAsync(userProfile.UserId);
+            userProfile.FirstName = personalData.FirstName;
+            userProfile.LastName = personalData.LastName;
 
             if (profile == null)
             {
@@ -136,8 +149,39 @@ namespace WebAuth.Controllers
             if (app == null) return Json("Application Id Incorrect!");
 
             var profile = await _userProfileRepository.GetAsync(id);
+            if (profile == null)
+            {
+                var client = await _personalDataService.GetAsync(id);
+                profile = new UserProfileViewModel
+                {
+                    FirstName = client.FirstName,
+                    LastName = client.LastName
+                };
+            }
 
             return Json(profile);
+        }
+
+        private async Task<UserProfileViewModel> GetUserProfileViewModel(string id)
+        {
+            var userProfile = await _userProfileRepository.GetAsync(id);
+
+            if (userProfile == null) return null;
+
+            var model = new UserProfileViewModel
+            {
+                UserId = id,
+                FirstName = userProfile.FirstName,
+                LastName = userProfile.LastName,
+                Bio = userProfile.Bio,
+                FacebookLink = userProfile.FacebookLink,
+                GithubLink = userProfile.GithubLink,
+                TwitterLink = userProfile.TwitterLink,
+                ReceiveLykkeNewsletter = userProfile.ReceiveLykkeNewsletter,
+                Website = userProfile.Website
+            };
+
+            return model;
         }
     }
 }

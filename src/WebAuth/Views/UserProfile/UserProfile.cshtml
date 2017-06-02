@@ -57,7 +57,6 @@
                         <img src="~/public/img/user_default.svg" alt="user_badge__img">
                     </div>
                     <h2 class="user_badge__title">@firstName @lastName</h2>
-                    @*<div class="user_badge__desc hint">leroycox@gmail.com</div>*@
 
                     <div class="card__actions text-center visible-xs">
                         <button type="button" class="action_link"><i class="icon icon--exit"></i> Sign Out</button>
@@ -67,12 +66,8 @@
 
                 <div class="nav_scroll">
                     <div class="card__actions text-right pull-right hidden-xs">
-                        @*<button type="button" class="action_link"><i class="icon icon--exit"></i> Sign Out</button>*@
                     </div>
-                    <ul class="nav nav-tabs" role="tablist">
-                        @*<li role="presentation" class="active"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Account settings</a></li>
-                            <li role="presentation"><a href="#subscriptions" aria-controls="subscriptions" role="tab" data-toggle="tab">Subscriptions</a></li>*@
-                    </ul>
+                    <ul class="nav nav-tabs" role="tablist"></ul>
                 </div>
 
                 <div class="row">
@@ -90,32 +85,6 @@
                                     </fieldset>
 
                                     <fieldset class="form_fieldset">
-                                        <div class="row">
-                                            <div class="col-sm-6">
-                                                <div class="form-group">
-                                                    <label asp-for="FirstName" class="control-label">First name</label>
-                                                    <input asp-for="FirstName" class="form-control" id="first_name" disabled>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <div class="form-group">
-                                                    <label asp-for="LastName" class="control-label">Last name</label>
-                                                    <input asp-for="LastName" class="form-control" id="last_name" disabled>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        @*<div class="form-group">
-                                                <label class="control-label pull-right">Optional</label>
-                                                <label for="website" class="control-label">Website</label>
-                                                <input type="url" class="form-control" id="website" value="http://" disabled>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label class="control-label pull-right">Say something about yourself in one sentence</label>
-                                                <label for="bio" class="control-label">Bio</label>
-                                                <textarea name="bio" id="bio" class="form-control" disabled></textarea>
-                                            </div>*@
 
                                         <div class="form-group">
                                             <label asp-for="Website" class="control-label">Website</label>
@@ -168,62 +137,6 @@
                                             </div>
                                         </fieldset>
                                     </fieldset>
-
-                                    @*<fieldset class="form_fieldset">
-                                            <div class="form_header">
-                                                <h3>Access to Lykke Services</h3>
-                                                <p class="text-muted">Use your data profile in other Lykke Services</p>
-                                            </div>
-
-                                            <div class="asset_link_list asset_link_list--alt">
-                                                <div class="asset_link">
-                                                    <div class="asset_link__icon">
-                                                        <img src="img/logo-lykke.svg" alt="lykke" width="50">
-                                                    </div>
-                                                    <div class="asset_link__info">
-                                                        <div class="asset_link__title">News and blog in Lykke</div>
-                                                        <div class="asset_link__desc"><a href="http://lykke.com">lykke.com</a></div>
-                                                    </div>
-                                                    <div class="asset_link__action">
-                                                        <div class="switcher">
-                                                            <input id="ch1" type="checkbox" class="switcher__elem" checked>
-                                                            <label for="ch1" class="switcher__control"></label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="asset_link">
-                                                    <div class="asset_link__icon">
-                                                        <img src="img/streams_logo.svg" alt="streams" width="50">
-                                                    </div>
-                                                    <div class="asset_link__info">
-                                                        <div class="asset_link__title">Lykke Streams</div>
-                                                        <div class="asset_link__desc"><a href="http://streams.lykke.com">streams.lykke.com</a></div>
-                                                    </div>
-                                                    <div class="asset_link__action">
-                                                        <div class="switcher">
-                                                            <input id="ch2" type="checkbox" class="switcher__elem" checked>
-                                                            <label for="ch2" class="switcher__control"></label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="asset_link">
-                                                    <div class="asset_link__icon">
-                                                        <img src="img/issuer_portal_logo.svg" alt="issuer_portal" width="50">
-                                                    </div>
-                                                    <div class="asset_link__info">
-                                                        <div class="asset_link__title">Issuer Portal</div>
-                                                        <div class="asset_link__desc"><a href="http://issuerportal.lykke.com">issuerportal.lykke.com</a></div>
-                                                    </div>
-                                                    <div class="asset_link__action">
-                                                        <div class="switcher">
-                                                            <input id="ch3" type="checkbox" class="switcher__elem">
-                                                            <label for="ch3" class="switcher__control"></label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </fieldset>*@
-
                                 </form>
                             </div>
                         </div>
