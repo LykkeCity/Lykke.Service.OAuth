@@ -65,12 +65,15 @@ namespace WebAuth.Controllers
             if (currentUserId == client.Id)
             {
                 var profile = await _userProfileRepository.GetAsync(id);
+                var personalData = await _personalDataService.GetAsync(id);
 
                 if (profile == null)
                 {
                     var userProfileModel = new UserProfileViewModel
                     {
-                        UserId = id
+                        UserId = id,
+                        FirstName = personalData.FirstName,
+                        LastName = personalData.LastName
                     };
 
                     return View("~/Views/UserProfile/UserProfile.cshtml", userProfileModel);
@@ -90,7 +93,7 @@ namespace WebAuth.Controllers
         [HttpGet("~/userprofile/edituserprofile/{id}")]
         public async Task<IActionResult> EditUserProfile(string id)
         {
-            var userProfile = await _userProfileRepository.GetAsync(id);
+            var userProfile = await GetUserProfileViewModel(id);
 
             if (userProfile == null)
             {
@@ -120,6 +123,9 @@ namespace WebAuth.Controllers
         public async Task<IActionResult> SaveUserProfile(UserProfileViewModel userProfile, bool receiveLykkeNewsletter = false)
         {
             var profile = await _userProfileRepository.GetAsync(userProfile.UserId);
+            var personalData = await _personalDataService.GetAsync(userProfile.UserId);
+            userProfile.FirstName = personalData.FirstName;
+            userProfile.LastName = personalData.LastName;
 
             if (profile == null)
             {
@@ -154,6 +160,28 @@ namespace WebAuth.Controllers
             }
 
             return Json(profile);
+        }
+
+        private async Task<UserProfileViewModel> GetUserProfileViewModel(string id)
+        {
+            var userProfile = await _userProfileRepository.GetAsync(id);
+
+            if (userProfile == null) return null;
+
+            var model = new UserProfileViewModel
+            {
+                UserId = id,
+                FirstName = userProfile.FirstName,
+                LastName = userProfile.LastName,
+                Bio = userProfile.Bio,
+                FacebookLink = userProfile.FacebookLink,
+                GithubLink = userProfile.GithubLink,
+                TwitterLink = userProfile.TwitterLink,
+                ReceiveLykkeNewsletter = userProfile.ReceiveLykkeNewsletter,
+                Website = userProfile.Website
+            };
+
+            return model;
         }
     }
 }
