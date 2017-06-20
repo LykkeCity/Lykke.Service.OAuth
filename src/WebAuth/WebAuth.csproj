@@ -18,12 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AzureDataAccess\AzureDataAccess.csproj" />
-    <ProjectReference Include="..\BusinessService\BusinessService.csproj" />
-    <ProjectReference Include="..\Core\Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Validation" Version="1.0.0-alpha2-final" />
     <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="1.0.0-beta6-final" />
     <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="1.0.0-beta6-final" />
@@ -31,6 +25,8 @@
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="2.0.1" />
     <PackageReference Include="Flurl.Http" Version="1.1.2" />
     <PackageReference Include="Lykke.Common" Version="1.1.69" />
+    <PackageReference Include="Lykke.Service.Registration" Version="1.0.7" />
+    <PackageReference Include="Lykke.SettingsReader" Version="1.0.36" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="1.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="1.1.2" />
@@ -60,6 +56,12 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="BundlerMinifier.Core" Version="2.2.301" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AzureDataAccess\AzureDataAccess.csproj" />
+    <ProjectReference Include="..\BusinessService\BusinessService.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
 </Project>

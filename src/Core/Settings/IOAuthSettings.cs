@@ -23,6 +23,7 @@
 
     public class OAuth
     {
+        public string RegistrationApiUrl { get; set; }
         public DbSettings Db { get; set; }
         public CorsSettings Cors { get; set; }
     }

@@ -5,6 +5,7 @@ using AutoMapper;
 using Core.Application;
 using Core.Settings;
 using Flurl.Http;
+using Lykke.SettingsReader;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -51,7 +52,7 @@ namespace WebAuth
             }
             else
             {
-                settings = Configuration["SettingsUrl"].GetJsonAsync<OAuthSettings>().Result;
+                settings = SettingsProcessor.Process<OAuthSettings>(Configuration["SettingsUrl"].GetStringAsync().Result);
             }
 
             services.AddSingleton<IOAuthSettings>(settings);
@@ -164,7 +165,7 @@ namespace WebAuth
                 options.UserinfoEndpointPath = "/connect/userinfo";
 
                 options.ApplicationCanDisplayErrors = true;
-                options.AllowInsecureHttp = false; //allow http, as its behind the nginx
+                options.AllowInsecureHttp = false;
             });
 
             app.UseCsp(options => options.DefaultSources(directive => directive.Self())

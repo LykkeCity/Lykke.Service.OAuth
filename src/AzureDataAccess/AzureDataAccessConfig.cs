@@ -16,6 +16,7 @@ using Core.EventLogs;
 using Core.Kyc;
 using Core.Messages.Email;
 using Core.Settings;
+using Lykke.Service.Registration;
 using StructureMap;
 
 namespace AzureDataAccess
@@ -47,6 +48,9 @@ namespace AzureDataAccess
             BindBackOffice(backOfficeConnString, log);
 
             BindBitcoin(clientPersonalInfoConnString, log);
+
+            var registrationClient = new LykkeRegistrationClient(settings.OAuth.RegistrationApiUrl, log);
+            For<ILykkeRegistrationClient>().Use(registrationClient).Singleton();
         }
 
         public static LogToTable CreateLogToTable(string connString)
