@@ -14,6 +14,7 @@ using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using WebAuth.Extensions;
 using WebAuth.Managers;
 using WebAuth.Models;
 
@@ -97,7 +98,7 @@ namespace WebAuth.Controllers
             if (!ModelState.IsValid)
                 return View("Login", model);
 
-            var userIp = HttpContext.Connection.RemoteIpAddress.ToString();
+            var userIp = this.GetIp();
 
             if (await _clientAccountsRepository.IsTraderWithEmailExistsAsync(registrationModel.Email))
             {
@@ -108,7 +109,7 @@ namespace WebAuth.Controllers
             RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
             {
                 Email = registrationModel.Email,
-                Password = registrationModel.RegistrationPassword,
+                Password = PasswordKeepingUtils.GetClientHashedPwd(registrationModel.RegistrationPassword),
                 Ip = userIp,
                 Changer = RecordChanger.Client
             });
