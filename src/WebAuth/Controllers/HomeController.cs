@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System;
+using System.Text;
 
 namespace WebAuth.Controllers
 {
@@ -40,11 +41,11 @@ namespace WebAuth.Controllers
         [Route("home/test"), HttpGet]
         public IActionResult HeadersList()
         {
-            var headers = "";
+            var headers = new StringBuilder();
             foreach (var key in Request.Headers.Keys)
-                headers += key + "=" + Request.Headers[key] + "    ";
+                headers.AppendLine($"<b>{key}</b>: {Request.Headers[key]}<br>");
 
-            return Json(headers);
+            return Content(headers.ToString(), "text/html");
         }
     }
 }
