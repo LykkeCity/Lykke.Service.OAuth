@@ -12,6 +12,7 @@ namespace Core.Kyc
         Task ChangePhoneAsync(string clientId, string phoneNumber, string changer);
         Task ChangeFirstNameAsync(string clientId, string firstName, string changer);
         Task ChangeLastNameAsync(string clientId, string lastName, string changer);
+        Task ChangeFullNameAsync(string clientId, string fullName, string changer);
         Task ChangeZipAsync(string clientId, string zip, string changer);
         Task ChangeCityAsync(string clientId, string city, string changer);
         Task ChangeAddressAsync(string clientId, string address, string changer);

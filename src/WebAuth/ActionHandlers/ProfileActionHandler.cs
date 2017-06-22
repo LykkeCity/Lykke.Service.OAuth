@@ -69,7 +69,7 @@ namespace WebAuth.ActionHandlers
         {
             await _srvKycManager.ChangeFirstNameAsync(CurrentClientId, viewModel.FirstName, RecordChanger.Client);
             await _srvKycManager.ChangeLastNameAsync(CurrentClientId, viewModel.LastName, RecordChanger.Client);
-            await _srvKycManager.ChangePhoneAsync(CurrentClientId, viewModel.ContactPhone, RecordChanger.Client);
+            await _srvKycManager.ChangeFullNameAsync(CurrentClientId, $"{viewModel.LastName} {viewModel.FirstName}", RecordChanger.Client);
 
             //update client identity
             var clientAccount =

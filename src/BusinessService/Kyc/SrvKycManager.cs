@@ -136,6 +136,17 @@ namespace BusinessService.Kyc
                     changer);
         }
 
+        public async Task ChangeFullNameAsync(string clientId, string fullName, string changer)
+        {
+            var dataBefore = await _personalDataService.GetAsync(clientId);
+            await _personalDataService.ChangeFullNameAsync(clientId, fullName);
+            var dataAfter = await _personalDataService.GetAsync(clientId);
+
+            await
+                _auditLogRepository.AddAuditRecordAsync(clientId, dataBefore, dataAfter, AuditRecordType.PersonalData,
+                    changer);
+        }
+
         public async Task ChangeZipAsync(string clientId, string zip, string changer)
         {
             var dataBefore = await _personalDataService.GetAsync(clientId);
