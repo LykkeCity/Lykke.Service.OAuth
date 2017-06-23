@@ -98,20 +98,22 @@ namespace WebAuth.Controllers
             if (!ModelState.IsValid)
                 return View("Login", model);
 
-            var userIp = this.GetIp();
-
             if (await _clientAccountsRepository.IsTraderWithEmailExistsAsync(registrationModel.Email))
             {
                 ModelState.AddModelError("", $"Email {registrationModel.Email} is already in use.");
                 return View("Login", model);
             }
 
+            var userIp = this.GetIp();
+            var referer = this.GetReferer();
+
             RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
             {
                 Email = registrationModel.Email,
                 Password = PasswordKeepingUtils.GetClientHashedPwd(registrationModel.RegistrationPassword),
                 Ip = userIp,
-                Changer = RecordChanger.Client
+                Changer = RecordChanger.Client,
+                Referer = referer
             });
 
             var clientAccount = new Core.Clients.ClientAccount
