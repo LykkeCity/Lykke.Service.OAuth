@@ -31,6 +31,11 @@ namespace WebAuth.Extensions
             return ip;
         }
 
+        public static string GetReferer(this Controller ctx)
+        {
+            return GetHeaderValueAs<string>(ctx.HttpContext, "Referer");
+        }
+
         #region Tools
 
         private static T GetHeaderValueAs<T>(HttpContext httpContext, string headerName)
