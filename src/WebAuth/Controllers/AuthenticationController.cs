@@ -104,8 +104,13 @@ namespace WebAuth.Controllers
                 return View("Login", model);
             }
 
-            var userIp = this.GetIp();
-            var referer = this.GetReferer();
+            string userIp = this.GetIp();
+            string referer = this.GetReferer();
+
+            if (!string.IsNullOrEmpty(referer))
+            {
+                referer = new Uri(referer).Host;
+            }
 
             RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
             {
