@@ -11,7 +11,7 @@
             Registration = registration;
         }
 
-        public LoginViewModel(string returnUrl)
+        public LoginViewModel(string returnUrl, string referer)
         {
             if (Signin == null)
             {
@@ -24,7 +24,7 @@
 
             if (Registration == null)
             {
-                Registration = new RegistrationViewModel(returnUrl);
+                Registration = new RegistrationViewModel(returnUrl, referer);
             }
             else
             {
