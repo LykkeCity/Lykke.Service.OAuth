@@ -46,9 +46,10 @@ namespace WebAuth.Controllers
         [HttpGet("~/register")]
         public ActionResult Login(string returnUrl = null)
         {
+            string referer = this.GetReferer();
             try
             {
-                return View("Login", new LoginViewModel(returnUrl));
+                return View("Login", new LoginViewModel(returnUrl, referer));
             }
             catch (Exception ex)
             {
@@ -105,11 +106,11 @@ namespace WebAuth.Controllers
             }
 
             string userIp = this.GetIp();
-            string referer = this.GetReferer();
+            string referer = null;
 
-            if (!string.IsNullOrEmpty(referer))
+            if (!string.IsNullOrEmpty(registrationModel.Referer))
             {
-                referer = new Uri(referer).Host;
+                referer = new Uri(registrationModel.Referer).Host;
             }
 
             RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
@@ -120,6 +121,12 @@ namespace WebAuth.Controllers
                 Changer = RecordChanger.Client,
                 Referer = referer
             });
+
+            if (result == null)
+            {
+                ModelState.AddModelError("", "Technical problems during registration.");
+                return View("Login", model);
+            }
 
             var clientAccount = new Core.Clients.ClientAccount
             {

@@ -9,8 +9,9 @@ namespace WebAuth.Models
         {
         }
 
-        public RegistrationViewModel(string returnUrl) : base(returnUrl)
+        public RegistrationViewModel(string returnUrl, string referer = null) : base(returnUrl)
         {
+            Referer = referer;
         }
 
         [Required(ErrorMessage = "E-mail is required")]
@@ -27,5 +28,7 @@ namespace WebAuth.Models
         [DataType(DataType.Password)]
         [Compare("RegistrationPassword", ErrorMessage = "Password and confirm password should be the same")]
         public string ConfirmPassword { get; set; }
+
+        public string Referer { get; set; }
     }
 }
