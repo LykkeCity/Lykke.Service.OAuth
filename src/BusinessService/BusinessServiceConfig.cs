@@ -39,7 +39,11 @@ namespace BusinessService
             For<ICountryService>().Use<CountryService>().Ctor<IOAuthSettings>().Is(settings);
             For<IIpGeoLocationService>().Use<IpGeoLocationService>().Ctor<IOAuthSettings>().Is(settings);
 
-            For<IPersonalDataService>().Use<PersonalDataService>().Ctor<PersonalDataServiceSettings>().Is(settings.PersonalDataServiceSettings);
+            For<IPersonalDataService>().Use<PersonalDataService>().Ctor<PersonalDataServiceSettings>().Is(new PersonalDataServiceSettings
+            {
+                ServiceUri = settings.OAuth.PersonalDataServiceUrl,
+                ApiKey = settings.OAuth.PersonalDataApiKey
+            });
         }
     }
 }
