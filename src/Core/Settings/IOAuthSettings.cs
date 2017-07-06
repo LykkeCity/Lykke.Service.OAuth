@@ -5,6 +5,7 @@
         LykkeServiceApiSettings LykkeServiceApi { get; set; }
         ServiceBusSettings EmailServiceBus { get; set; }
         OAuth OAuth { get; set; }
+        PersonalDataServiceSettings PersonalDataServiceSettings { get; set; }
     }
 
     public class LykkeServiceApiSettings
@@ -23,8 +24,6 @@
     public class OAuth
     {
         public string RegistrationApiUrl { get; set; }
-        public string PersonalDataServiceUrl { get; set; }
-        public string PersonalDataApiKey { get; set; }
         public DbSettings Db { get; set; }
         public CorsSettings Cors { get; set; }
     }
@@ -46,5 +45,6 @@
         public LykkeServiceApiSettings LykkeServiceApi { get; set; }
         public ServiceBusSettings EmailServiceBus { get; set; }
         public OAuth OAuth { get; set; }
+        public PersonalDataServiceSettings PersonalDataServiceSettings { get; set; }
     }
 }
