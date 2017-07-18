@@ -107,6 +107,7 @@ namespace WebAuth.Controllers
 
             string userIp = this.GetIp();
             string referer = null;
+            string userAgent = this.GetUserAgent();
 
             if (!string.IsNullOrEmpty(registrationModel.Referer))
             {
@@ -119,6 +120,7 @@ namespace WebAuth.Controllers
                 Password = PasswordKeepingUtils.GetClientHashedPwd(registrationModel.RegistrationPassword),
                 Ip = userIp,
                 Changer = RecordChanger.Client,
+                UserAgent = userAgent,
                 Referer = referer
             });
 
