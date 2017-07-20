@@ -47,7 +47,7 @@ namespace WebAuth.Controllers
         [HttpGet("~/register")]
         public ActionResult Login(string returnUrl = null)
         {
-            string referer = this.GetReferer() ?? Request.GetUri().Host;
+            string referer = this.GetReferer() ?? Request.GetUri().ToString();
 
             try
             {
