@@ -12,6 +12,7 @@ using Core.Clients;
 using Core.Kyc;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using WebAuth.Extensions;
@@ -46,7 +47,8 @@ namespace WebAuth.Controllers
         [HttpGet("~/register")]
         public ActionResult Login(string returnUrl = null)
         {
-            string referer = this.GetReferer();
+            string referer = this.GetReferer() ?? Request.GetUri().Host;
+
             try
             {
                 return View("Login", new LoginViewModel(returnUrl, referer));
