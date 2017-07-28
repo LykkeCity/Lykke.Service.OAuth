@@ -9,7 +9,6 @@ using Common.Extensions;
 using Common.Log;
 using Common.PasswordTools;
 using Core.Clients;
-using Core.Kyc;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
@@ -70,24 +69,25 @@ namespace WebAuth.Controllers
                 return View("Login", model);
             }
 
-            var clientAccount =
-                await _clientAccountsRepository.AuthenticateAsync(loginModel.Username, loginModel.Password) ??
-                //ToDo: to remove when migrated to hashes
-                await
-                    _clientAccountsRepository.AuthenticateAsync(loginModel.Username,
-                        PasswordKeepingUtils.GetClientHashedPwd(loginModel.Password));
+            AuthResponse authResult = await _registrationClient.AuthorizeAsync(new AuthModel
+            {
+                Email = loginModel.Username,
+                Password = loginModel.Password,
+                Ip = this.GetIp(),
+                UserAgent = this.GetUserAgent()
+            });
 
-            if (clientAccount == null)
+
+            if (authResult.Status == AuthenticationStatus.Error)
             {
                 ModelState.AddModelError("Username", " ");
                 ModelState.AddModelError("Password", "Invalid user");
                 return View("Login", model);
             }
 
-            var identity = await _userManager.CreateUserIdentityAsync(clientAccount, loginModel.Username);
-            await
-                HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity),
-                    new AuthenticationProperties());
+            var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, loginModel.Username);
+
+            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity), new AuthenticationProperties());
 
             return RedirectToLocal(loginModel.ReturnUrl);
         }
@@ -144,10 +144,9 @@ namespace WebAuth.Controllers
             foreach (var registrationConsumer in _registrationConsumers)
                 registrationConsumer.ConsumeRegistration(clientAccount, userIp, CultureInfo.CurrentCulture.Name);
 
-            var identity = await _userManager.CreateUserIdentityAsync(clientAccount, registrationModel.Email);
-            await
-                HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity),
-                    new AuthenticationProperties());
+            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, registrationModel.Email);
+
+            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity), new AuthenticationProperties());
 
             return RedirectToAction("PersonalInformation", "Profile", new {returnUrl = registrationModel.ReturnUrl});
         }

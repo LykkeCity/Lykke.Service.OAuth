@@ -78,15 +78,15 @@ namespace WebAuth.Managers
             return identity;
         }
 
-        public async Task<ClaimsIdentity> CreateUserIdentityAsync(IClientAccount clientAccount, string userName)
+        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName)
         {
-            var personalData = await _personalDataService.GetAsync(clientAccount.Id);
+            var personalData = await _personalDataService.GetAsync(clientId);
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, clientAccount.Email),
-                new Claim(ClaimTypes.NameIdentifier, clientAccount.Id),
-                new Claim(OpenIdConnectConstants.Claims.Email, clientAccount.Email)
+                new Claim(ClaimTypes.Name, email),
+                new Claim(ClaimTypes.NameIdentifier, clientId),
+                new Claim(OpenIdConnectConstants.Claims.Email, email)
             };
 
             if (!string.IsNullOrEmpty(personalData.FirstName))
@@ -98,7 +98,7 @@ namespace WebAuth.Managers
             if (!string.IsNullOrEmpty(personalData.Country))
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Country, personalData.Country));
 
-            var documents = (await GetDocumentListAsync(clientAccount.Id)).ToList();
+            var documents = (await GetDocumentListAsync(clientId)).ToList();
             if (documents.Any())
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Documents, string.Join(",", documents)));
 
