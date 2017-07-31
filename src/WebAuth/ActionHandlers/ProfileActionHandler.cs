@@ -79,9 +79,9 @@ namespace WebAuth.ActionHandlers
                 _httpContextAccessor.HttpContext.Authentication.SignOutAsync("ServerCookie",
                     new AuthenticationProperties());
 
-            var identity = await _userManager.CreateUserIdentityAsync(clientAccount, clientAccount.Email);
-            await
-                _httpContextAccessor.HttpContext.Authentication.SignInAsync("ServerCookie",
+            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, clientAccount.Email);
+
+            await _httpContextAccessor.HttpContext.Authentication.SignInAsync("ServerCookie",
                     new ClaimsPrincipal(identity),
                     new AuthenticationProperties());
         }

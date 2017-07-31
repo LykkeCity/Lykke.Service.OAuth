@@ -36,6 +36,11 @@ namespace WebAuth.Extensions
             return GetHeaderValueAs<string>(ctx.HttpContext, "Referer");
         }
 
+        public static string GetUserAgent(this Controller ctx)
+        {
+            return GetHeaderValueAs<string>(ctx.HttpContext, "User-Agent");
+        }
+
         #region Tools
 
         private static T GetHeaderValueAs<T>(HttpContext httpContext, string headerName)

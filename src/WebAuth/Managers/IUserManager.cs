@@ -9,7 +9,7 @@ namespace WebAuth.Managers
     {
         ClaimsIdentity CreateIdentity(List<string> scopes, IEnumerable<Claim> claims);
 
-        Task<ClaimsIdentity> CreateUserIdentityAsync(IClientAccount clientAccount, string userName);
+        Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName);
 
         string GetCurrentUserId();
     }
