@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -54,17 +54,10 @@ namespace WebAuth.Tests.OAuth
 
             builder.ConfigureServices(services =>
             {
-                services.AddAuthentication();
-                services.AddLogging();
-            });
-
-            builder.Configure(app =>
-            {
-                app.UseOpenIdConnectServer(options =>
-                {
-                    options.Provider = new OpenIdConnectServerProvider
+                services.AddAuthentication()
+                    .AddOpenIdConnectServer(config =>
                     {
-                        OnValidateLogoutRequest = context =>
+                        config.Provider.OnValidateLogoutRequest = context =>
                         {
                             // Reject non-POST logout requests.
                             if (
@@ -77,8 +70,9 @@ namespace WebAuth.Tests.OAuth
                             }
 
                             return Task.FromResult(0);
-                        },
-                        OnValidateAuthorizationRequest = context =>
+                        };
+
+                        config.Provider.OnValidateAuthorizationRequest = context =>
                         {
                             if (
                                 !string.Equals(context.HttpContext.Request.Method, "POST",
@@ -90,13 +84,17 @@ namespace WebAuth.Tests.OAuth
                             }
 
                             return Task.FromResult(0);
-                        }
-                    };
+                        };
 
-                    // Run the configuration delegate
-                    // registered by the unit tests.
-                    configuration?.Invoke(options);
-                });
+                        configuration?.Invoke(config);
+                    });
+
+                services.AddLogging();
+            });
+
+            builder.Configure(app =>
+            {
+                app.UseAuthentication();
             });
 
             return new TestServer(builder);

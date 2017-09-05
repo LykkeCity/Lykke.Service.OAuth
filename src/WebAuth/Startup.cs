@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Globalization;
 using AspNet.Security.OAuth.Validation;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
+using AzureDataAccess;
+using Common.Log;
 using Core.Application;
 using Core.Settings;
-using Flurl.Http;
+using Lykke.Logs;
+using Lykke.Service.Registration;
 using Lykke.SettingsReader;
+using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,10 +19,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WebAuth.Configurations;
 using WebAuth.EventFilter;
 using WebAuth.Providers;
 using Microsoft.AspNetCore.HttpOverrides;
+using WebAuth.Modules;
 
 namespace WebAuth
 {
@@ -24,6 +30,7 @@ namespace WebAuth
     {
         public IConfigurationRoot Configuration { get; }
         public IHostingEnvironment Environment { get; }
+        public IContainer ApplicationContainer { get; set; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -39,33 +46,46 @@ namespace WebAuth
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            OAuthSettings settings = new OAuthSettings();
-
             if (Environment.IsProduction() && string.IsNullOrEmpty(Configuration["SettingsUrl"]))
             {
                 throw new Exception("SettingsUrl is not found");
             }
 
-            if (string.IsNullOrEmpty(Configuration["SettingsUrl"]))
-            {
-                Configuration.Bind(settings);
-            }
-            else
-            {
-                settings = SettingsProcessor.Process<OAuthSettings>(Configuration["SettingsUrl"].GetStringAsync().Result);
-            }
+            OAuthSettings settings = Environment.IsDevelopment()
+                ? Configuration.Get<OAuthSettings>()
+                : HttpSettingsLoader.Load<OAuthSettings>(Configuration.GetValue<string>("SettingsUrl"));
 
             services.AddSingleton<IOAuthSettings>(settings);
 
-            services.AddAuthentication(options => { options.SignInScheme = "ServerCookie"; });
+            var applicationRepository = AzureRepoFactories.Applications.CreateApplicationsRepository(settings.OAuth.Db.ClientPersonalInfoConnString, null);
+
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(o =>
+                {
+                    o.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + CookieAuthenticationDefaults.AuthenticationScheme;
+                    o.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                    o.LoginPath = new PathString("/signin");
+                    o.LogoutPath = new PathString("/signout");
+                })
+                .AddOpenIdConnectServer(options =>
+                {
+                    options.Provider = new AuthorizationProvider(applicationRepository);
+                    options.AuthorizationEndpointPath = "/connect/authorize";
+                    options.LogoutEndpointPath = "/connect/logout";
+                    options.TokenEndpointPath = "/connect/token";
+                    options.UserinfoEndpointPath = "/connect/userinfo";
+                    options.ApplicationCanDisplayErrors = true;
+                    options.AllowInsecureHttp = true;
+                })
+                .AddOAuthValidation(OAuthValidationDefaults.AuthenticationScheme);
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
             services.AddCors(options =>
             {
-                options.AddPolicy("Lykke", builder =>
+                options.AddPolicy("Lykke", policy =>
                 {
-                    builder.AllowAnyOrigin()
+                    policy.AllowAnyOrigin()
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
@@ -88,9 +108,35 @@ namespace WebAuth
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
             });
 
-            WebDependencies.Create(services);
+            var consoleLogger = new LogToConsole();
+            var aggregateLogger = new AggregateLogger();
 
-            return ApiDependencies.Create(services, settings);
+            aggregateLogger.AddLog(consoleLogger);
+
+            var slackService = services.UseSlackNotificationsSenderViaAzureQueue(new Lykke.AzureQueueIntegration.AzureQueueSettings
+            {
+                ConnectionString = settings.SlackNotifications.AzureQueue.ConnectionString,
+                QueueName = settings.SlackNotifications.AzureQueue.QueueName
+            }, aggregateLogger);
+
+            var log = services.UseLogToAzureStorage(settings.OAuth.Db.LogsConnString, slackService,
+                "LogWebAuth", new LogToConsole());
+
+            var builder = new ContainerBuilder();
+
+            builder.RegisterInstance(log).As<ILog>().SingleInstance();
+            builder.RegisterInstance(applicationRepository).As<IApplicationRepository>().SingleInstance();
+
+            builder.RegisterModule(new WebModule());
+            builder.RegisterModule(new DbModule(settings, log));
+            builder.RegisterModule(new BusinessModule(settings, log));
+
+            builder.RegisterRegistrationClient(settings.OAuth.RegistrationApiUrl, log);
+
+            builder.Populate(services);
+            ApplicationContainer = builder.Build();
+
+            return new AutofacServiceProvider(ApplicationContainer);
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -131,42 +177,9 @@ namespace WebAuth
 
             app.UseCors("Lykke");
 
-            // Create a new branch where the registered middleware will be executed only for API calls.
-            app.UseOAuthValidation(new OAuthValidationOptions
-            {
-                AutomaticAuthenticate = true,
-                AutomaticChallenge = true
-            });
-
-            // Create a new branch where the registered middleware will be executed only for non API calls.
-            app.UseCookieAuthentication(new CookieAuthenticationOptions
-            {
-                AutomaticAuthenticate = true,
-                AutomaticChallenge = true,
-                AuthenticationScheme = "ServerCookie",
-                CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
-                ExpireTimeSpan = TimeSpan.FromMinutes(5),
-                LoginPath = new PathString("/signin"),
-                LogoutPath = new PathString("/signout")
-            });
+            app.UseAuthentication();
 
             app.UseSession();
-
-            var applicationRepository = app.ApplicationServices.GetService<IApplicationRepository>();
-
-            app.UseOpenIdConnectServer(options =>
-            {
-                options.Provider = new AuthorizationProvider(applicationRepository);
-
-                // Enable the authorization, logout, token and userinfo endpoints.
-                options.AuthorizationEndpointPath = "/connect/authorize";
-                options.LogoutEndpointPath = "/connect/logout";
-                options.TokenEndpointPath = "/connect/token";
-                options.UserinfoEndpointPath = "/connect/userinfo";
-
-                options.ApplicationCanDisplayErrors = true;
-                options.AllowInsecureHttp = false;
-            });
 
             app.UseCsp(options => options.DefaultSources(directive => directive.Self())
                 .ImageSources(directive => directive.Self()

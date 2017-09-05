@@ -12,7 +12,8 @@ using Core.Clients;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
-using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using WebAuth.Extensions;
 using WebAuth.Managers;
@@ -85,9 +86,9 @@ namespace WebAuth.Controllers
                 return View("Login", model);
             }
 
-            var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, loginModel.Username);
+            var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, loginModel.Username, false);
 
-            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity), new AuthenticationProperties());
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
             return RedirectToLocal(loginModel.ReturnUrl);
         }
@@ -144,9 +145,9 @@ namespace WebAuth.Controllers
             foreach (var registrationConsumer in _registrationConsumers)
                 registrationConsumer.ConsumeRegistration(clientAccount, userIp, CultureInfo.CurrentCulture.Name);
 
-            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, registrationModel.Email);
+            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, registrationModel.Email, true);
 
-            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity), new AuthenticationProperties());
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
             return RedirectToAction("PersonalInformation", "Profile", new {returnUrl = registrationModel.ReturnUrl});
         }
@@ -155,7 +156,7 @@ namespace WebAuth.Controllers
         [HttpPost("~/signout")]
         public ActionResult SignOut()
         {
-            return SignOut("ServerCookie");
+            return SignOut(CookieAuthenticationDefaults.AuthenticationScheme);
         }
     }
 }

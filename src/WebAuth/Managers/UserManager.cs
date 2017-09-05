@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Clients;
 using Core.Extensions;
@@ -28,19 +29,23 @@ namespace WebAuth.Managers
 
         public ClaimsIdentity CreateIdentity(List<string> scopes, IEnumerable<Claim> claims)
         {
-            var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+            var identity = new ClaimsIdentity(
+                OpenIdConnectServerDefaults.AuthenticationScheme,
+                OpenIdConnectConstants.Claims.Name,
+                OpenIdConnectConstants.Claims.Role);
 
             foreach (var claim in claims)
                 switch (claim.Type)
                 {
                     case ClaimTypes.NameIdentifier:
                     {
-                        identity.AddClaim(claim);
+                        AddClaim(claim, identity);
+                        AddClaim(claim, identity, OpenIdConnectConstants.Claims.Subject);
                         break;
                     }
                     case ClaimTypes.Name:
                     {
-                        AddClaim(claim, identity);
+                        AddClaim(claim, identity, OpenIdConnectConstants.Claims.Name);
                         break;
                     }
                     case OpenIdConnectConstants.Claims.Email:
@@ -73,18 +78,22 @@ namespace WebAuth.Managers
                             AddClaim(claim, identity);
                         break;
                     }
+                    case OpenIdConnectConstantsExt.Claims.SignType:
+                    {
+                        AddClaim(claim, identity);
+                        break;
+                    }
                 }
 
             return identity;
         }
 
-        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName)
+        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, bool? register = null)
         {
             var personalData = await _personalDataService.GetAsync(clientId);
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, email),
                 new Claim(ClaimTypes.NameIdentifier, clientId),
                 new Claim(OpenIdConnectConstants.Claims.Email, email)
             };
@@ -99,8 +108,12 @@ namespace WebAuth.Managers
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Country, personalData.Country));
 
             var documents = (await GetDocumentListAsync(clientId)).ToList();
+
             if (documents.Any())
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Documents, string.Join(",", documents)));
+
+            if (register.HasValue)
+                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register": "Login"));
 
             return new ClaimsIdentity(new GenericIdentity(userName, "Token"), claims);
         }
@@ -119,16 +132,16 @@ namespace WebAuth.Managers
             return uploadedDocumentTypes;
         }
 
-        private static void AddClaim(Claim claim, ClaimsIdentity identity)
+        private static void AddClaim(Claim claim, ClaimsIdentity identity, string claimType = null)
         {
-            var destinations = new[]
-            {
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken
-            };
-            claim.SetDestinations(destinations);
+            string type = string.IsNullOrEmpty(claimType) ? claim.Type : claimType;
 
-            identity.AddClaim(claim);
+            if (identity.Claims.All(item => item.Type != type))
+            {
+                identity.AddClaim(new Claim(type, claim.Value)
+                    .SetDestinations(OpenIdConnectConstants.Destinations.AccessToken,
+                        OpenIdConnectConstants.Destinations.IdentityToken));
+            }
         }
     }
 }
