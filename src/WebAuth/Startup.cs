@@ -75,7 +75,7 @@ namespace WebAuth
                     options.TokenEndpointPath = "/connect/token";
                     options.UserinfoEndpointPath = "/connect/userinfo";
                     options.ApplicationCanDisplayErrors = true;
-                    options.AllowInsecureHttp = true;
+                    options.AllowInsecureHttp = false;
                 })
                 .AddOAuthValidation(OAuthValidationDefaults.AuthenticationScheme);
 

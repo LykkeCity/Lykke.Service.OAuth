@@ -3,7 +3,6 @@
     public interface IOAuthSettings
     {
         LykkeServiceApiSettings LykkeServiceApi { get; set; }
-        ServiceBusSettings EmailServiceBus { get; set; }
         OAuth OAuth { get; set; }
         PersonalDataServiceSettings PersonalDataServiceSettings { get; set; }
     }
@@ -43,7 +42,6 @@
     public class OAuthSettings : IOAuthSettings
     {
         public LykkeServiceApiSettings LykkeServiceApi { get; set; }
-        public ServiceBusSettings EmailServiceBus { get; set; }
         public OAuth OAuth { get; set; }
         public PersonalDataServiceSettings PersonalDataServiceSettings { get; set; }
         public SlackNotificationsSettings SlackNotifications { get; set; }
