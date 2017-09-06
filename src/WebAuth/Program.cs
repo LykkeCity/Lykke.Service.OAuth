@@ -43,7 +43,7 @@ namespace WebAuth
                     .UseKestrel(x =>
                     {
                         x.AddServerHeader = false;
-                        x.Listen(IPAddress.Loopback, 443, listenOptions =>
+                        x.Listen(IPAddress.Any, 443, listenOptions =>
                         {
                             listenOptions.UseHttps(xcert);
                             listenOptions.UseConnectionLogging();
