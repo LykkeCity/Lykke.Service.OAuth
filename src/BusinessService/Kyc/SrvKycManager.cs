@@ -5,6 +5,7 @@ using Core.AuditLog;
 using Core.BackOffice;
 using Core.Clients;
 using Core.Kyc;
+using Lykke.Service.PersonalData.Contract;
 
 namespace BusinessService.Kyc
 {

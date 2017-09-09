@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Lykke.AzureStorage" Version="1.2.36" />
     <PackageReference Include="Lykke.Common" Version="1.1.95" />
-    <PackageReference Include="Lykke.Service.Registration" Version="1.0.30" />
+    <PackageReference Include="Lykke.Service.Registration" Version="1.0.31" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
     <PackageReference Include="StructureMap.Microsoft.DependencyInjection" Version="1.4.0" />
     <PackageReference Include="WindowsAzure.Storage" Version="8.4.0" />

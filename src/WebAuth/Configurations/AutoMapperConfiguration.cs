@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Core.Clients;
+using Lykke.Service.PersonalData.Contract.Models;
 using WebAuth.Models.Profile;
 
 namespace WebAuth.Configurations

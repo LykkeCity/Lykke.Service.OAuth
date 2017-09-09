@@ -8,6 +8,8 @@ using Core.Clients;
 using Core.Country;
 using Core.Kyc;
 using Core.Settings;
+using Lykke.Service.PersonalData.Client;
+using Lykke.Service.PersonalData.Contract;
 
 namespace WebAuth.Modules
 {
@@ -15,7 +17,6 @@ namespace WebAuth.Modules
     {
         private readonly OAuthSettings _settings;
         private readonly ILog _log;
-        private IApplicationService _x;
         public BusinessModule(OAuthSettings settings, ILog log)
         {
             _settings = settings;
@@ -24,20 +25,8 @@ namespace WebAuth.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<JobGeolocationDataUpdater>()
-                .As<IRegistrationConsumer>()
-                .SingleInstance();
-
             builder.RegisterType<CountryService>()
                 .As<ICountryService>()
-                .SingleInstance();
-
-            builder.RegisterType<IpGeoLocationService>()
-                .As<IIpGeoLocationService>()
-                .SingleInstance();
-
-            builder.RegisterType<JobGeolocationDataUpdater>()
-                .As<IRegistrationConsumer>()
                 .SingleInstance();
 
             builder.RegisterType<SrvKycManager>()

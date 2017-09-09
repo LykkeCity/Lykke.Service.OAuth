@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Common.Log;
 using Core.Clients;
-using Core.Kyc;
 using Lykke.Service.Registration;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using NSubstitute;
 using WebAuth.Controllers;
 using WebAuth.Managers;
@@ -81,7 +78,7 @@ namespace WebAuth.Tests.Controllers
             var log = Substitute.For<ILog>();
             var registrationClient = Substitute.For<ILykkeRegistrationClient>();
 
-            return new AuthenticationController(registrationClient, new List<IRegistrationConsumer>(), clientRepository, userManager, log);
+            return new AuthenticationController(registrationClient, clientRepository, userManager, log);
         }
     }
 }

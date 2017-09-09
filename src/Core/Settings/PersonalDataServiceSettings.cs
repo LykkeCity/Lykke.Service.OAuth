@@ -1,6 +1,6 @@
 ﻿namespace Core.Settings
 {
-    public class PersonalDataServiceSettings
+    public class PersonalDataSettings
     {
         public string ServiceUri { get; set; }
 

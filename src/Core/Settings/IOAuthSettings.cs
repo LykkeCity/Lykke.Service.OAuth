@@ -4,20 +4,12 @@
     {
         LykkeServiceApiSettings LykkeServiceApi { get; set; }
         OAuth OAuth { get; set; }
-        PersonalDataServiceSettings PersonalDataServiceSettings { get; set; }
+        PersonalDataSettings PersonalDataServiceSettings { get; set; }
     }
 
     public class LykkeServiceApiSettings
     {
         public string ServiceUri { get; set; }
-    }
-
-    public class ServiceBusSettings
-    {
-        public string Key { get; set; }
-        public string QueueName { get; set; }
-        public string NamespaceUrl { get; set; }
-        public string PolicyName { get; set; }
     }
 
     public class OAuth
@@ -43,7 +35,7 @@
     {
         public LykkeServiceApiSettings LykkeServiceApi { get; set; }
         public OAuth OAuth { get; set; }
-        public PersonalDataServiceSettings PersonalDataServiceSettings { get; set; }
+        public PersonalDataSettings PersonalDataServiceSettings { get; set; }
         public SlackNotificationsSettings SlackNotifications { get; set; }
     }
 

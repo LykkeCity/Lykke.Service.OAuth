@@ -130,8 +130,9 @@ namespace WebAuth
             builder.RegisterModule(new WebModule());
             builder.RegisterModule(new DbModule(settings, log));
             builder.RegisterModule(new BusinessModule(settings, log));
+            builder.RegisterModule(new ClientServiceModule(settings, log));
 
-            builder.RegisterRegistrationClient(settings.OAuth.RegistrationApiUrl, log);
+            
 
             builder.Populate(services);
             ApplicationContainer = builder.Build();

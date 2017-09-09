@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
-using Core.Clients;
 using Core.Extensions;
 using Core.Kyc;
+using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
 
 namespace WebAuth.Managers

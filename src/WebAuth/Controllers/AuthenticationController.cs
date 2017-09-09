@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BusinessService.Kyc;
@@ -24,20 +21,17 @@ namespace WebAuth.Controllers
     public class AuthenticationController : BaseController
     {
         private readonly ILykkeRegistrationClient _registrationClient;
-        private readonly IRegistrationConsumer[] _registrationConsumers;
         private readonly IClientAccountsRepository _clientAccountsRepository;
         private readonly IUserManager _userManager;
         private readonly ILog _log;
 
         public AuthenticationController(
             ILykkeRegistrationClient registrationClient,
-            IEnumerable<IRegistrationConsumer> registrationConsumers,
             IClientAccountsRepository clientAccountsRepository,
             IUserManager userManager, 
             ILog log)
         {
             _registrationClient = registrationClient;
-            _registrationConsumers = registrationConsumers.ToArray();
             _clientAccountsRepository = clientAccountsRepository;
             _userManager = userManager;
             _log = log;
@@ -141,9 +135,6 @@ namespace WebAuth.Controllers
                 NotificationsId = result.Account.NotificationsId,
                 Phone = result.Account.Phone
             };
-
-            foreach (var registrationConsumer in _registrationConsumers)
-                registrationConsumer.ConsumeRegistration(clientAccount, userIp, CultureInfo.CurrentCulture.Name);
 
             var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, registrationModel.Email, true);
 

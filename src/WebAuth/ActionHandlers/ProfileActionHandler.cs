@@ -9,6 +9,8 @@ using BusinessService.Kyc;
 using Core.Clients;
 using Core.Country;
 using Core.Kyc;
+using Lykke.Service.PersonalData.Contract;
+using Lykke.Service.PersonalData.Contract.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;

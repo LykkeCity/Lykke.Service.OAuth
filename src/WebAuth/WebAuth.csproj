@@ -24,10 +24,11 @@
     <PackageReference Include="Flurl.Http" Version="1.2.0" />
     <PackageReference Include="Lykke.Common" Version="1.1.95" />
     <PackageReference Include="Lykke.Logs" Version="1.0.33" />
-    <PackageReference Include="Lykke.Service.Registration" Version="1.0.30" />
+    <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.14" />
+    <PackageReference Include="Lykke.Service.Registration" Version="1.0.31" />
     <PackageReference Include="Lykke.SettingsReader" Version="1.0.38" />
     <PackageReference Include="Lykke.SlackNotifications" Version="1.0.11" />
-    <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="1.0.4" />
+    <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="1.0.5" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.0.0" />
