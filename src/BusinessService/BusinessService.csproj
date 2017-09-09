@@ -11,17 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AMQPNetLite" Version="1.2.3" />
-    <PackageReference Include="Flurl.Http" Version="1.2.0" />
     <PackageReference Include="Lykke.Common" Version="1.1.95" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.14" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="Nustache.Core" Version="1.0.0-alfa2" />
-    <PackageReference Include="RestSharp.NetCore" Version="105.2.4-rc4-24214-01" />
-    <PackageReference Include="StructureMap.Microsoft.DependencyInjection" Version="1.4.0" />
   </ItemGroup>
 
   <ItemGroup>
