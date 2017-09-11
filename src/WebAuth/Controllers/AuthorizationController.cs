@@ -166,6 +166,9 @@ namespace WebAuth.Controllers
                 });
             }
 
+            //return ClientSecret to the request
+            request.ClientSecret = application.Secret;
+
             await _authorizationActionHandler.AddTrustedApplication(_userManager.GetCurrentUserId(), application.ApplicationId);
 
             identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);

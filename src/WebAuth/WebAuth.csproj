@@ -16,9 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="2.0.0-preview1-0285" />
-    <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="2.0.0-preview1-1309" />
-    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-preview1-1309" />
+    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="2.0.0-rc1-0286" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="2.0.0-rc1-1310" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc1-1310" />
     <PackageReference Include="AutoMapper" Version="6.1.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="3.0.1" />
     <PackageReference Include="Flurl.Http" Version="1.2.0" />
