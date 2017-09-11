@@ -188,7 +188,7 @@ namespace WebAuth
                 options.UserinfoEndpointPath = "/connect/userinfo";
 
                 options.ApplicationCanDisplayErrors = true;
-                options.AllowInsecureHttp = true;
+                options.AllowInsecureHttp = false;
             });
 
 
