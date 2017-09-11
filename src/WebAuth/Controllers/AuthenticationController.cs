@@ -9,8 +9,6 @@ using Core.Clients;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using WebAuth.Extensions;
 using WebAuth.Managers;
@@ -82,7 +80,7 @@ namespace WebAuth.Controllers
 
             var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, loginModel.Username, false);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity));
 
             return RedirectToLocal(loginModel.ReturnUrl);
         }
@@ -138,7 +136,7 @@ namespace WebAuth.Controllers
 
             var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, registrationModel.Email, true);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity));
 
             return RedirectToAction("PersonalInformation", "Profile", new {returnUrl = registrationModel.ReturnUrl});
         }
@@ -147,7 +145,7 @@ namespace WebAuth.Controllers
         [HttpPost("~/signout")]
         public ActionResult SignOut()
         {
-            return SignOut(CookieAuthenticationDefaults.AuthenticationScheme);
+            return SignOut("ServerCookie");
         }
     }
 }

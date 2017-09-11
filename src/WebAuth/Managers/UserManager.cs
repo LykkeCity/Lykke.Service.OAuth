@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
-using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Extensions;
 using Core.Kyc;
@@ -29,23 +28,19 @@ namespace WebAuth.Managers
 
         public ClaimsIdentity CreateIdentity(List<string> scopes, IEnumerable<Claim> claims)
         {
-            var identity = new ClaimsIdentity(
-                OpenIdConnectServerDefaults.AuthenticationScheme,
-                OpenIdConnectConstants.Claims.Name,
-                OpenIdConnectConstants.Claims.Role);
+            var identity = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             foreach (var claim in claims)
                 switch (claim.Type)
                 {
                     case ClaimTypes.NameIdentifier:
                     {
-                        AddClaim(claim, identity);
-                        AddClaim(claim, identity, OpenIdConnectConstants.Claims.Subject);
+                        identity.AddClaim(claim);
                         break;
                     }
                     case ClaimTypes.Name:
                     {
-                        AddClaim(claim, identity, OpenIdConnectConstants.Claims.Name);
+                        AddClaim(claim, identity);
                         break;
                     }
                     case OpenIdConnectConstants.Claims.Email:
@@ -132,13 +127,11 @@ namespace WebAuth.Managers
             return uploadedDocumentTypes;
         }
 
-        private static void AddClaim(Claim claim, ClaimsIdentity identity, string claimType = null)
+        private static void AddClaim(Claim claim, ClaimsIdentity identity)
         {
-            string type = string.IsNullOrEmpty(claimType) ? claim.Type : claimType;
-
-            if (identity.Claims.All(item => item.Type != type))
+            if (identity.Claims.All(item => item.Type != claim.Type))
             {
-                identity.AddClaim(new Claim(type, claim.Value)
+                identity.AddClaim(new Claim(claim.Type, claim.Value)
                     .SetDestinations(OpenIdConnectConstants.Destinations.AccessToken,
                         OpenIdConnectConstants.Destinations.IdentityToken));
             }

@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using System;
-using System.Net;
 using AzureStorage.Blob;
 using System.Security.Cryptography.X509Certificates;
 using Common;
@@ -21,7 +20,6 @@ namespace WebAuth
                     .UseKestrel()
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseUrls("http://*:5000/")
-                    .UseIISIntegration()
                     .UseStartup<Startup>()
                     .Build();
 
@@ -42,17 +40,11 @@ namespace WebAuth
                 var host = new WebHostBuilder()
                     .UseKestrel(x =>
                     {
+                        x.UseHttps(xcert);
                         x.AddServerHeader = false;
-                        x.Listen(IPAddress.Any, 443, listenOptions =>
-                        {
-                            listenOptions.UseHttps(xcert);
-                            listenOptions.UseConnectionLogging();
-                        });
-
                     })
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseUrls("https://*:443/")
-                    .UseIISIntegration()
                     .UseStartup<Startup>()
                     .Build();
 

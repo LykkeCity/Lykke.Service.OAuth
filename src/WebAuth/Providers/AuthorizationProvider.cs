@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Primitives;
+using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Application;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
 
 namespace WebAuth.Providers
 {
@@ -27,7 +24,7 @@ namespace WebAuth.Providers
             if (context.Options.AuthorizationEndpointPath.HasValue &&
                 context.Request.Path.StartsWithSegments(context.Options.AuthorizationEndpointPath))
             {
-                context.MatchAuthorizationEndpoint();
+                context.MatchesAuthorizationEndpoint();
             }
 
             return Task.FromResult(0);
@@ -37,9 +34,9 @@ namespace WebAuth.Providers
         {
             // If a request_id parameter can be found in the authorization request,
             // restore the complete authorization request stored in the user session.
-            if (!string.IsNullOrEmpty(context.Request.RequestId))
+            if (!string.IsNullOrEmpty(context.Request.GetRequestId()))
             {
-                var payload = context.HttpContext.Session.Get("authorization-request:" + context.Request.RequestId);
+                var payload = context.HttpContext.Session.Get("authorization-request:" + context.Request.GetRequestId());
                 if (payload == null)
                 {
                     context.Reject(
@@ -49,24 +46,11 @@ namespace WebAuth.Providers
                     return Task.FromResult(0);
                 }
 
-                var parameters = JsonConvert.DeserializeObject<Dictionary<string,string>>(Encoding.UTF8.GetString(payload));
-
-                foreach (var parameter in parameters)
-                {
-                    context.Request.SetParameter(parameter.Key, new OpenIdConnectParameter(parameter.Value));
-                }
+                // Restore the authorization request parameters.
+                context.Request.Import(payload);
             }
 
             return Task.FromResult(0);
-        }
-
-        public override Task ExtractTokenRequest(ExtractTokenRequestContext context)
-        {
-            // Note: remove ClientSecrect from request as it is passed in Authorization header
-            // otherwise OpenIdConnectServerHandler will return error about multiple client credentials:
-            // "Multiple client credentials cannot be specified"
-            context.Request.ClientSecret = null;
-            return base.ExtractTokenRequest(context);
         }
 
         public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context)
@@ -190,7 +174,7 @@ namespace WebAuth.Providers
             // userinfo requests and directly writes the JSON response to the response stream.
             // Calling context.SkipToNextMiddleware() bypasses the default request processing
             // and delegates it to a custom ASP.NET Core MVC controller (UserinfoController).
-            context.SkipHandler();
+            context.SkipToNextMiddleware();
 
             return Task.FromResult(0);
         }

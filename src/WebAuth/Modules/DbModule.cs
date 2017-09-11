@@ -5,6 +5,7 @@ using AzureDataAccess.Settings;
 using AzureRepositories.Assets;
 using AzureStorage.Tables;
 using Common.Log;
+using Core.Application;
 using Core.Assets.AssetGroup;
 using Core.AuditLog;
 using Core.BackOffice;
@@ -34,6 +35,10 @@ namespace WebAuth.Modules
             builder.RegisterInstance(
                 new AuditLogRepository(AzureTableStorage<AuditLogDataEntity>.Create(() => clientPersonalInfoConnString, "AuditLogs", _log))
             ).As<IAuditLogRepository>().SingleInstance();
+
+            builder.RegisterInstance(
+                AzureRepoFactories.Applications.CreateApplicationsRepository(clientPersonalInfoConnString, _log)
+            ).As<IApplicationRepository>().SingleInstance();
 
             builder.RegisterInstance(
                 AzureRepoFactories.CreateTraderSettingsRepository(clientPersonalInfoConnString, _log)

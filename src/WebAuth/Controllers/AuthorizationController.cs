@@ -1,28 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
-using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
-using Common;
 using Core.Application;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
-using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
-using OpenIdConnectMessage = Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectMessage;
 
 namespace WebAuth.Controllers
 {
@@ -74,15 +67,13 @@ namespace WebAuth.Controllers
             {
                 var identifier = Guid.NewGuid().ToString();
 
-                var parameters = request.GetParameters().ToList();
-                parameters.Add(new KeyValuePair<string, OpenIdConnectParameter>("request_id", new OpenIdConnectParameter(identifier)));
-
-                var dict = parameters.Where(item => item.Value.Value != null).ToDictionary(item => item.Key, pair => pair.Value.Value.ToString());
-
                 // Store the authorization request in the user session.
-                HttpContext.Session.Set("authorization-request:" + identifier, Encoding.UTF8.GetBytes(dict.ToJson()));
+                HttpContext.Session.Set("authorization-request:" + identifier, request.Export());
 
-                var redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), dict);
+                var parameters = request.Parameters;
+                parameters.Add("request_id", identifier);
+
+                var redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
 
                 return Challenge(new AuthenticationProperties
                 {
@@ -107,9 +98,9 @@ namespace WebAuth.Controllers
 
             if (await _authorizationActionHandler.IsTrustedApplicationAsync(_userManager.GetCurrentUserId(), application.ApplicationId))
             {
-                var parameters = request.GetParameters().ToList();
+                var parameters = request.Parameters;
                 var acceptUri = Url.Action("Accept");
-                var redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters.ToDictionary(item => item.Key, pair => pair.Value.Value.ToString()));
+                var redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
 
                 return Redirect(redirectUrl);
             }
@@ -117,7 +108,7 @@ namespace WebAuth.Controllers
             return View("Authorize", new AuthorizeViewModel
             {
                 ApplicationName = application.DisplayName,
-                Parameters = request.GetParameters().ToDictionary(item => item.Key, pair => pair.Value.Value.ToString()),
+                Parameters = request.Parameters,
                 Scopes = request.GetScopes(),
                 Scope = request.Scope
             });
@@ -145,9 +136,9 @@ namespace WebAuth.Controllers
             }
 
             // Remove the authorization request from the user session.
-            if (!string.IsNullOrEmpty(request.RequestId))
+            if (!string.IsNullOrEmpty(request.GetRequestId()))
             {
-                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
+                HttpContext.Session.Remove("authorization-request:" + request.GetRequestId());
             }
 
             var scopes = request.GetScopes().ToList();
@@ -165,9 +156,6 @@ namespace WebAuth.Controllers
                         "Details concerning the calling client application cannot be found in the database"
                 });
             }
-
-            //return ClientSecret to the request
-            request.ClientSecret = application.Secret;
 
             await _authorizationActionHandler.AddTrustedApplication(_userManager.GetCurrentUserId(), application.ApplicationId);
 
@@ -224,9 +212,9 @@ namespace WebAuth.Controllers
             }
 
             // Remove the authorization request from the user session.
-            if (!string.IsNullOrEmpty(request.RequestId))
+            if (!string.IsNullOrEmpty(request.GetRequestId()))
             {
-                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
+                HttpContext.Session.Remove("authorization-request:" + request.GetRequestId());
             }
 
             // Notify ASOS that the authorization grant has been denied by the resource owner.
@@ -244,7 +232,7 @@ namespace WebAuth.Controllers
                 return View("Error", response);
             }
 
-            var identity = await HttpContext.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+            var identity = await HttpContext.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
@@ -262,7 +250,7 @@ namespace WebAuth.Controllers
         [HttpPost("~/connect/logout")]
         public ActionResult Logout()
         {
-            return SignOut(CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
+            return SignOut("ServerCookie", OpenIdConnectServerDefaults.AuthenticationScheme);
         }
     }
 }

@@ -4,12 +4,10 @@ using AspNet.Security.OAuth.Validation;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
-using AzureDataAccess;
 using Common.Log;
 using Core.Application;
 using Core.Settings;
 using Lykke.Logs;
-using Lykke.Service.Registration;
 using Lykke.SettingsReader;
 using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -57,27 +55,7 @@ namespace WebAuth
 
             services.AddSingleton<IOAuthSettings>(settings);
 
-            var applicationRepository = AzureRepoFactories.Applications.CreateApplicationsRepository(settings.OAuth.Db.ClientPersonalInfoConnString, null);
-
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(o =>
-                {
-                    o.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + CookieAuthenticationDefaults.AuthenticationScheme;
-                    o.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-                    o.LoginPath = new PathString("/signin");
-                    o.LogoutPath = new PathString("/signout");
-                })
-                .AddOpenIdConnectServer(options =>
-                {
-                    options.Provider = new AuthorizationProvider(applicationRepository);
-                    options.AuthorizationEndpointPath = "/connect/authorize";
-                    options.LogoutEndpointPath = "/connect/logout";
-                    options.TokenEndpointPath = "/connect/token";
-                    options.UserinfoEndpointPath = "/connect/userinfo";
-                    options.ApplicationCanDisplayErrors = true;
-                    options.AllowInsecureHttp = false;
-                })
-                .AddOAuthValidation(OAuthValidationDefaults.AuthenticationScheme);
+            services.AddAuthentication(options => { options.SignInScheme = "ServerCookie"; });
 
             services.AddLocalization(options => options.ResourcesPath = "Resources");
 
@@ -125,14 +103,11 @@ namespace WebAuth
             var builder = new ContainerBuilder();
 
             builder.RegisterInstance(log).As<ILog>().SingleInstance();
-            builder.RegisterInstance(applicationRepository).As<IApplicationRepository>().SingleInstance();
 
             builder.RegisterModule(new WebModule());
             builder.RegisterModule(new DbModule(settings, log));
             builder.RegisterModule(new BusinessModule(settings, log));
             builder.RegisterModule(new ClientServiceModule(settings, log));
-
-            
 
             builder.Populate(services);
             ApplicationContainer = builder.Build();
@@ -144,7 +119,6 @@ namespace WebAuth
         {
             if (env.IsDevelopment())
             {
-                app.UseBrowserLink();
                 app.UseDeveloperExceptionPage();
             }
             else
@@ -178,9 +152,45 @@ namespace WebAuth
 
             app.UseCors("Lykke");
 
-            app.UseAuthentication();
+            // Create a new branch where the registered middleware will be executed only for API calls.
+            app.UseOAuthValidation(new OAuthValidationOptions
+
+            {
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = true
+            });
+
+            // Create a new branch where the registered middleware will be executed only for non API calls.
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
+
+            {
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = true,
+                AuthenticationScheme = "ServerCookie",
+                CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
+                ExpireTimeSpan = TimeSpan.FromMinutes(5),
+                LoginPath = new PathString("/signin"),
+                LogoutPath = new PathString("/signout")
+            });
 
             app.UseSession();
+
+            var applicationRepository = app.ApplicationServices.GetService<IApplicationRepository>();
+
+            app.UseOpenIdConnectServer(options =>
+            {
+                options.Provider = new AuthorizationProvider(applicationRepository);
+
+                // Enable the authorization, logout, token and userinfo endpoints.
+                options.AuthorizationEndpointPath = "/connect/authorize";
+                options.LogoutEndpointPath = "/connect/logout";
+                options.TokenEndpointPath = "/connect/token";
+                options.UserinfoEndpointPath = "/connect/userinfo";
+
+                options.ApplicationCanDisplayErrors = true;
+                options.AllowInsecureHttp = true;
+            });
+
 
             app.UseCsp(options => options.DefaultSources(directive => directive.Self())
                 .ImageSources(directive => directive.Self()

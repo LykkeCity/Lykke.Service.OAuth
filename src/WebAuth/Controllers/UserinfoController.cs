@@ -2,9 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using AspNet.Security.OAuth.Validation;
 using AspNet.Security.OpenIdConnect.Extensions;
-using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Application;
 using Core.Bitcoin;
@@ -38,7 +36,7 @@ namespace WebAuth.Controllers
             _walletCredentialsRepository = walletCredentialsRepository;
         }
 
-        [Authorize(AuthenticationSchemes = OAuthValidationDefaults.AuthenticationScheme)]
+        [Authorize(ActiveAuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
         [HttpGet("~/connect/userinfo")]
         public IActionResult GetUserInfo()
         {
