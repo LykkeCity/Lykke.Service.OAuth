@@ -8,6 +8,7 @@ using Core.Application;
 using Core.Bitcoin;
 using Core.Clients;
 using Core.Kyc;
+using Lykke.Service.Session;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebAuth.Models;
@@ -19,20 +20,20 @@ namespace WebAuth.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IKycRepository _kycRepository;
         private readonly IClientAccountsRepository _clientAccountsRepository;
-        private readonly IClientsSessionsRepository _clientsSessionsRepository;
+        private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
 
         public UserinfoController(
             IApplicationRepository applicationRepository, 
             IKycRepository kycRepository, 
             IClientAccountsRepository clientAccountsRepository,
-            IClientsSessionsRepository clientsSessionsRepository,
+            IClientSessionsClient clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository)
         {
             _applicationRepository = applicationRepository;
             _kycRepository = kycRepository;
             _clientAccountsRepository = clientAccountsRepository;
-            _clientsSessionsRepository = clientsSessionsRepository;
+            _clientSessionsClient = clientSessionsClient;
             _walletCredentialsRepository = walletCredentialsRepository;
         }
 
@@ -106,25 +107,9 @@ namespace WebAuth.Controllers
                 {
                     return Json(new { Token = token });
                 }
-
-                var clientSession = (await _clientsSessionsRepository.GetByClientAsync(clientId)).FirstOrDefault();
-
-                if (clientSession != null)
-                {
-                    if (DateTime.UtcNow - clientSession.LastAction > TimeSpan.FromDays(3))  //ToDo: add session life parameter
-                    {
-                        await _clientsSessionsRepository.DeleteSessionAsync(clientId, clientSession.Token);
-                    }
-                    else
-                    {
-                        await _clientsSessionsRepository.UpdateClientInfoAsync(clientId, clientSession.Token, "oauth server");
-                        return Json(new { Token = clientSession.Token });
-                    }
-                }
-
-                var newtoken = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
-                await _clientsSessionsRepository.SaveAsync(clientAccount.Id, newtoken, "oauth server");
-                return Json(new { Token = newtoken });
+                
+                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server");
+                return Json(new { Token = authResult.SessionToken });
             }
 
             return Json(new { Token = token});

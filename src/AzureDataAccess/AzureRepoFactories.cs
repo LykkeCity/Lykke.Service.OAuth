@@ -44,12 +44,7 @@ namespace AzureDataAccess
             public static KycDocumentsScansRepository CreatKycDocumentsScansRepository(string connString)
             {
                 return new KycDocumentsScansRepository(new AzureBlobStorage(connString));
-            }
-
-            public static ClientSessionsRepository CreateClientSessionsRepository(string connstring, ILog log)
-            {
-                return new ClientSessionsRepository(AzureTableStorage<ClientSessionEntity>.Create(() => connstring, "Sessions", log));
-            }
+            }            
         }
 
         public static class Applications

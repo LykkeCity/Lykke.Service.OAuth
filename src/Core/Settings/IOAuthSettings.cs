@@ -15,8 +15,9 @@
     public class OAuth
     {
         public string RegistrationApiUrl { get; set; }
+        public string SessionApiUrl { get; set; }
         public DbSettings Db { get; set; }
-        public CorsSettings Cors { get; set; }
+        public CorsSettings Cors { get; set; }        
     }
 
     public class DbSettings

@@ -47,11 +47,7 @@ namespace WebAuth.Modules
             builder.RegisterInstance(
                 AzureRepoFactories.Clients.CreateTradersRepository(clientPersonalInfoConnString, _log)
             ).As<IClientAccountsRepository>().SingleInstance();
-
-            builder.RegisterInstance(
-                AzureRepoFactories.Clients.CreateClientSessionsRepository(clientPersonalInfoConnString, _log)
-            ).As<IClientsSessionsRepository>().SingleInstance();
-
+            
             builder.RegisterInstance(
                 AzureRepoFactories.Clients.CreateKycRepository(clientPersonalInfoConnString, _log)
             ).As<IKycRepository>().SingleInstance();
