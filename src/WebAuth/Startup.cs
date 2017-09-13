@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Globalization;
 using AspNet.Security.OAuth.Validation;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
+using Common.Log;
 using Core.Application;
 using Core.Settings;
-using Flurl.Http;
+using Lykke.Logs;
 using Lykke.SettingsReader;
+using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,10 +17,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WebAuth.Configurations;
 using WebAuth.EventFilter;
 using WebAuth.Providers;
 using Microsoft.AspNetCore.HttpOverrides;
+using WebAuth.Modules;
 
 namespace WebAuth
 {
@@ -24,6 +28,7 @@ namespace WebAuth
     {
         public IConfigurationRoot Configuration { get; }
         public IHostingEnvironment Environment { get; }
+        public IContainer ApplicationContainer { get; set; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -39,21 +44,14 @@ namespace WebAuth
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            OAuthSettings settings = new OAuthSettings();
-
             if (Environment.IsProduction() && string.IsNullOrEmpty(Configuration["SettingsUrl"]))
             {
                 throw new Exception("SettingsUrl is not found");
             }
 
-            if (string.IsNullOrEmpty(Configuration["SettingsUrl"]))
-            {
-                Configuration.Bind(settings);
-            }
-            else
-            {
-                settings = SettingsProcessor.Process<OAuthSettings>(Configuration["SettingsUrl"].GetStringAsync().Result);
-            }
+            OAuthSettings settings = Environment.IsDevelopment()
+                ? Configuration.Get<OAuthSettings>()
+                : HttpSettingsLoader.Load<OAuthSettings>(Configuration.GetValue<string>("SettingsUrl"));
 
             services.AddSingleton<IOAuthSettings>(settings);
 
@@ -63,9 +61,9 @@ namespace WebAuth
 
             services.AddCors(options =>
             {
-                options.AddPolicy("Lykke", builder =>
+                options.AddPolicy("Lykke", policy =>
                 {
-                    builder.AllowAnyOrigin()
+                    policy.AllowAnyOrigin()
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
@@ -88,16 +86,39 @@ namespace WebAuth
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
             });
 
-            WebDependencies.Create(services);
+            var consoleLogger = new LogToConsole();
+            var aggregateLogger = new AggregateLogger();
 
-            return ApiDependencies.Create(services, settings);
+            aggregateLogger.AddLog(consoleLogger);
+
+            var slackService = services.UseSlackNotificationsSenderViaAzureQueue(new Lykke.AzureQueueIntegration.AzureQueueSettings
+            {
+                ConnectionString = settings.SlackNotifications.AzureQueue.ConnectionString,
+                QueueName = settings.SlackNotifications.AzureQueue.QueueName
+            }, aggregateLogger);
+
+            var log = services.UseLogToAzureStorage(settings.OAuth.Db.LogsConnString, slackService,
+                "LogWebAuth", new LogToConsole());
+
+            var builder = new ContainerBuilder();
+
+            builder.RegisterInstance(log).As<ILog>().SingleInstance();
+
+            builder.RegisterModule(new WebModule());
+            builder.RegisterModule(new DbModule(settings, log));
+            builder.RegisterModule(new BusinessModule(settings, log));
+            builder.RegisterModule(new ClientServiceModule(settings, log));
+
+            builder.Populate(services);
+            ApplicationContainer = builder.Build();
+
+            return new AutofacServiceProvider(ApplicationContainer);
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                app.UseBrowserLink();
                 app.UseDeveloperExceptionPage();
             }
             else
@@ -133,6 +154,7 @@ namespace WebAuth
 
             // Create a new branch where the registered middleware will be executed only for API calls.
             app.UseOAuthValidation(new OAuthValidationOptions
+
             {
                 AutomaticAuthenticate = true,
                 AutomaticChallenge = true
@@ -140,6 +162,7 @@ namespace WebAuth
 
             // Create a new branch where the registered middleware will be executed only for non API calls.
             app.UseCookieAuthentication(new CookieAuthenticationOptions
+
             {
                 AutomaticAuthenticate = true,
                 AutomaticChallenge = true,
@@ -167,6 +190,7 @@ namespace WebAuth
                 options.ApplicationCanDisplayErrors = true;
                 options.AllowInsecureHttp = false;
             });
+
 
             app.UseCsp(options => options.DefaultSources(directive => directive.Self())
                 .ImageSources(directive => directive.Self()

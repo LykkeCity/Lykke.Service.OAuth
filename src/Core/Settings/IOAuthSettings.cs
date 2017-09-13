@@ -3,22 +3,13 @@
     public interface IOAuthSettings
     {
         LykkeServiceApiSettings LykkeServiceApi { get; set; }
-        ServiceBusSettings EmailServiceBus { get; set; }
         OAuth OAuth { get; set; }
-        PersonalDataServiceSettings PersonalDataServiceSettings { get; set; }
+        PersonalDataSettings PersonalDataServiceSettings { get; set; }
     }
 
     public class LykkeServiceApiSettings
     {
         public string ServiceUri { get; set; }
-    }
-
-    public class ServiceBusSettings
-    {
-        public string Key { get; set; }
-        public string QueueName { get; set; }
-        public string NamespaceUrl { get; set; }
-        public string PolicyName { get; set; }
     }
 
     public class OAuth
@@ -43,8 +34,20 @@
     public class OAuthSettings : IOAuthSettings
     {
         public LykkeServiceApiSettings LykkeServiceApi { get; set; }
-        public ServiceBusSettings EmailServiceBus { get; set; }
         public OAuth OAuth { get; set; }
-        public PersonalDataServiceSettings PersonalDataServiceSettings { get; set; }
+        public PersonalDataSettings PersonalDataServiceSettings { get; set; }
+        public SlackNotificationsSettings SlackNotifications { get; set; }
+    }
+
+    public class SlackNotificationsSettings
+    {
+        public AzureQueueSettings AzureQueue { get; set; }
+        public int ThrottlingLimitSeconds { get; set; }
+    }
+
+    public class AzureQueueSettings
+    {
+        public string ConnectionString { get; set; }
+        public string QueueName { get; set; }
     }
 }

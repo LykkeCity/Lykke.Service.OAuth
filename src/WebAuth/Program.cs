@@ -20,7 +20,6 @@ namespace WebAuth
                     .UseKestrel()
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseUrls("http://*:5000/")
-                    .UseIISIntegration()
                     .UseStartup<Startup>()
                     .Build();
 
@@ -43,11 +42,9 @@ namespace WebAuth
                     {
                         x.UseHttps(xcert);
                         x.AddServerHeader = false;
-
                     })
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseUrls("https://*:443/")
-                    .UseIISIntegration()
                     .UseStartup<Startup>()
                     .Build();
 

@@ -5,9 +5,9 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
-using Core.Clients;
 using Core.Extensions;
 using Core.Kyc;
+using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
 
 namespace WebAuth.Managers
@@ -73,18 +73,22 @@ namespace WebAuth.Managers
                             AddClaim(claim, identity);
                         break;
                     }
+                    case OpenIdConnectConstantsExt.Claims.SignType:
+                    {
+                        AddClaim(claim, identity);
+                        break;
+                    }
                 }
 
             return identity;
         }
 
-        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName)
+        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, bool? register = null)
         {
             var personalData = await _personalDataService.GetAsync(clientId);
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, email),
                 new Claim(ClaimTypes.NameIdentifier, clientId),
                 new Claim(OpenIdConnectConstants.Claims.Email, email)
             };
@@ -99,8 +103,12 @@ namespace WebAuth.Managers
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Country, personalData.Country));
 
             var documents = (await GetDocumentListAsync(clientId)).ToList();
+
             if (documents.Any())
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Documents, string.Join(",", documents)));
+
+            if (register.HasValue)
+                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register": "Login"));
 
             return new ClaimsIdentity(new GenericIdentity(userName, "Token"), claims);
         }
@@ -121,14 +129,12 @@ namespace WebAuth.Managers
 
         private static void AddClaim(Claim claim, ClaimsIdentity identity)
         {
-            var destinations = new[]
+            if (identity.Claims.All(item => item.Type != claim.Type))
             {
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken
-            };
-            claim.SetDestinations(destinations);
-
-            identity.AddClaim(claim);
+                identity.AddClaim(new Claim(claim.Type, claim.Value)
+                    .SetDestinations(OpenIdConnectConstants.Destinations.AccessToken,
+                        OpenIdConnectConstants.Destinations.IdentityToken));
+            }
         }
     }
 }

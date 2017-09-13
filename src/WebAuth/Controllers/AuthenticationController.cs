@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BusinessService.Kyc;
@@ -12,7 +9,6 @@ using Core.Clients;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using WebAuth.Extensions;
 using WebAuth.Managers;
@@ -23,20 +19,17 @@ namespace WebAuth.Controllers
     public class AuthenticationController : BaseController
     {
         private readonly ILykkeRegistrationClient _registrationClient;
-        private readonly IRegistrationConsumer[] _registrationConsumers;
         private readonly IClientAccountsRepository _clientAccountsRepository;
         private readonly IUserManager _userManager;
         private readonly ILog _log;
 
         public AuthenticationController(
             ILykkeRegistrationClient registrationClient,
-            IEnumerable<IRegistrationConsumer> registrationConsumers,
             IClientAccountsRepository clientAccountsRepository,
             IUserManager userManager, 
             ILog log)
         {
             _registrationClient = registrationClient;
-            _registrationConsumers = registrationConsumers.ToArray();
             _clientAccountsRepository = clientAccountsRepository;
             _userManager = userManager;
             _log = log;
@@ -85,9 +78,9 @@ namespace WebAuth.Controllers
                 return View("Login", model);
             }
 
-            var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, loginModel.Username);
+            var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, loginModel.Username, false);
 
-            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity), new AuthenticationProperties());
+            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity));
 
             return RedirectToLocal(loginModel.ReturnUrl);
         }
@@ -141,12 +134,9 @@ namespace WebAuth.Controllers
                 Phone = result.Account.Phone
             };
 
-            foreach (var registrationConsumer in _registrationConsumers)
-                registrationConsumer.ConsumeRegistration(clientAccount, userIp, CultureInfo.CurrentCulture.Name);
+            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, registrationModel.Email, true);
 
-            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, registrationModel.Email);
-
-            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity), new AuthenticationProperties());
+            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity));
 
             return RedirectToAction("PersonalInformation", "Profile", new {returnUrl = registrationModel.ReturnUrl});
         }

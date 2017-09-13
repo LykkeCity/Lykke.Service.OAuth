@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Core.Clients;
 using Core.Country;
 using Core.Kyc;
+using Lykke.Service.PersonalData.Client.Models;
+using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -55,7 +57,7 @@ namespace WebAuth.Tests.ActionHandlers
         public async Task CompletedAccount_CompletionPercentage_Is_Correct()
         {
             //data
-            var fullPersonalData = new FullPersonalData
+            var fullPersonalData = new FullPersonalDataModel
             {
                 FirstName = "test",
                 LastName = "test",
@@ -92,7 +94,7 @@ namespace WebAuth.Tests.ActionHandlers
         public async Task EmptyAccount_CompletionPercentage_Is_Correct()
         {
             //data
-            var fullPersonalData = new FullPersonalData();
+            var fullPersonalData = new FullPersonalDataModel();
 
             var kycDocuments = new List<KycDocument>();
 
@@ -113,7 +115,7 @@ namespace WebAuth.Tests.ActionHandlers
         public async Task HalfCompletedAccount_CompletionPercentage_Is_Correct()
         {
             //data
-            var fullPersonalData = new FullPersonalData
+            var fullPersonalData = new FullPersonalDataModel
             {
                 FirstName = "test",
                 LastName = "test",

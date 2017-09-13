@@ -7,6 +7,8 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using Core.Clients;
 using Core.Extensions;
 using Core.Kyc;
+using Lykke.Service.PersonalData.Client.Models;
+using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
 using NSubstitute;
 using WebAuth.Managers;
@@ -39,7 +41,7 @@ namespace WebAuth.Tests.Managers
                 Id = "test"
             };
 
-            var personalData = new FullPersonalData();
+            var personalData = new FullPersonalDataModel();
 
             //act
             var personalDataService = Substitute.For<IPersonalDataService>();
@@ -215,7 +217,7 @@ namespace WebAuth.Tests.Managers
                 Id = "test"
             };
 
-            var personalData = new FullPersonalData
+            var personalData = new FullPersonalDataModel
             {
                 FirstName = "test",
                 LastName = "test",

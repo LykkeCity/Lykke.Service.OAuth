@@ -6,6 +6,7 @@
         {
             public const string Country = "country";
             public const string Documents = "documents";
+            public const string SignType = "SignType";
         }
     }
 }

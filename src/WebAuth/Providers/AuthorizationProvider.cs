@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
-using Common.Extensions;
 using Core.Application;
 using Microsoft.AspNetCore.Http;
 

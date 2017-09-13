@@ -99,7 +99,6 @@ namespace WebAuth.Controllers
             if (await _authorizationActionHandler.IsTrustedApplicationAsync(_userManager.GetCurrentUserId(), application.ApplicationId))
             {
                 var parameters = request.Parameters;
-
                 var acceptUri = Url.Action("Accept");
                 var redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
 
@@ -118,7 +117,6 @@ namespace WebAuth.Controllers
         [Authorize]
         [HttpPost("~/connect/authorize/accept")]
         [HttpGet("~/connect/authorize/accept")]
-//        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Accept(CancellationToken cancellationToken)
         {
             var response = HttpContext.GetOpenIdConnectResponse();
@@ -162,6 +160,7 @@ namespace WebAuth.Controllers
             await _authorizationActionHandler.AddTrustedApplication(_userManager.GetCurrentUserId(), application.ApplicationId);
 
             identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+
             identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationId);
 
             identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName,
@@ -188,7 +187,6 @@ namespace WebAuth.Controllers
 
             // Set the resources servers the access token should be issued for.
             ticket.SetResources("resource_server");
-
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 
@@ -234,8 +232,7 @@ namespace WebAuth.Controllers
                 return View("Error", response);
             }
 
-            var identity =
-                await HttpContext.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+            var identity = await HttpContext.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)

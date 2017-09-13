@@ -9,6 +9,8 @@ using BusinessService.Kyc;
 using Core.Clients;
 using Core.Country;
 using Core.Kyc;
+using Lykke.Service.PersonalData.Contract;
+using Lykke.Service.PersonalData.Contract.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
@@ -72,14 +74,11 @@ namespace WebAuth.ActionHandlers
             await _srvKycManager.ChangeFullNameAsync(CurrentClientId, $"{viewModel.FirstName} {viewModel.LastName}", RecordChanger.Client);
 
             //update client identity
-            var clientAccount =
-                await _clientAccountsRepository.GetByIdAsync(CurrentClientId);
+            var clientAccount = await _clientAccountsRepository.GetByIdAsync(CurrentClientId);
 
-            await
-                _httpContextAccessor.HttpContext.Authentication.SignOutAsync("ServerCookie",
-                    new AuthenticationProperties());
+            await _httpContextAccessor.HttpContext.Authentication.SignOutAsync("ServerCookie");
 
-            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, clientAccount.Email);
+            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, clientAccount.Email, true);
 
             await _httpContextAccessor.HttpContext.Authentication.SignInAsync("ServerCookie",
                     new ClaimsPrincipal(identity),
@@ -187,6 +186,7 @@ namespace WebAuth.ActionHandlers
             };
 
             var documents = await _kycDocumentsRepository.GetAsync(CurrentClientId);
+
             if (documents != null)
             {
                 var fundsDocumentName = documents.GetFileNameByType(KycDocumentTypes.ProofOfFunds);

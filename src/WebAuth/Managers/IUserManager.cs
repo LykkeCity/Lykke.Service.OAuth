@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Core.Clients;
 
 namespace WebAuth.Managers
 {
@@ -9,7 +8,7 @@ namespace WebAuth.Managers
     {
         ClaimsIdentity CreateIdentity(List<string> scopes, IEnumerable<Claim> claims);
 
-        Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName);
+        Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, bool? register = null);
 
         string GetCurrentUserId();
     }

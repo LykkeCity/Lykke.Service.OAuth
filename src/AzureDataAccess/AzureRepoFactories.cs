@@ -2,7 +2,6 @@
 using AzureDataAccess.BackOffice;
 using AzureDataAccess.Bitcoin;
 using AzureDataAccess.Clients;
-using AzureDataAccess.EventLogs;
 using AzureDataAccess.Kyc;
 using AzureStorage.Blob;
 using AzureStorage.Tables;
@@ -17,7 +16,7 @@ namespace AzureDataAccess
         public static ClientSettingsRepository CreateTraderSettingsRepository(string connString, ILog log)
         {
             return
-                new ClientSettingsRepository(new AzureTableStorage<ClientSettingsEntity>(connString, "TraderSettings",
+                new ClientSettingsRepository(AzureTableStorage<ClientSettingsEntity>.Create(() => connString, "TraderSettings",
                     log));
         }
 
@@ -27,19 +26,19 @@ namespace AzureDataAccess
             {
                 const string tableName = "Traders";
                 return new ClientsRepository(
-                    new AzureTableStorage<ClientAccountEntity>(connstring, tableName, log),
-                    new AzureTableStorage<AzureIndex>(connstring, tableName, log));
+                    AzureTableStorage<ClientAccountEntity>.Create(() => connstring, tableName, log),
+                    AzureTableStorage<AzureIndex>.Create(() => connstring, tableName, log));
             }
 
             public static KycRepository CreateKycRepository(string connString, ILog log)
             {
-                return new KycRepository(new AzureTableStorage<KycEntity>(connString, "KycStatuses", log));
+                return new KycRepository(AzureTableStorage<KycEntity>.Create(() => connString, "KycStatuses", log));
             }
 
             public static KycDocumentsRepository CreateKycDocumentsRepository(string connString, ILog log)
             {
                 return
-                    new KycDocumentsRepository(new AzureTableStorage<KycDocumentEntity>(connString, "KycDocuments", log));
+                    new KycDocumentsRepository(AzureTableStorage<KycDocumentEntity>.Create(() => connString, "KycDocuments", log));
             }
 
             public static KycDocumentsScansRepository CreatKycDocumentsScansRepository(string connString)
@@ -49,7 +48,7 @@ namespace AzureDataAccess
 
             public static ClientSessionsRepository CreateClientSessionsRepository(string connstring, ILog log)
             {
-                return new ClientSessionsRepository(new AzureTableStorage<ClientSessionEntity>(connstring, "Sessions", log));
+                return new ClientSessionsRepository(AzureTableStorage<ClientSessionEntity>.Create(() => connstring, "Sessions", log));
             }
         }
 
@@ -58,17 +57,7 @@ namespace AzureDataAccess
             public static ApplicationRepository CreateApplicationsRepository(string connstring, ILog log)
             {
                 const string tableName = "Applications";
-                return new ApplicationRepository(new AzureTableStorage<ApplicationEntity>(connstring, tableName, log));
-            }
-        }
-
-        public static class EventLogs
-        {
-            public static RegistrationLogs CreateRegistrationLogs(string connecionString, ILog log)
-            {
-                return
-                    new RegistrationLogs(new AzureTableStorage<RegistrationLogEventEntity>(connecionString,
-                        "LogRegistrations", log));
+                return new ApplicationRepository(AzureTableStorage<ApplicationEntity>.Create(() => connstring, tableName, log));
             }
         }
 
@@ -77,7 +66,7 @@ namespace AzureDataAccess
             public static MenuBadgesRepository CreateMenuBadgesRepository(string connecionString, ILog log)
             {
                 return
-                    new MenuBadgesRepository(new AzureTableStorage<MenuBadgeEntity>(connecionString, "MenuBadges", log));
+                    new MenuBadgesRepository(AzureTableStorage<MenuBadgeEntity>.Create(() => connecionString, "MenuBadges", log));
             }
         }
 
@@ -85,7 +74,7 @@ namespace AzureDataAccess
         {
             public static IWalletCredentialsRepository CreateWalletCredentialsRepository(string connecionString, ILog log)
             {
-                return new WalletCredentialsRepository(new AzureTableStorage<WalletCredentialsEntity>(connecionString,
+                return new WalletCredentialsRepository(AzureTableStorage<WalletCredentialsEntity>.Create(() => connecionString,
                     "WalletCredentials", log));
             }
         }

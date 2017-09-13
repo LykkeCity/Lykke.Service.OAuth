@@ -93,10 +93,9 @@ namespace WebAuth.Tests.OAuth
                         }
                     };
 
-                    // Run the configuration delegate
-                    // registered by the unit tests.
                     configuration?.Invoke(options);
                 });
+
             });
 
             return new TestServer(builder);
