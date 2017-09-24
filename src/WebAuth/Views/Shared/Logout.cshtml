@@ -1,19 +1,23 @@
-﻿<div class="jumbotron">
-    <h1>Log out</h1>
-    <p class="lead text-left">Are you sure you want to sign out?</p>
+﻿@model Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectMessage
 
-    @if (Model.Item2 != null && Model.Item2.Identity != null) {
-        <p class="lead text-left">Connected user: @Model.Item2.Identity.Name</p>
-    }
-
-    <form action="/connect/logout" enctype="application/x-www-form-urlencoded" method="post">
+<div class="home__block">
+    <h3>Logging out, please wait...</h3>
+    <form action="/connect/logout" enctype="application/x-www-form-urlencoded" method="post" id="logout">
         @Html.AntiForgeryToken()
 
         @* Flow the logout request *@
-        @foreach (var parameter in Model.Item1.Parameters) {
+        @foreach (var parameter in Model.Parameters)
+        {
             <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
         }
-
-        <input class="btn btn-lg btn-success" name="Authorize" type="submit" value="Yeah, sure" />
     </form>
 </div>
+
+@section scripts
+{
+    <script>
+        $(function() {
+            $('#logout').submit();
+        });
+    </script>
+}
