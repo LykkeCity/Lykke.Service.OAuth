@@ -107,6 +107,12 @@ namespace WebAuth.Providers
             context.Validate(application.RedirectUri);
         }
 
+        public override async Task ValidateLogoutRequest(ValidateLogoutRequestContext context)
+        {
+            // Don't validate logout url, as we don't have it
+            context.Validate();
+        }
+
         public override async Task ValidateTokenRequest(ValidateTokenRequestContext context)
         {
             // Note: the OpenID Connect server middleware supports authorization code, refresh token, client credentials

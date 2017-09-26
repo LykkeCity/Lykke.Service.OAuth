@@ -224,15 +224,13 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/connect/logout")]
-        public async Task<ActionResult> Logout(CancellationToken cancellationToken)
+        public ActionResult Logout(CancellationToken cancellationToken)
         {
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null)
             {
                 return View("Error", response);
             }
-
-            var identity = await HttpContext.Authentication.AuthenticateAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
@@ -244,7 +242,7 @@ namespace WebAuth.Controllers
                 });
             }
 
-            return View("Logout", Tuple.Create(request, identity));
+            return View("Logout", request);
         }
 
         [HttpPost("~/connect/logout")]
