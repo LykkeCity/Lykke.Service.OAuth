@@ -1,83 +1,111 @@
-﻿@using System.Threading.Tasks
-<!DOCTYPE html>
-<html>
+﻿<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 ie7"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9 ie8"> <![endif]-->
+<!--[if IE 9]>         <html class="no-js ie9"> <![endif]-->
+<!--[if gt IE 9]><!-->
+<html class="no-js">
+<!--<![endif]-->
 <head>
-    <meta charset="utf-8"/>
+    <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Lykke</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Lykke OAuth Server</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="manifest.json">
+    <link rel="mask-icon" href="safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="theme-color" content="#ffffff">
 
-    <link rel="shortcut icon" href="~/images/favicon.ico">
     <environment names="Development">
-        <link rel="stylesheet" href="~/dist/site.min.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/styles/bootstrap-custom.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/styles/style.css" asp-append-version="true" />
     </environment>
     <environment names="Staging,Production">
-        <link rel="stylesheet" href="~/dist/site.min.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/dist/styles.min.css" asp-append-version="true" />
     </environment>
+
+    <!--[if lte IE 9]>
+        <script type="text/javascript" src="/js/vendor/html5shiv.js"></script>
+    <![endif]-->
     <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-K5Q43JZ');</script>
+    <script>
+        (function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-K5Q43JZ');</script>
     <!-- End Google Tag Manager -->
 
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K5Q43JZ"
-                  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
+    <!-- Google Tag Manager (noscript) -->
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K5Q43JZ"
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
-<div class="main-wrapper">
-    <header class="header">
-        <img src="~/images/lykke_new.svg" class="logo"/>
-    </header>
 
-    <div class="container body-content">
-        @RenderBody()
-    </div>
+    <article class="content page page_auth">
 
-    <footer class="footer">
-        <div class="footer-social">
-            <a href="https://www.facebook.com/groups/542506412568917/" target="_blank" class="footer-social__item">
-                <svg class="footer-social__item_facebook" xmlns="http://www.w3.org/2000/svg">
-                    <title>DE206FEB-028F-45C9-A78A-0EDEA16AF9B1</title>
-                    <path d="M1.65 0C.74 0 0 .74 0 1.65v26.685c0 .438.174.857.483 1.167.31.31.73.483 1.167.483h14.37V18.36h-3.915v-4.5h3.915V10.5c-.164-1.604.39-3.198 1.513-4.355 1.122-1.158 2.7-1.76 4.307-1.645 1.167-.004 2.334.056 3.495.18v4.05h-2.4c-.62-.14-1.27.044-1.725.49-.455.445-.653 1.09-.525 1.715v2.895h4.5l-.585 4.5h-3.9V30h7.65c.438 0 .857-.174 1.167-.483.31-.31.483-.73.483-1.167V1.65c0-.438-.174-.857-.483-1.167-.31-.31-.73-.483-1.167-.483H1.65z"
-                          id="facebook"/>
-                </svg>
-            </a>
-            <a href="https://twitter.com/LykkeCity" target="_blank" class="footer-social__item">
-                <svg class="footer-social__item_twitter" xmlns="http://www.w3.org/2000/svg">
-                    <title>991677E3-BD22-43FC-9C64-3E1D1971157C</title>
-                    <path d="M29.998 4.352c1.45-.872 2.534-2.24 3.052-3.85-1.367.814-2.864 1.388-4.426 1.696C26.468-.098 23.04-.662 20.26.823c-2.778 1.484-4.216 4.648-3.506 7.717-5.597-.28-10.812-2.924-14.346-7.274-1.846 3.18-.904 7.248 2.154 9.292-1.106-.032-2.187-.33-3.155-.865v.085c.022 3.296 2.35 6.126 5.58 6.783-1.024.28-2.096.32-3.138.12.91 2.832 3.52 4.773 6.494 4.833-2.465 1.938-5.512 2.99-8.648 2.984-.567 0-1.133-.034-1.696-.1 6.094 3.933 13.853 4.22 20.22.742 6.366-3.478 10.32-10.16 10.304-17.414v-.898c1.36-.978 2.538-2.19 3.476-3.578-1.27.565-2.62.937-4.002 1.102z"
-                          id="twitter"/>
-                </svg>
-            </a>
-            <a href="https://www.youtube.com/channel/UCmMYipGdKMF0kzfaE-PXsNQ" target="_blank"
-               class="footer-social__item">
-                <svg class="footer-social__item_youtube" xmlns="http://www.w3.org/2000/svg">
-                    <title>682F8464-7808-442E-A927-2E32D6962819</title>
-                    <path d="M34.2 1.883C33.244.923 31.95.375 30.597.36 25.555 0 17.992 0 17.992 0S6.662.27 5.386.36C4.032.375 2.74.922 1.784 1.883 1.02 2.935.53 4.163.36 5.453.136 7.385.016 9.332 0 11.28v2.734c.016 1.947.136 3.893.36 5.828.17 1.29.66 2.517 1.424 3.57 1.098.973 2.51 1.52 3.98 1.538 2.88.278 12.244.36 12.244.36s7.564 0 12.606-.377c1.354-.015 2.647-.562 3.602-1.522.765-1.05 1.254-2.278 1.424-3.568.224-1.935.344-3.88.36-5.828V11.28c-.02-1.948-.147-3.894-.377-5.828-.17-1.29-.66-2.517-1.424-3.57zM14.7 17.32V7.204l9.726 5.075L14.7 17.32z"
-                          id="youtube"/>
-                </svg>
-            </a>
-        </div>
-    </footer>
-</div>
+        <section class="section section--padding">
+            <div class="container">
 
-<environment names="Development">
-    <script src="~/js/vendor/jquery.min.js"></script>
-    <script src="~/js/vendor/bootstrap.min.js"></script>
-    <script src="~/js/vendor/jquery.validate.min.js"></script>
-    <script src="~/js/vendor/jquery.validate.unobtrusive.min.js"></script>
-    <script src="~/js/components/form.js"></script>
-    <script src="~/js/components/profile-steps.js"></script>
-</environment>
-<environment names="Staging,Production">
-    <script src="~/dist/site.min.js" asp-append-version="true"></script>
-</environment>
+                <div class="row">
+                    <div class="col-md-10 automargin">
+                        <div class="header__logo header_logo">
+                            <a href="/">
+                                <img class="header_logo__img" src="/images/lykke_new.svg" height="40" alt="lykke_logo">
+                            </a>
+                        </div>
 
-@RenderSection("scripts", false)
+                        <div class="row">
+                            <div class="col-md-10 automargin">
+                                @RenderBody()
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+    </article>
+
+    <environment names="Development">
+        <script src="/js/vendor/jquery.min.js"></script>
+        <script src="/js/vendor/bootstrap.min.js"></script>
+        <script src="/js/vendor/fastclick.min.js"></script>
+        <script src="/js/functions.js"></script>
+
+        <script src="/js/vendor/moment.min.js"></script>
+        <script src="/js/vendor/bootstrap-datetimepicker.min.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/dist/site.min.js" asp-append-version="true"></script>
+    </environment>
+
+    @RenderSection("scripts", false)
+
+    @*<script>
+            $('.datetimepicker').datetimepicker({
+                format: 'DD.MM.YYYY',
+                icons: {
+                    time: "icon--clock",
+                    date: "icon--cal",
+                    up: "icon--chevron-thin-up",
+                    down: "icon--chevron-thin-down",
+                    previous: "icon--chevron-thin-left",
+                    next: "icon--chevron-thin-right"
+                }
+            });
+        </script>*@
+
 </body>
 </html>

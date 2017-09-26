@@ -13,13 +13,13 @@ namespace WebAuth.Controllers
             _clientAccountsRepository = clientAccountsRepository;
         }
 
-        [HttpPost("~/verifyemail")]
-        [HttpGet("~/verifyemail")]
-        public async Task<ActionResult> VerifyEmail(string email)
-        {
-            return Json(await _clientAccountsRepository.IsTraderWithEmailExistsAsync(email)
-                ? string.Format($"Email {email} is already in use.")
-                : "true");
-        }
+        //[HttpPost("~/verifyemail")]
+        //[HttpGet("~/verifyemail")]
+        //public async Task<ActionResult> VerifyEmail(string email)
+        //{
+        //    return Json(await _clientAccountsRepository.IsTraderWithEmailExistsAsync(email)
+        //        ? string.Format($"Email {email} is already in use.")
+        //        : "true");
+        //}
     }
 }

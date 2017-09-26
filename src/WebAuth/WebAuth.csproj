@@ -63,9 +63,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\images\profile\" />
+    <Folder Include="wwwroot\fonts\" />
     <Folder Include="wwwroot\dist\" />
-    <Folder Include="wwwroot\styles\profile\" />
+    <Folder Include="wwwroot\images\" />
+    <Folder Include="wwwroot\js\vendor\" />
   </ItemGroup>
 
   <Target Name="AddGeneratedContentItems" BeforeTargets="AssignTargetPaths" DependsOnTargets="PrepareForPublish">

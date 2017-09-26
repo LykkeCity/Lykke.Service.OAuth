@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using AzureDataAccess;
 using AzureDataAccess.AuditLog;
+using AzureDataAccess.Email;
 using AzureDataAccess.Settings;
 using AzureRepositories.Assets;
 using AzureStorage.Tables;
@@ -11,6 +12,7 @@ using Core.AuditLog;
 using Core.BackOffice;
 using Core.Bitcoin;
 using Core.Clients;
+using Core.Email;
 using Core.Kyc;
 using Core.Settings;
 using Lykke.SettingsReader;
@@ -76,6 +78,10 @@ namespace WebAuth.Modules
             builder.RegisterInstance(
                 AzureRepoFactories.Bitcoin.CreateWalletCredentialsRepository(clientPersonalInfoConnString, _log)
             ).As<IWalletCredentialsRepository>().SingleInstance();
+
+            builder.RegisterInstance(
+                new VerificationCodesRepository(AzureTableStorage<VerificationCodeEntity>.Create(clientPersonalInfoConnString, "VerificationCodes", _log))
+            ).As<IVerificationCodesRepository>().SingleInstance();
         }
     }
 }

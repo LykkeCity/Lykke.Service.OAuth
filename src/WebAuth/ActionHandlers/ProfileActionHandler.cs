@@ -64,14 +64,14 @@ namespace WebAuth.ActionHandlers
             return model;
         }
 
-        public async Task UpdatePersonalInformation(PersonalInformationViewModel viewModel)
+        public async Task UpdatePersonalInformation(string clientId, string firstName, string lastName)
         {
-            await _srvKycManager.ChangeFirstNameAsync(CurrentClientId, viewModel.FirstName, RecordChanger.Client);
-            await _srvKycManager.ChangeLastNameAsync(CurrentClientId, viewModel.LastName, RecordChanger.Client);
-            await _srvKycManager.ChangeFullNameAsync(CurrentClientId, $"{viewModel.FirstName} {viewModel.LastName}", RecordChanger.Client);
+            await _srvKycManager.ChangeFirstNameAsync(clientId, firstName, RecordChanger.Client);
+            await _srvKycManager.ChangeLastNameAsync(clientId, lastName, RecordChanger.Client);
+            await _srvKycManager.ChangeFullNameAsync(clientId, $"{firstName} {lastName}", RecordChanger.Client);
 
             //update client identity
-            var clientAccount = await _clientAccountsRepository.GetByIdAsync(CurrentClientId);
+            var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
 
             await _httpContextAccessor.HttpContext.Authentication.SignOutAsync("ServerCookie");
 

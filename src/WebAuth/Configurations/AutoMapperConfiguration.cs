@@ -10,7 +10,6 @@ namespace WebAuth.Configurations
         public AutoMapperConfiguration()
         {
             CreateMap<IPersonalData, PersonalInformationViewModel>();
-            CreateMap<IPersonalData, CountryOfResidenceViewModel>();
             CreateMap<IPersonalData, AddressInformationViewModel>();
         }
     }

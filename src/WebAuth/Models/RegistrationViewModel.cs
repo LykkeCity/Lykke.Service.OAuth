@@ -16,7 +16,7 @@ namespace WebAuth.Models
 
         [Required(ErrorMessage = "E-mail is required")]
         [DataType(DataType.EmailAddress)]
-        [Remote("VerifyEmail", "UserValidation")]
+        //[Remote("VerifyEmail", "UserValidation")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Password is required")]

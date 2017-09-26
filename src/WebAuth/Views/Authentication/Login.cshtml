@@ -1,0 +1,55 @@
+﻿@model WebAuth.Models.LoginViewModel
+
+<h4>Sign in</h4>
+<form novalidate class="form form_register" enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin">
+    <div class="form-group">
+        <div class="input-group" lykke-validation-for="Username" lykke-validationerror-class="input-group--error">
+            <i class="icon icon--email input-group-addon"></i>
+            <input type="email" placeholder="E-mail address" class="form-control" asp-for="Username" />
+        </div>
+        <span class="label_error" asp-validation-for="Username"></span>
+    </div>
+    <div class="form-group">
+        <div class="input-group" lykke-validation-for="Password" lykke-validationerror-class="input-group--error">
+            <i class="icon icon--lock input-group-addon"></i>
+            <input type="password" placeholder="Password" class="form-control" asp-for="Password" />
+            <!-- TODO toggle icon classes and input type, show icon if input has value-->
+            <i class="icon icon--show_password input-group-addon"></i>
+            <!--<i class="icon icon--hide_password input-group-addon"></i>-->
+        </div>
+        <span class="label_error" asp-validation-for="Password"></span>
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+        <input type="hidden" name="IsLogin" value="true" />
+    </div>
+    <div asp-validation-summary="ModelOnly" class="label_error"></div>
+    <div class="submit-group">
+        <button class="btn btn--primary btn-block" type="submit">Sign in</button>
+    </div>
+</form>
+
+<div class="hr_or">
+    <span>or</span>
+</div>
+
+<h4>Sign up</h4>
+<form novalidate class="form form_register" enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin">
+    <div class="form-group">
+        <div class="input-group" lykke-validation-for="Email" lykke-validationerror-class="input-group--error">
+            <i class="input-group-addon icon icon--email"></i>
+            <input type="email" class="form-control" placeholder="E-mail address" asp-for="Email">
+        </div>
+        <span class="label_error" asp-validation-for="Email"></span>
+
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+        <input type="hidden" name="Referer" value="@Model.Referer" />
+        <input type="hidden" name="IsLogin" value="false" />
+    </div>
+    <div class="submit-group">
+        <button class="btn btn--primary btn-block" type="submit">Sign up</button>
+    </div>
+</form>
+
+
+<div class="hint">
+    By pressing Sign up you agree to our <a href="">Terms and Use</a> and <a href="">Privacy policy</a>
+</div>

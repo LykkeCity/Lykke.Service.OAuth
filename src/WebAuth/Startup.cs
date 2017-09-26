@@ -169,7 +169,7 @@ namespace WebAuth
 
                 app.UseSession();
 
-                var applicationRepository = app.ApplicationServices.GetService<IApplicationRepository>();
+                var applicationRepository = ApplicationContainer.Resolve<IApplicationRepository>();
 
                 app.UseOpenIdConnectServer(options =>
                 {
@@ -184,7 +184,6 @@ namespace WebAuth
                     options.ApplicationCanDisplayErrors = true;
                     options.AllowInsecureHttp = Environment.IsDevelopment();
                 });
-
 
                 app.UseCsp(options => options.DefaultSources(directive => directive.Self())
                     .ImageSources(directive => directive.Self()
