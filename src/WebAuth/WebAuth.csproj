@@ -21,13 +21,15 @@
     <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="1.0.0-beta6-final" />
     <PackageReference Include="AutoMapper" Version="6.1.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="3.0.1" />
+    <PackageReference Include="BuildBundlerMinifier" Version="2.5.357" />
     <PackageReference Include="Flurl.Http" Version="1.2.0" />
-    <PackageReference Include="Lykke.Common" Version="1.1.95" />
-    <PackageReference Include="Lykke.Logs" Version="1.0.33" />
+    <PackageReference Include="Lykke.AzureQueueIntegration" Version="1.0.7" />
+    <PackageReference Include="Lykke.Common" Version="2.0.0" />
+    <PackageReference Include="Lykke.Logs" Version="3.1.2" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.14" />
     <PackageReference Include="Lykke.Service.Registration" Version="1.0.31" />
-    <PackageReference Include="Lykke.SettingsReader" Version="1.0.38" />
-    <PackageReference Include="Lykke.SlackNotifications" Version="1.0.11" />
+    <PackageReference Include="Lykke.SettingsReader" Version="1.0.41" />
+    <PackageReference Include="Lykke.SlackNotifications" Version="1.0.12" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="1.0.5" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="1.1.2" />
@@ -49,11 +51,6 @@
     <PackageReference Include="NWebsec.AspNetCore.Middleware" Version="1.1.0" />    
   </ItemGroup>
 
-  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
-    <Exec Command="npm install" />
-    <Exec Command="npm start" />
-  </Target>
-
   <ItemGroup>
     <DotNetCliToolReference Include="BundlerMinifier.Core" Version="2.2.301" />
   </ItemGroup>
@@ -63,5 +60,18 @@
     <ProjectReference Include="..\BusinessService\BusinessService.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\fonts\" />
+    <Folder Include="wwwroot\dist\" />
+    <Folder Include="wwwroot\images\" />
+    <Folder Include="wwwroot\js\vendor\" />
+  </ItemGroup>
+
+  <Target Name="AddGeneratedContentItems" BeforeTargets="AssignTargetPaths" DependsOnTargets="PrepareForPublish">
+    <ItemGroup>
+      <Content Include="wwwroot/**" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);@(Content)" />
+    </ItemGroup>
+  </Target>
 
 </Project>

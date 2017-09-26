@@ -1,0 +1,43 @@
+[
+  {
+    "outputFileName": "wwwroot/dist/styles.min.css",
+    "inputFiles": [
+      "wwwroot/styles/bootstrap-custom.min.css",
+      "wwwroot/styles/style.css",
+      "wwwroot/styles/style-custom.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/dist/site.min.js",
+    "inputFiles": [
+      "wwwroot/js/vendor/jquery.min.js",
+      "wwwroot/js/vendor/bootstrap.min.js",
+      "wwwroot/js/vendor/fastclick.min.js",
+      "wwwroot/js/functions.js",
+      "wwwroot/js/vendor/moment.min.js",
+      "wwwroot/js/vendor/notify.min.js",
+      "wwwroot/js/vendor/bootstrap-datetimepicker.min.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  },
+  {
+    "outputFileName": "wwwroot/dist/register.min.js",
+    "inputFiles": [
+      "wwwroot/js/vendor/angular.js",
+      "wwwroot/js/app/registerModule.js",
+      "wwwroot/js/app/antiforeryInterceptor.js",
+      "wwwroot/js/app/controllers/registrationController.js",
+      "wwwroot/js/app/services/registerService.js",
+      "wwwroot/js/app/directives/strongPassword.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": false
+    },
+    "sourceMap": false
+  }
+]

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using BusinessService.Kyc;
 using Core.Clients;
-using Core.Country;
 using Core.Kyc;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Contract.Models;
@@ -28,7 +27,6 @@ namespace WebAuth.ActionHandlers
         private const int TotalNumberOfFields = 12;
         private readonly AuthenticationActionHandler _authenticationActionHandler;
         private readonly IClientAccountsRepository _clientAccountsRepository;
-        private readonly ICountryService _countryService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IKycDocumentsRepository _kycDocumentsRepository;
         private readonly IPersonalDataService _personalDataService;
@@ -40,7 +38,7 @@ namespace WebAuth.ActionHandlers
             IKycDocumentsRepository kycDocumentsRepository, AuthenticationActionHandler authenticationActionHandler,
             IHttpContextAccessor httpContextAccessor, IUrlHelperFactory urlHelperFactory,
             IActionContextAccessor actionContextAccessor, IUserManager userManager,
-            IClientAccountsRepository clientAccountsRepository, ICountryService countryService)
+            IClientAccountsRepository clientAccountsRepository)
         {
             _srvKycManager = srvKycManager;
             _personalDataService = personalDataService;
@@ -49,7 +47,6 @@ namespace WebAuth.ActionHandlers
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
             _clientAccountsRepository = clientAccountsRepository;
-            _countryService = countryService;
             _urlHelper = urlHelperFactory.GetUrlHelper(actionContextAccessor.ActionContext);
         }
 
@@ -67,14 +64,14 @@ namespace WebAuth.ActionHandlers
             return model;
         }
 
-        public async Task UpdatePersonalInformation(PersonalInformationViewModel viewModel)
+        public async Task UpdatePersonalInformation(string clientId, string firstName, string lastName)
         {
-            await _srvKycManager.ChangeFirstNameAsync(CurrentClientId, viewModel.FirstName, RecordChanger.Client);
-            await _srvKycManager.ChangeLastNameAsync(CurrentClientId, viewModel.LastName, RecordChanger.Client);
-            await _srvKycManager.ChangeFullNameAsync(CurrentClientId, $"{viewModel.FirstName} {viewModel.LastName}", RecordChanger.Client);
+            await _srvKycManager.ChangeFirstNameAsync(clientId, firstName, RecordChanger.Client);
+            await _srvKycManager.ChangeLastNameAsync(clientId, lastName, RecordChanger.Client);
+            await _srvKycManager.ChangeFullNameAsync(clientId, $"{firstName} {lastName}", RecordChanger.Client);
 
             //update client identity
-            var clientAccount = await _clientAccountsRepository.GetByIdAsync(CurrentClientId);
+            var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
 
             await _httpContextAccessor.HttpContext.Authentication.SignOutAsync("ServerCookie");
 
@@ -83,40 +80,6 @@ namespace WebAuth.ActionHandlers
             await _httpContextAccessor.HttpContext.Authentication.SignInAsync("ServerCookie",
                     new ClaimsPrincipal(identity),
                     new AuthenticationProperties());
-        }
-
-        public async Task<CountryOfResidenceViewModel> GetCountryOfResidence(string returnUrl = null)
-        {
-            var userFullData = await _personalDataService.GetAsync(CurrentClientId);
-
-            var model = Mapper.Map<CountryOfResidenceViewModel>(userFullData) ?? new CountryOfResidenceViewModel();
-            model.ReturnUrl = returnUrl;
-            model.NextStepUrl = GetStepUrl("AddressInformation", returnUrl);
-            model.PrevStepUrl = GetStepUrl("PersonalInformation", returnUrl);
-
-            var currentCulture = CultureInfo.CurrentCulture;
-            var availableCountryList = await _countryService.GetCountryListAsync(currentCulture.Name);
-
-            if (availableCountryList != null)
-            {
-                model.Countries =
-                    availableCountryList.Select(
-                            x =>
-                                new SelectListItem
-                                {
-                                    Text = x.Name,
-                                    Value = x.Iso3,
-                                    Selected = x.Iso3.Equals(model.Country)
-                                })
-                        .ToList();
-            }
-
-            return model;
-        }
-
-        public async Task UpdateCountryOfResidence(CountryOfResidenceViewModel model)
-        {
-            await _srvKycManager.ChangeCountryAsync(CurrentClientId, model.Country, RecordChanger.Client);
         }
 
         public async Task<AddressInformationViewModel> GetAddressInformation(string returnUrl = null)

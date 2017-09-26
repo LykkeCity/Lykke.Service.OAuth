@@ -1,0 +1,3 @@
+﻿.ng-cloak {display: none !important;}
+.btn_loading-standalone { width: 25px; height: 25px; background-color: transparent!important;}
+.btn_loading-standalone:before { background-color: transparent!important;}

@@ -16,43 +16,27 @@ namespace WebAuth.Controllers
             _profileActionHandler = profileActionHandler;
         }
 
-        [HttpGet("~/personal-information")]
-        public async Task<ActionResult> PersonalInformation(string returnUrl = null)
-        {
-            var model = await _profileActionHandler.GetPersonalInformation(returnUrl);
+        //[HttpGet("~/personal-information")]
+        //public async Task<ActionResult> PersonalInformation(string returnUrl = null)
+        //{
+        //    var model = await _profileActionHandler.GetPersonalInformation(returnUrl);
 
-            return View("PersonalInformation", model);
-        }
+        //    return View("PersonalInformation", model);
+        //}
 
-        [HttpPost("~/personal-information")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> PersonalInformation(PersonalInformationViewModel viewModel)
-        {
-            if (ModelState.IsValid)
-            {
-                await _profileActionHandler.UpdatePersonalInformation(viewModel);
+        //[HttpPost("~/personal-information")]
+        //[ValidateAntiForgeryToken]
+        //public async Task<ActionResult> PersonalInformation(PersonalInformationViewModel viewModel)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        await _profileActionHandler.UpdatePersonalInformation(viewModel);
 
-                return RedirectToLocal(viewModel.ReturnUrl);
-            }
+        //        return RedirectToLocal(viewModel.ReturnUrl);
+        //    }
 
-            return View("PersonalInformation", viewModel);
-        }
-
-        [HttpGet("~/country-of-residence")]
-        public async Task<ActionResult> CountryOfResidence(string returnUrl = null)
-        {
-            var model = await _profileActionHandler.GetCountryOfResidence(returnUrl);
-
-            return View("CountryOfResidence", model);
-        }
-
-        [HttpPost("~/country-of-residence")]
-        public async Task<ActionResult> CountryOfResidence(CountryOfResidenceViewModel model)
-        {
-            await _profileActionHandler.UpdateCountryOfResidence(model);
-
-            return RedirectToAction("AddressInformation", new {returnUrl = model.ReturnUrl});
-        }
+        //    return View("PersonalInformation", viewModel);
+        //}
 
         [HttpGet("~/address-information")]
         public async Task<ActionResult> AddressInformation(string returnUrl = null)
