@@ -196,9 +196,11 @@ namespace WebAuth
                 .ImageSources(directive => directive.Self()
                     .CustomSources("*"))
                 .ScriptSources(directive => directive.Self()
-                    .UnsafeInline())
+                    .UnsafeInline()
+                    .CustomSources("www.googletagmanager.com", "www.google-analytics.com"))
                 .StyleSources(directive => directive.Self()
-                    .UnsafeInline()));
+                    .UnsafeInline())
+                .FontSources(x => x.SelfSrc = true));
 
             app.UseXContentTypeOptions();
 
