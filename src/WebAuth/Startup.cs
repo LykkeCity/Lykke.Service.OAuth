@@ -216,7 +216,7 @@ namespace WebAuth
                     x.SelfSrc = true;
 
                     if (settings.OAuth.Csp.FontSources.Any())
-                        x.CustomSources = settings.OAuth.Csp.StyleSources;
+                        x.CustomSources = settings.OAuth.Csp.FontSources;
                 }));
 
             app.UseXContentTypeOptions();
