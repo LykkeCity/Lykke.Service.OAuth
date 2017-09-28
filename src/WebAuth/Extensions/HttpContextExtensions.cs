@@ -7,14 +7,14 @@ using Microsoft.Extensions.Primitives;
 
 namespace WebAuth.Extensions
 {
-    public static class ControllerExtensions
+    public static class HttpContextExtensions
     {
-        public static string GetIp(this Controller ctx)
+        public static string GetIp(this HttpContext ctx)
         {
             string ip = string.Empty;
 
             // http://stackoverflow.com/a/43554000/538763
-            var xForwardedForVal = GetHeaderValueAs<string>(ctx.HttpContext, "X-Forwarded-For").SplitCsv().FirstOrDefault();
+            var xForwardedForVal = GetHeaderValueAs<string>(ctx, "X-Forwarded-For").SplitCsv().FirstOrDefault();
 
             if (!string.IsNullOrEmpty(xForwardedForVal))
             {
@@ -22,23 +22,23 @@ namespace WebAuth.Extensions
             }
 
             // RemoteIpAddress is always null in DNX RC1 Update1 (bug).
-            if (string.IsNullOrWhiteSpace(ip) && ctx.HttpContext?.Connection?.RemoteIpAddress != null)
-                ip = ctx.HttpContext.Connection.RemoteIpAddress.ToString();
+            if (string.IsNullOrWhiteSpace(ip) && ctx?.Connection?.RemoteIpAddress != null)
+                ip = ctx.Connection.RemoteIpAddress.ToString();
 
             if (string.IsNullOrWhiteSpace(ip))
-                ip = GetHeaderValueAs<string>(ctx.HttpContext, "REMOTE_ADDR");
+                ip = GetHeaderValueAs<string>(ctx, "REMOTE_ADDR");
 
             return ip;
         }
 
-        public static string GetReferer(this Controller ctx)
+        public static string GetReferer(this HttpContext ctx)
         {
-            return GetHeaderValueAs<string>(ctx.HttpContext, "Referer");
+            return GetHeaderValueAs<string>(ctx, "Referer");
         }
 
-        public static string GetUserAgent(this Controller ctx)
+        public static string GetUserAgent(this HttpContext ctx)
         {
-            return GetHeaderValueAs<string>(ctx.HttpContext, "User-Agent");
+            return GetHeaderValueAs<string>(ctx, "User-Agent");
         }
 
         #region Tools
@@ -71,6 +71,5 @@ namespace WebAuth.Extensions
         }
 
         #endregion
-
     }
 }

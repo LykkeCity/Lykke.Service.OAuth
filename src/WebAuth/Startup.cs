@@ -45,11 +45,6 @@ namespace WebAuth
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            if (Environment.IsProduction() && string.IsNullOrEmpty(Configuration["SettingsUrl"]))
-            {
-                throw new Exception("SettingsUrl is not found");
-            }
-
             OAuthSettings settings = Environment.IsDevelopment()
                 ? Configuration.Get<OAuthSettings>()
                 : HttpSettingsLoader.Load<OAuthSettings>(Configuration.GetValue<string>("SettingsUrl"));
@@ -169,7 +164,7 @@ namespace WebAuth
                 AutomaticChallenge = true,
                 AuthenticationScheme = "ServerCookie",
                 CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
-                ExpireTimeSpan = TimeSpan.FromMinutes(5),
+                ExpireTimeSpan = TimeSpan.FromHours(24),
                 LoginPath = new PathString("/signin"),
                 LogoutPath = new PathString("/signout")
             });
@@ -189,14 +184,14 @@ namespace WebAuth
                 options.UserinfoEndpointPath = "/connect/userinfo";
 
                 options.ApplicationCanDisplayErrors = true;
-                options.AllowInsecureHttp = false;
+                options.AllowInsecureHttp = Environment.IsDevelopment();
             });
 
             var settings = app.ApplicationServices.GetService<IOAuthSettings>();
 
             app.UseCsp(options => options.DefaultSources(directive => directive.Self())
                 .ImageSources(directive => directive.Self()
-                    .CustomSources("*"))
+                    .CustomSources("*", "data:"))
                 .ScriptSources(directive =>
                 {
                     directive.Self().UnsafeInline();
