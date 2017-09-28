@@ -9,10 +9,10 @@
 
     <link rel="shortcut icon" href="~/images/favicon.ico">
     <environment names="Development">
-        <link rel="stylesheet" href="~/_/styles.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/dist/site.min.css" asp-append-version="true"/>
     </environment>
     <environment names="Staging,Production">
-        <link rel="stylesheet" href="~/_/styles.min.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/dist/site.min.css" asp-append-version="true"/>
     </environment>
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -67,12 +67,15 @@
 </div>
 
 <environment names="Development">
-    <script src="~/_/vendor.js"></script>
-    <script src="~/_/all.js" asp-append-version="true"></script>
+    <script src="~/js/vendor/jquery.min.js"></script>
+    <script src="~/js/vendor/bootstrap.min.js"></script>
+    <script src="~/js/vendor/jquery.validate.min.js"></script>
+    <script src="~/js/vendor/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/components/form.js"></script>
+    <script src="~/js/components/profile-steps.js"></script>
 </environment>
 <environment names="Staging,Production">
-    <script src="~/_/vendor.min.js"></script>
-    <script src="~/_/all.min.js" asp-append-version="true"></script>
+    <script src="~/dist/site.min.js" asp-append-version="true"></script>
 </environment>
 
 @RenderSection("scripts", false)

@@ -3,6 +3,7 @@ using AzureDataAccess;
 using AzureDataAccess.AuditLog;
 using AzureDataAccess.Settings;
 using AzureRepositories.Assets;
+using AzureStorage.Blob;
 using AzureStorage.Tables;
 using Common.Log;
 using Core.Application;

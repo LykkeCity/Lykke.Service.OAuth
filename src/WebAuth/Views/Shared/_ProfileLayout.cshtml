@@ -16,102 +16,105 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8"/>
+    <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lykke</title>
 
     <link rel="shortcut icon" href="~/images/favicon.ico">
     <environment names="Development">
-        <link rel="stylesheet" href="~/_/styles.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/dist/site.min.css" asp-append-version="true" />
     </environment>
     <environment names="Staging,Production">
-        <link rel="stylesheet" href="~/_/styles.min.css" asp-append-version="true"/>
+        <link rel="stylesheet" href="~/dist/site.min.css" asp-append-version="true" />
     </environment>
 </head>
 <body>
 
-<div>
-    <header class="header_profile">
-        <div class="main-wrapper">
-            <img src="~/images/logo-small.svg" class="logo logo_small"/>
-            <hr>
-        </div>
-    </header>
-
-    <div class="profile__block">
-        <div class="main-wrapper profile__block-wrap profile__block-wrap_header">
-            <h1>@Localizer["Registration"]</h1>
-
-            <div class="profile__description">
-                <p class="profile__description__text">
-                    In order to take advantage of the other services, please complete the
-                    full registration. Go through each step of the full registration
-                </p>
-
-                @*<div class="profile__status-block">
-                    <div class="profile__status">
-                        <p class="block-description">
-                            Your tier: Lykke Citizen. <a href="#">About tier</a>
-                        </p>
-
-                        @await Component.InvokeAsync("StatusBar")
-
-                    </div>
-                    <div class="profile__skip-btn">
-                        <a class="btn btn-default btn-lg" href="@GetReturnUrl()">Not now</a>
-                    </div>
-                </div>*@
+    <div>
+        <header class="header_profile">
+            <div class="main-wrapper">
+                <img src="~/images/logo-small.svg" class="logo logo_small" />
+                <hr>
             </div>
+        </header>
+
+        <div class="profile__block">
+            <div class="main-wrapper profile__block-wrap profile__block-wrap_header">
+                <h1>@Localizer["Registration"]</h1>
+
+                <div class="profile__description">
+                    <p class="profile__description__text">
+                        In order to take advantage of the other services, please complete the
+                        full registration. Go through each step of the full registration
+                    </p>
+
+                    @*<div class="profile__status-block">
+                            <div class="profile__status">
+                                <p class="block-description">
+                                    Your tier: Lykke Citizen. <a href="#">About tier</a>
+                                </p>
+
+                                @await Component.InvokeAsync("StatusBar")
+
+                            </div>
+                            <div class="profile__skip-btn">
+                                <a class="btn btn-default btn-lg" href="@GetReturnUrl()">Not now</a>
+                            </div>
+                        </div>*@
+                </div>
+            </div>
+
+            @RenderBody()
+
         </div>
 
-        @RenderBody()
+        <footer class="footer_profile">
+            <div class="main-wrapper">
+                <div class="footer-social_profile">
+                    <a href="https://www.facebook.com/groups/542506412568917/" target="_blank"
+                       class="footer-social__item footer-social__item_profile">
+                        <svg class="footer-social__item_facebook_small" xmlns="http://www.w3.org/2000/svg">
+                            <title>facebook</title>
+                            <path id="facebook"
+                                  d="M18.9 0H1.1A1.1 1.1 0 0 0 0 1.1v17.8A1.1 1.1 0 0 0 1.1 20h9.58v-7.74h-2.6v-3h2.61V7a3.64 3.64 0 0 1 3.88-4 21.31 21.31 0 0 1 2.33.12v2.7h-1.6c-1.25 0-1.49.6-1.49 1.47v1.95h3l-.39 3H13.8V20h5.1a1.1 1.1 0 0 0 1.1-1.1V1.1A1.1 1.1 0 0 0 18.9 0" />
+                        </svg>
+                    </a>
+                    <a href="https://twitter.com/LykkeCity" target="_blank"
+                       class="footer-social__item footer-social__item_profile">
+                        <svg class="footer-social__item_twitter_small" xmlns="http://www.w3.org/2000/svg">
+                            <title>tw</title>
+                            <path id="twitter"
+                                  d="M20 1.92a8.21 8.21 0 0 1-2.36.65A4.12 4.12 0 0 0 19.45.3a8.23 8.23 0 0 1-2.61 1 4.11 4.11 0 0 0-7 3.74A11.65 11.65 0 0 1 1.39.74a4.11 4.11 0 0 0 1.27 5.48A4.09 4.09 0 0 1 .8 5.71v.05a4.11 4.11 0 0 0 3.29 4 4.1 4.1 0 0 1-1.85.07 4.11 4.11 0 0 0 3.83 2.85A8.24 8.24 0 0 1 1 14.46a8.33 8.33 0 0 1-1-.06 11.62 11.62 0 0 0 6.29 1.84A11.6 11.6 0 0 0 18 4.75v-.71a8.34 8.34 0 0 0 2-2.12" />
+                        </svg>
+                    </a>
+                    <a href="https://www.youtube.com/channel/UCmMYipGdKMF0kzfaE-PXsNQ" target="_blank"
+                       class="footer-social__item footer-social__item_profile">
+                        <svg class="footer-social__item_youtube_small" xmlns="http://www.w3.org/2000/svg">
+                            <title>youtube</title>
+                            <path id="youtube"
+                                  d="M21.78 3.33a4.77 4.77 0 0 0-.87-2.18 3.15 3.15 0 0 0-2.2-.93C15.63-.01 11-.01 11-.01s-4.61 0-7.69.23a3.15 3.15 0 0 0-2.2.93 4.77 4.77 0 0 0-.89 2.18A33.27 33.27 0 0 0 0 6.89v1.67a33.27 33.27 0 0 0 .22 3.56 4.77 4.77 0 0 0 .87 2.18 3.73 3.73 0 0 0 2.43.94c1.76.17 7.48.22 7.48.22s4.62 0 7.7-.23a3.15 3.15 0 0 0 2.2-.93 4.77 4.77 0 0 0 .87-2.18A33.25 33.25 0 0 0 22 8.56V6.89a33.25 33.25 0 0 0-.22-3.56M9 10.58V4.4l5.94 3.1z" />
+                        </svg>
+                    </a>
+                </div>
 
+                <div class="footer-copyright">© 2016 Lykke. All rights reserved</div>
+            </div>
+        </footer>
     </div>
 
-    <footer class="footer_profile">
-        <div class="main-wrapper">
-            <div class="footer-social_profile">
-                <a href="https://www.facebook.com/groups/542506412568917/" target="_blank"
-                   class="footer-social__item footer-social__item_profile">
-                    <svg class="footer-social__item_facebook_small" xmlns="http://www.w3.org/2000/svg">
-                        <title>facebook</title>
-                        <path id="facebook"
-                              d="M18.9 0H1.1A1.1 1.1 0 0 0 0 1.1v17.8A1.1 1.1 0 0 0 1.1 20h9.58v-7.74h-2.6v-3h2.61V7a3.64 3.64 0 0 1 3.88-4 21.31 21.31 0 0 1 2.33.12v2.7h-1.6c-1.25 0-1.49.6-1.49 1.47v1.95h3l-.39 3H13.8V20h5.1a1.1 1.1 0 0 0 1.1-1.1V1.1A1.1 1.1 0 0 0 18.9 0"/>
-                    </svg>
-                </a>
-                <a href="https://twitter.com/LykkeCity" target="_blank"
-                   class="footer-social__item footer-social__item_profile">
-                    <svg class="footer-social__item_twitter_small" xmlns="http://www.w3.org/2000/svg">
-                        <title>tw</title>
-                        <path id="twitter"
-                              d="M20 1.92a8.21 8.21 0 0 1-2.36.65A4.12 4.12 0 0 0 19.45.3a8.23 8.23 0 0 1-2.61 1 4.11 4.11 0 0 0-7 3.74A11.65 11.65 0 0 1 1.39.74a4.11 4.11 0 0 0 1.27 5.48A4.09 4.09 0 0 1 .8 5.71v.05a4.11 4.11 0 0 0 3.29 4 4.1 4.1 0 0 1-1.85.07 4.11 4.11 0 0 0 3.83 2.85A8.24 8.24 0 0 1 1 14.46a8.33 8.33 0 0 1-1-.06 11.62 11.62 0 0 0 6.29 1.84A11.6 11.6 0 0 0 18 4.75v-.71a8.34 8.34 0 0 0 2-2.12"/>
-                    </svg>
-                </a>
-                <a href="https://www.youtube.com/channel/UCmMYipGdKMF0kzfaE-PXsNQ" target="_blank"
-                   class="footer-social__item footer-social__item_profile">
-                    <svg class="footer-social__item_youtube_small" xmlns="http://www.w3.org/2000/svg">
-                        <title>youtube</title>
-                        <path id="youtube"
-                              d="M21.78 3.33a4.77 4.77 0 0 0-.87-2.18 3.15 3.15 0 0 0-2.2-.93C15.63-.01 11-.01 11-.01s-4.61 0-7.69.23a3.15 3.15 0 0 0-2.2.93 4.77 4.77 0 0 0-.89 2.18A33.27 33.27 0 0 0 0 6.89v1.67a33.27 33.27 0 0 0 .22 3.56 4.77 4.77 0 0 0 .87 2.18 3.73 3.73 0 0 0 2.43.94c1.76.17 7.48.22 7.48.22s4.62 0 7.7-.23a3.15 3.15 0 0 0 2.2-.93 4.77 4.77 0 0 0 .87-2.18A33.25 33.25 0 0 0 22 8.56V6.89a33.25 33.25 0 0 0-.22-3.56M9 10.58V4.4l5.94 3.1z"/>
-                    </svg>
-                </a>
-            </div>
+    <environment names="Development">
+        <script src="~/js/vendor/jquery.min.js"></script>
+        <script src="~/js/vendor/bootstrap.min.js"></script>
+        <script src="~/js/vendor/jquery.validate.min.js"></script>
+        <script src="~/js/vendor/jquery.validate.unobtrusive.min.js"></script>
+        <script src="~/js/components/form.js"></script>
+        <script src="~/js/components/profile-steps.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/dist/site.min.js" asp-append-version="true"></script>
+    </environment>
 
-            <div class="footer-copyright">© 2016 Lykke. All rights reserved</div>
-        </div>
-    </footer>
-</div>
-
-<environment names="Development">
-    <script src="~/_/vendor.js"></script>
-    <script src="~/_/all.js" asp-append-version="true"></script>
-</environment>
-<environment names="Staging,Production">
-    <script src="~/_/vendor.min.js"></script>
-    <script src="~/_/all.min.js" asp-append-version="true"></script>
-</environment>
-
-@RenderSection("scripts", false)
+    @RenderSection("scripts", false)
 </body>
 </html>
