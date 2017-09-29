@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using AspNet.Security.OAuth.Validation;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -191,16 +192,32 @@ namespace WebAuth
                 options.AllowInsecureHttp = false;
             });
 
+            var settings = app.ApplicationServices.GetService<IOAuthSettings>();
 
             app.UseCsp(options => options.DefaultSources(directive => directive.Self())
                 .ImageSources(directive => directive.Self()
                     .CustomSources("*"))
-                .ScriptSources(directive => directive.Self()
-                    .UnsafeInline()
-                    .CustomSources("www.googletagmanager.com", "www.google-analytics.com"))
-                .StyleSources(directive => directive.Self()
-                    .UnsafeInline())
-                .FontSources(x => x.SelfSrc = true));
+                .ScriptSources(directive =>
+                {
+                    directive.Self().UnsafeInline();
+
+                    if (settings.OAuth.Csp.ScriptSources.Any())
+                        directive.CustomSources(settings.OAuth.Csp.ScriptSources);
+                })
+                .StyleSources(directive =>
+                {
+                    directive.Self().UnsafeInline();
+
+                    if (settings.OAuth.Csp.StyleSources.Any())
+                        directive.CustomSources(settings.OAuth.Csp.StyleSources);
+                })
+                .FontSources(x =>
+                {
+                    x.SelfSrc = true;
+
+                    if (settings.OAuth.Csp.FontSources.Any())
+                        x.CustomSources = settings.OAuth.Csp.FontSources;
+                }));
 
             app.UseXContentTypeOptions();
 

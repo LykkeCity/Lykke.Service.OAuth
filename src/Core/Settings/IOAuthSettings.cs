@@ -1,4 +1,7 @@
-﻿namespace Core.Settings
+﻿using System;
+using Lykke.SettingsReader.Attributes;
+
+namespace Core.Settings
 {
     public interface IOAuthSettings
     {
@@ -16,7 +19,9 @@
     {
         public string RegistrationApiUrl { get; set; }
         public DbSettings Db { get; set; }
-        public CorsSettings Cors { get; set; }
+        public CorsSettings Cors { get; set; } = new CorsSettings();
+        [Optional]
+        public CspSettings Csp { get; set; } = new CspSettings();
     }
 
     public class DbSettings
@@ -28,7 +33,17 @@
 
     public class CorsSettings
     {
-        public string[] Origins { get; set; }
+        public string[] Origins { get; set; } = Array.Empty<string>();
+    }
+
+    public class CspSettings
+    {
+        [Optional]
+        public string[] ScriptSources { get; set; } = Array.Empty<string>();
+        [Optional]
+        public string[] StyleSources { get; set; } = Array.Empty<string>();
+        [Optional]
+        public string[] FontSources { get; set; } = Array.Empty<string>();
     }
 
     public class OAuthSettings : IOAuthSettings
