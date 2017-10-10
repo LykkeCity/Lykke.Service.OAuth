@@ -5,6 +5,7 @@ using Lykke.Service.PersonalData.Client;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Settings;
 using Lykke.Service.Registration;
+using Lykke.Service.Session;
 
 namespace WebAuth.Modules
 {
@@ -21,6 +22,7 @@ namespace WebAuth.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterClientSessionService(_settings.OAuth.SessionApiUrl, _log);
             builder.RegisterRegistrationClient(_settings.OAuth.RegistrationApiUrl, _log);
             builder.RegisterInstance<IPersonalDataService>(
                     new PersonalDataService(new PersonalDataServiceSettings { ApiKey = _settings.PersonalDataServiceSettings.ApiKey, ServiceUri = _settings.PersonalDataServiceSettings.ServiceUri }, _log))

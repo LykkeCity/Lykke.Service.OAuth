@@ -26,6 +26,7 @@
     <PackageReference Include="Lykke.Logs" Version="1.0.33" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.14" />
     <PackageReference Include="Lykke.Service.Registration" Version="1.0.31" />
+    <PackageReference Include="Lykke.Service.Session" Version="1.0.34-beta65" />
     <PackageReference Include="Lykke.SettingsReader" Version="1.0.38" />
     <PackageReference Include="Lykke.SlackNotifications" Version="1.0.11" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="1.0.5" />

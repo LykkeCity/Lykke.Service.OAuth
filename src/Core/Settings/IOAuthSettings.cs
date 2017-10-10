@@ -18,6 +18,7 @@ namespace Core.Settings
     public class OAuth
     {
         public string RegistrationApiUrl { get; set; }
+        public string SessionApiUrl { get; set; }
         public DbSettings Db { get; set; }
         public CorsSettings Cors { get; set; } = new CorsSettings();
         [Optional]
