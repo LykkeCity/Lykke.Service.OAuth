@@ -1,10 +1,14 @@
-﻿namespace Core.Settings
+﻿using System;
+using Lykke.SettingsReader.Attributes;
+
+namespace Core.Settings
 {
-    public interface IOAuthSettings
+    public class OAuthSettings
     {
-        LykkeServiceApiSettings LykkeServiceApi { get; set; }
-        OAuth OAuth { get; set; }
-        PersonalDataSettings PersonalDataServiceSettings { get; set; }
+        public LykkeServiceApiSettings LykkeServiceApi { get; set; }
+        public OAuth OAuth { get; set; }
+        public PersonalDataSettings PersonalDataServiceSettings { get; set; }
+        public SlackNotificationsSettings SlackNotifications { get; set; }
     }
 
     public class LykkeServiceApiSettings
@@ -17,6 +21,8 @@
         public string RegistrationApiUrl { get; set; }
         public DbSettings Db { get; set; }
         public CorsSettings Cors { get; set; }
+        [Optional]
+        public CspSettings Csp { get; set; } = new CspSettings();
     }
 
     public class DbSettings
@@ -28,15 +34,17 @@
 
     public class CorsSettings
     {
-        public string[] Origins { get; set; }
+        public string[] Origins { get; set; } = Array.Empty<string>();
     }
 
-    public class OAuthSettings : IOAuthSettings
+    public class CspSettings
     {
-        public LykkeServiceApiSettings LykkeServiceApi { get; set; }
-        public OAuth OAuth { get; set; }
-        public PersonalDataSettings PersonalDataServiceSettings { get; set; }
-        public SlackNotificationsSettings SlackNotifications { get; set; }
+        [Optional]
+        public string[] ScriptSources { get; set; } = Array.Empty<string>();
+        [Optional]
+        public string[] StyleSources { get; set; } = Array.Empty<string>();
+        [Optional]
+        public string[] FontSources { get; set; } = Array.Empty<string>();
     }
 
     public class SlackNotificationsSettings
