@@ -6,15 +6,16 @@ using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Settings;
 using Lykke.Service.Registration;
 using Lykke.Service.Session;
+using Lykke.SettingsReader;
 
 namespace WebAuth.Modules
 {
     public class ClientServiceModule : Module
     {
-        private readonly OAuthSettings _settings;
+        private readonly IReloadingManager<OAuthSettings> _settings;
         private readonly ILog _log;
 
-        public ClientServiceModule(OAuthSettings settings, ILog log)
+        public ClientServiceModule(IReloadingManager<OAuthSettings> settings, ILog log)
         {
             _settings = settings;
             _log = log;
@@ -25,7 +26,7 @@ namespace WebAuth.Modules
             builder.RegisterClientSessionService(_settings.OAuth.SessionApiUrl, _log);
             builder.RegisterRegistrationClient(_settings.OAuth.RegistrationApiUrl, _log);
             builder.RegisterInstance<IPersonalDataService>(
-                    new PersonalDataService(new PersonalDataServiceSettings { ApiKey = _settings.PersonalDataServiceSettings.ApiKey, ServiceUri = _settings.PersonalDataServiceSettings.ServiceUri }, _log))
+                    new PersonalDataService(new PersonalDataServiceSettings { ApiKey = _settings.CurrentValue.PersonalDataServiceSettings.ApiKey, ServiceUri = _settings.CurrentValue.PersonalDataServiceSettings.ServiceUri }, _log))
                 .SingleInstance();
 
         }

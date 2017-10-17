@@ -3,7 +3,6 @@ using AzureDataAccess;
 using AzureDataAccess.AuditLog;
 using AzureDataAccess.Settings;
 using AzureRepositories.Assets;
-using AzureStorage.Blob;
 using AzureStorage.Tables;
 using Common.Log;
 using Core.Application;
@@ -14,15 +13,16 @@ using Core.Bitcoin;
 using Core.Clients;
 using Core.Kyc;
 using Core.Settings;
+using Lykke.SettingsReader;
 
 namespace WebAuth.Modules
 {
     public class DbModule : Module
     {
-        private readonly OAuthSettings _settings;
+        private readonly IReloadingManager<OAuthSettings> _settings;
         private readonly ILog _log;
 
-        public DbModule(OAuthSettings settings, ILog log)
+        public DbModule(IReloadingManager<OAuthSettings> settings, ILog log)
         {
             _settings = settings;
             _log = log;
@@ -30,11 +30,11 @@ namespace WebAuth.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            var clientPersonalInfoConnString = _settings.OAuth.Db.ClientPersonalInfoConnString;
-            var backOfficeConnString = _settings.OAuth.Db.BackOfficeConnString;
+            var clientPersonalInfoConnString = _settings.ConnectionString(x => x.OAuth.Db.ClientPersonalInfoConnString);
+            var backOfficeConnString = _settings.ConnectionString(x => x.OAuth.Db.BackOfficeConnString);
 
             builder.RegisterInstance(
-                new AuditLogRepository(AzureTableStorage<AuditLogDataEntity>.Create(() => clientPersonalInfoConnString, "AuditLogs", _log))
+                new AuditLogRepository(AzureTableStorage<AuditLogDataEntity>.Create(clientPersonalInfoConnString, "AuditLogs", _log))
             ).As<IAuditLogRepository>().SingleInstance();
 
             builder.RegisterInstance(
@@ -66,11 +66,11 @@ namespace WebAuth.Modules
             ).As<IMenuBadgesRepository>().SingleInstance();
 
             builder.RegisterInstance(
-                new AssetGroupRepository(AzureTableStorage<AssetGroupEntity>.Create(() => clientPersonalInfoConnString, "AssetGroups", _log))
+                new AssetGroupRepository(AzureTableStorage<AssetGroupEntity>.Create(clientPersonalInfoConnString, "AssetGroups", _log))
             ).As<IAssetGroupRepository>().SingleInstance();
 
             builder.RegisterInstance(
-                new AppGlobalSettingsRepository(AzureTableStorage<AppGlobalSettingsEntity>.Create(() => clientPersonalInfoConnString, "Setup", _log))
+                new AppGlobalSettingsRepository(AzureTableStorage<AppGlobalSettingsEntity>.Create(clientPersonalInfoConnString, "Setup", _log))
             ).As<IAppGlobalSettingsRepositry>().SingleInstance();
 
             builder.RegisterInstance(

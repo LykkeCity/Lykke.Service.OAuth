@@ -111,22 +111,6 @@ namespace WebAuth.Controllers
             return View("PersonalInformation", viewModel);
         }
 
-        [HttpGet("~/country-of-residence")]
-        public async Task<ActionResult> CountryOfResidence(string returnUrl = null)
-        {
-            var model = await _profileActionHandler.GetCountryOfResidence(returnUrl);
-
-            return View("CountryOfResidence", model);
-        }
-
-        [HttpPost("~/country-of-residence")]
-        public async Task<ActionResult> CountryOfResidence(CountryOfResidenceViewModel model)
-        {
-            await _profileActionHandler.UpdateCountryOfResidence(model);
-
-            return RedirectToAction("AddressInformation", new {returnUrl = model.ReturnUrl});
-        }
-
         [HttpGet("~/address-information")]
         public async Task<ActionResult> AddressInformation(string returnUrl = null)
         {
