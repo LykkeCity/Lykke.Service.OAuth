@@ -1,0 +1,177 @@
+﻿<div data-ng-controller="userProfileController as vm">
+    <article class="content page page--profile">
+
+        <section class="section section--padding">
+            <div class="container container--extend">
+                <div>
+                    @Html.AntiForgeryToken()
+                    <div class="user_badge user_badge--large" data-ng-hide="!vm.data.loading">
+                        <h3 class="user_badge__title">Loading profile...</h3>
+                        <div class="spinner_container">
+                            <div class="spinner">
+                                <div class="spinner__inside"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div data-ng-hide="vm.data.loading" id="profile-page" style="display: none;">
+                        <div class="user_badge user_badge--large" >
+                            <div class="user_badge__img">
+                                <img src="/images/profile/user_default.svg" data-ng-if="!vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="150">
+                                <img ng-src="{{vm.data.personalData.avatarUrl}}" data-ng-if="vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="150">
+                            </div>
+                            <h2 class="user_badge__title" data-ng-bind="vm.data.personalData.fullName"></h2>
+                            <div class="user_badge__desc hint" data-ng-bind="vm.data.personalData.email"></div>
+                            <div class="card__actions text-center visible-xs">
+                                @*<button type="button" class="action_link"><i class="icon icon--exit"></i> Sign Out</button>*@
+                            </div>
+                        </div>
+
+                        <div class="nav_scroll">
+                            <div class="card__actions text-right pull-right hidden-xs">
+                                @*<button type="button" class="action_link"><i class="icon icon--exit"></i> Sign Out</button>*@
+                            </div>
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li role="presentation" class="active"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Account settings</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-8 col-md-6 automargin">
+                                <div class="tab-content">
+                                    <div role="tabpanel" class="tab-pane active" id="settings">
+                                        <form novalidate name="vm.personalDataForm" class="form form--default form_profile">
+                                            <fieldset class="form_fieldset">
+                                                <div class="form_header">
+                                                    <h3>Profile</h3>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div class="fileupload fileupload_userimg">
+                                                        <div class="fileupload__preview">
+                                                            <img src="/images/profile/user_default.svg" data-ng-if="!vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="120">
+                                                            <img ng-src="{{vm.data.personalData.avatarUrl}}" data-ng-if="vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="120">
+                                                        </div>
+                                                        <div class="fileupload__buttons">
+                                                            <button type="button" class="btn btn--default fileupload__btn" name="file" data-ng-model="file"
+                                                                    data-ng-disabled="vm.data.form.avatarLoading" 
+                                                                    data-ng-class="{'btn_loading': vm.data.form.avatarLoading}"
+                                                                    data-ngf-select
+                                                                    data-ngf-accept="accept"
+                                                                    accept="image/*"
+                                                                    data-ngf-max-size="3MB"
+                                                                    data-ngf-change="vm.handlers.uploadAvatar($files)">
+                                                                Upload Image...
+                                                            </button>
+                                                            <button type="button" class="btn btn--default" data-ng-disabled="!vm.data.personalData.avatarUrl" data-toggle="modal" data-target="#modal_message">Delete</button>
+                                                            <div class="label_error" data-ng-show="vm.personalDataForm.file.$error.maxSize">File too large. Maximum allowed 3Mb</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                            <fieldset class="form_fieldset">
+                                                <div class="form_header">
+                                                    <button type="button" class="btn btn-sm pull-right" data-ng-show="!vm.data.form.edit" data-ng-click="vm.handlers.edit()">Edit</button>
+                                                    <button type="button" class="btn btn-sm pull-right" data-ng-show="vm.data.form.edit" data-ng-click="vm.handlers.cancelEdit()">Cancel</button>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="control-label pull-right">Optional</label>
+                                                    <label for="address" class="control-label">Address</label>
+                                                    <input type="text" class="form-control" id="address" name="address" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.address">
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="control-label pull-right">Optional</label>
+                                                    <label for="website" class="control-label">Website</label>
+                                                    <input type="url" class="form-control" id="website" name="website" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.website">
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="control-label pull-right">Say something about yourself in one sentence</label>
+                                                    <label for="short_bio" class="control-label">Bio</label>
+                                                    <textarea class="form-control" id="short_bio" name="shortBio" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.shortBio"></textarea>
+                                                </div>
+
+                                                <div class="form_header">
+                                                    <h3>Social</h3>
+                                                    <p class="text-muted">Use your data profile in other Lykke Services</p>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="control-label pull-right">Optional</label>
+                                                    <label for="facebook" class="control-label">Facebook</label>
+                                                    <input type="url" class="form-control" id="facebook" name="facebook" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.facebook">
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="control-label pull-right">Optional</label>
+                                                    <label for="twitter" class="control-label">Twitter</label>
+                                                    <input type="url" class="form-control" id="twitter" name="twitter" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.twitter">
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="control-label pull-right">Optional</label>
+                                                    <label for="github" class="control-label">GitHub</label>
+                                                    <input type="url" class="form-control" id="github" name="github" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.github">
+                                                </div>
+
+                                                <!-- TODO show if user click on "Edit" buttom-->
+                                                <div class="form_submit" data-ng-show="vm.data.form.edit">
+                                                    <div class="row">
+                                                        <div class="col-sm-6">
+                                                            <div class="checkbox">
+                                                                <input type="checkbox" name="checkbox1" id="checkbox12" class="radio__control" data-ng-model="vm.data.form.agree">
+                                                                <label for="checkbox12" class="control-label checkbox__label">I agree with <a href="">Terms of Use</a></label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-xs-12 col-sm-6 text-right pull-right">
+                                                            <button type="button" class="btn" data-ng-disabled="vm.handlers.isSaveDisabled() || vm.data.form.loading" 
+                                                                    data-ng-class="{'btn_loading': vm.data.form.loading}"
+                                                                    data-ng-click="vm.handlers.saveProfile()">Save Changes</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </fieldset>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </article>
+
+    <div class="modal modal--message fade" id="modal_message" tabindex="-1" role="dialog">
+
+        <div class="modal_valign">
+            <div class="modal_valign__row">
+                <div class="modal_valign__cell">
+
+                    <div class="modal__dialog" role="document">
+                        <div class="modal__content">
+                            <button type="button" class="close visible-xs" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+                            <div class="modal__body">
+                                <h3>Are you sure?</h3>
+                                <div class="text">
+                                    <p>Click "Yes" to delete your current avatar</p>
+                                </div>
+                            </div>
+                            <div class="modal__footer">
+                                <button type="button" class="btn btn--flat" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn--primary" data-dismiss="modal" data-ng-click="vm.handlers.deleteAvatar()">Yes</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+
