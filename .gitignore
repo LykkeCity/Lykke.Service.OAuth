@@ -21,7 +21,6 @@ bld/
 [Bb]in/
 [Oo]bj/
 
-src/WebAuth/wwwroot/dist/*
 src/WebAuth/wwwroot/_/*
 
 src/WebAuth/generalsettings.json

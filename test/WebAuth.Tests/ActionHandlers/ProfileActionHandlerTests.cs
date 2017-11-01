@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Core.Clients;
+using Core.Country;
 using Core.Kyc;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
@@ -28,6 +29,7 @@ namespace WebAuth.Tests.ActionHandlers
             var urlHelperFactory = Substitute.For<IUrlHelperFactory>();
             var actionContextAccessor = Substitute.For<IActionContextAccessor>();
             var userManager = Substitute.For<IUserManager>();
+            var countryService = Substitute.For<ICountryService>();
             var clientAccountRepo = Substitute.For<IClientAccountsRepository>();
             var clientSettingRepo = Substitute.For<IClientSettingsRepository>();
             var authActionHandler = new AuthenticationActionHandler(kycRepo, srvManager, clientSettingRepo, kycDocRepo);
@@ -47,7 +49,8 @@ namespace WebAuth.Tests.ActionHandlers
             httpContextAccessor.HttpContext.User.Returns(fakeClaimsPrincipal);
 
             return new ProfileActionHandler(srvManager, personalDataRepo, kycDocRepo, authActionHandler,
-                httpContextAccessor, urlHelperFactory, actionContextAccessor, userManager, clientAccountRepo);
+                httpContextAccessor, urlHelperFactory, actionContextAccessor, userManager, clientAccountRepo,
+                countryService);
         }
 
         [Fact]
