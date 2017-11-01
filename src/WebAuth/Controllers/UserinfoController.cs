@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
@@ -20,14 +18,14 @@ namespace WebAuth.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IKycRepository _kycRepository;
         private readonly IClientAccountsRepository _clientAccountsRepository;
-        private readonly IClientSessionsClient _clientSessionsClient;
+        private readonly IClientsSessionsRepository _clientSessionsClient;
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
 
         public UserinfoController(
             IApplicationRepository applicationRepository, 
             IKycRepository kycRepository, 
             IClientAccountsRepository clientAccountsRepository,
-            IClientSessionsClient clientSessionsClient,
+            IClientsSessionsRepository clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository)
         {
             _applicationRepository = applicationRepository;

@@ -39,7 +39,7 @@ namespace WebAuth.Controllers
         [HttpGet("~/register")]
         public ActionResult Login(string returnUrl = null)
         {
-            string referer = this.GetReferer() ?? Request.GetUri().ToString();
+            string referer = HttpContext.GetReferer() ?? Request.GetUri().ToString();
 
             try
             {
@@ -66,8 +66,8 @@ namespace WebAuth.Controllers
             {
                 Email = loginModel.Username,
                 Password = loginModel.Password,
-                Ip = this.GetIp(),
-                UserAgent = this.GetUserAgent()
+                Ip = HttpContext.GetIp(),
+                UserAgent = HttpContext.GetUserAgent()
             });
 
 
@@ -100,9 +100,9 @@ namespace WebAuth.Controllers
                 return View("Login", model);
             }
 
-            string userIp = this.GetIp();
+            string userIp = HttpContext.GetIp();
             string referer = null;
-            string userAgent = this.GetUserAgent();
+            string userAgent = HttpContext.GetUserAgent();
 
             if (!string.IsNullOrEmpty(registrationModel.Referer))
             {
