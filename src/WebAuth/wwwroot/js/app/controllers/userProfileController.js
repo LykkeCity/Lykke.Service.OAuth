@@ -68,8 +68,11 @@
                 fileUpload.upload({
                     url: '/profile/uploadAvatar',
                     file: file
-                }).success(function (data, status, headers, config) {
-                    vm.data.personalData.avatarUrl = data;
+                }).then(function (resp) {
+                    if (resp.status === 200 && resp.data) {
+                        vm.data.personalData.avatarUrl = resp.data;
+                    }
+                }).finally(function() {
                     vm.data.form.avatarLoading = false;
                 });
             }

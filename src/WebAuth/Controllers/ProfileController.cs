@@ -67,7 +67,7 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<string> UploadAvatar(IFormFile file)
         {
-            if (file != null)
+            if (file != null && file.Length <= 3 * 1024 * 1024 && file.ContentType.Contains("image"))
             {
                 using (var memoryStream = new MemoryStream())
                 {
