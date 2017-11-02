@@ -1,15 +1,14 @@
 ﻿using System.IO;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Core.Clients;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
+using WebAuth.Models;
 using WebAuth.Models.Profile;
 
 namespace WebAuth.Controllers
@@ -42,10 +41,11 @@ namespace WebAuth.Controllers
         [HttpPost]
         [Route("getpersonaldata")]
         [ValidateAntiForgeryToken]
-        public async Task<ProfilePersonalData> GetPersonalData()
+        public async Task<ProfilePersonalDataModel> GetPersonalData()
         {
             var clientId = _userManager.GetCurrentUserId();
-            return await _personalDataService.GetProfilePersonalDataAsync(clientId);
+            var personalData = await _personalDataService.GetProfilePersonalDataAsync(clientId);
+            return personalData.ToModel();
         }
 
         [HttpPost]
@@ -53,13 +53,8 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task SavePersonalData([FromBody]UpdateProfileInfoRequest model)
         {
+            model.ClientId = _userManager.GetCurrentUserId();
             await _personalDataService.UpdateProfileAsync(model);
-
-            var clientAccount = await _clientAccountsRepository.GetByIdAsync(model.ClientId);
-
-            await HttpContext.Authentication.SignOutAsync("ServerCookie");
-            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, clientAccount.Email, true);
-            await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity), new AuthenticationProperties());
         }
 
         [HttpPost]
