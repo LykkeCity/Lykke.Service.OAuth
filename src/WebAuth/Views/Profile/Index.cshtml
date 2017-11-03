@@ -89,25 +89,39 @@
 
                                                 <div class="form_header">
                                                     <h3>Social</h3>
-                                                    <p class="text-muted">Use your data profile in other Lykke Services</p>
+                                                    <p class="text-muted">You can add links on your social networks. It's optional</p>
                                                 </div>
 
                                                 <div class="form-group">
-                                                    <label class="control-label pull-right">Optional</label>
                                                     <label for="facebook" class="control-label">Facebook</label>
-                                                    <input type="url" class="form-control" id="facebook" name="facebook" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.facebook">
+                                                    <div class="input-group form-control" data-ng-class="{'form-control--disabled': !vm.data.form.edit}">
+                                                        <span class="input-group-addon" data-ng-bind="vm.data.socialPrefix.facebook"></span>
+                                                        <div class="input-group-field">
+                                                            <input type="text" class="form-control" id="facebook" name="facebook" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.facebook">
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                                 <div class="form-group">
-                                                    <label class="control-label pull-right">Optional</label>
                                                     <label for="twitter" class="control-label">Twitter</label>
-                                                    <input type="url" class="form-control" id="twitter" name="twitter" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.twitter">
+                                                    <div class="input-group form-control" data-ng-class="{'form-control--disabled': !vm.data.form.edit}">
+                                                        <span class="input-group-addon" data-ng-bind="vm.data.socialPrefix.twitter"></span>
+                                                        <div class="input-group-field">
+                                                            <input type="text" class="form-control" id="twitter" name="twitter" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.twitter">
+                                                        </div>
+                                                    </div>
+                                                    
                                                 </div>
 
                                                 <div class="form-group">
-                                                    <label class="control-label pull-right">Optional</label>
                                                     <label for="github" class="control-label">GitHub</label>
-                                                    <input type="url" class="form-control" id="github" name="github" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.github">
+                                                    <div class="input-group form-control" data-ng-class="{'form-control--disabled': !vm.data.form.edit}">
+                                                        <span class="input-group-addon" data-ng-bind="vm.data.socialPrefix.github"></span>
+                                                        <div class="input-group-field">
+                                                            <input type="text" class="form-control" id="github" name="github" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.github">
+                                                        </div>
+                                                    </div>
+                                                    
                                                 </div>
 
                                                 <!-- TODO show if user click on "Edit" buttom-->
