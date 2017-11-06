@@ -9,6 +9,11 @@
 
         vm.data = {
             personalData: {},
+            socialPrefix: {
+                facebook: 'https://fb.com/',
+                github: 'https://github.com/',
+                twitter: 'https://twitter.com/'
+            },
             loading: true,
             form: {
                 origData: {},
@@ -34,6 +39,15 @@
         function activate() {
             userProfileService.getPersonalData().then(function(data) {
                 vm.data.personalData = data;
+                if (vm.data.personalData.facebook)
+                    vm.data.personalData.facebook = vm.data.personalData.facebook.replace(vm.data.socialPrefix.facebook, '');
+
+                if (vm.data.personalData.github)
+                    vm.data.personalData.github = vm.data.personalData.github.replace(vm.data.socialPrefix.github, '');
+
+                if (vm.data.personalData.twitter)
+                    vm.data.personalData.twitter = vm.data.personalData.twitter.replace(vm.data.socialPrefix.twitter, '');
+
                 vm.data.loading = false;
             });
         }
@@ -53,8 +67,19 @@
         }
 
         function saveProfile() {
+            var data = angular.copy(vm.data.personalData);
+
+            if (data.facebook)
+                data.facebook = vm.data.socialPrefix.facebook + vm.data.personalData.facebook;
+
+            if (data.github)
+                data.github = vm.data.socialPrefix.github + vm.data.personalData.github;
+
+            if (data.twitter)
+                data.twitter = vm.data.socialPrefix.twitter + vm.data.personalData.twitter;
+
             vm.data.form.loading = true;
-            userProfileService.savePersonalData(vm.data.personalData).then(function (data) {
+            userProfileService.savePersonalData(data).then(function (data) {
                 vm.data.form.edit = false;
                 vm.data.form.loading = false;
             });
