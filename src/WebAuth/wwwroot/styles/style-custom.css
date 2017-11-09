@@ -5,3 +5,6 @@
 .fileupload__buttons { padding: 1rem 0 1.25rem; }
 .btn_loading-standalone { width: 25px; height: 25px; background-color: transparent!important;}
 .btn_loading-standalone:before { background-color: transparent!important;}
+::-ms-reveal {
+    display: none;
+}

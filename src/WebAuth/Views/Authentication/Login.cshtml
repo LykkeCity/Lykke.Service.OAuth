@@ -13,9 +13,7 @@
         <div class="input-group" lykke-validation-for="Password" lykke-validationerror-class="input-group--error">
             <i class="icon icon--lock input-group-addon"></i>
             <input type="password" placeholder="Password" class="form-control" asp-for="Password" />
-            <!-- TODO toggle icon classes and input type, show icon if input has value-->
-            <i class="icon icon--show_password input-group-addon"></i>
-            <!--<i class="icon icon--hide_password input-group-addon"></i>-->
+            <i id="show-password" class="icon icon--show_password input-group-addon" onclick=""></i>
         </div>
         <span class="label_error" asp-validation-for="Password"></span>
         <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
@@ -51,5 +49,20 @@
 
 
 <div class="hint">
-    By pressing Sign up you agree to our <a href="">Terms and Use</a> and <a href="">Privacy policy</a>
+    By pressing Sign up you agree to our <a href="https://www.lykke.com/terms_of_use" target="_blank">Terms and Use</a> and <a href="https://www.lykke.com/privacy_policy" target="_blank">Privacy policy</a>
 </div>
+
+@section scripts
+{
+    <script>
+        $(function() {
+            $('#show-password').on('click', function () {
+                var $this = $(this);
+                var pass = $('#Password');
+                pass.prop('type', pass.prop('type') === 'text' ? 'password' : 'text');
+                $this.toggleClass('icon--show_password');
+                $this.toggleClass('icon--hide_password');
+            });
+        })
+    </script>
+}

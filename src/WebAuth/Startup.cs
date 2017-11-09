@@ -111,6 +111,8 @@ namespace WebAuth
         {
             try
             {
+
+
                 if (env.IsDevelopment())
                 {
                     app.UseDeveloperExceptionPage();
@@ -175,8 +177,8 @@ namespace WebAuth
                 {
                     options.Provider = new AuthorizationProvider(applicationRepository);
 
-                // Enable the authorization, logout, token and userinfo endpoints.
-                options.AuthorizationEndpointPath = "/connect/authorize";
+                    // Enable the authorization, logout, token and userinfo endpoints.
+                    options.AuthorizationEndpointPath = "/connect/authorize";
                     options.LogoutEndpointPath = "/connect/logout";
                     options.TokenEndpointPath = "/connect/token";
                     options.UserinfoEndpointPath = "/connect/userinfo";

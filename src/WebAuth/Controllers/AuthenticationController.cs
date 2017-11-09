@@ -107,7 +107,7 @@ namespace WebAuth.Controllers
 
             if (string.IsNullOrEmpty(model.Email))
             {
-                ModelState.AddModelError(nameof(model.Email), $"{nameof(model.Email)} is required");
+                ModelState.AddModelError(nameof(model.Email), $"{nameof(model.Email)} is required and can't be empty");
                 
                 return View("Login", model);
             }

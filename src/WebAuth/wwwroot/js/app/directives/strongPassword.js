@@ -15,8 +15,7 @@ app.directive('strongPassword', function() {
                 var hasUpperCase = /[A-Z]/.test(modelValue);
                 var hasLowerCase = /[a-z]/.test(modelValue);
                 var hasNumbers = /\d/.test(modelValue);
-                var hasNonalphas = /\W/.test(modelValue);
-                return (hasUpperCase + hasLowerCase + hasNumbers + hasNonalphas >= 3);
+                return hasUpperCase && hasLowerCase && hasNumbers;
             };
         }
     };

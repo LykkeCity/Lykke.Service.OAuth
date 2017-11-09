@@ -20,7 +20,8 @@ namespace AzureDataAccess.Email
 
         public static string GenerateCode()
         {
-            return Guid.NewGuid().ToString("N");
+            var rand = new Random(DateTime.UtcNow.Millisecond);
+            return rand.Next(999999).ToString(new string('0', 6));
         }
 
         public string Email { get; set; }
