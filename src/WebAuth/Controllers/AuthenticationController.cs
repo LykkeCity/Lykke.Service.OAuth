@@ -53,7 +53,7 @@ namespace WebAuth.Controllers
         {
             try
             {
-                string referer = this.GetReferer() ?? Request.GetUri().ToString();
+                string referer = HttpContext.GetReferer() ?? Request.GetUri().ToString();
                 return View("Login", new LoginViewModel(returnUrl, referer));
             }
             catch (Exception ex)
@@ -78,8 +78,8 @@ namespace WebAuth.Controllers
                 {
                     Email = model.Username,
                     Password = model.Password,
-                    Ip = this.GetIp(),
-                    UserAgent = this.GetUserAgent()
+                    Ip = HttpContext.GetIp(),
+                    UserAgent = HttpContext.GetUserAgent()
                 });
 
                 if (authResult == null)
@@ -177,9 +177,9 @@ namespace WebAuth.Controllers
 
             if (ModelState.IsValid)
             {
-                string userIp = this.GetIp();
+                string userIp = HttpContext.GetIp();
                 string referer = null;
-                string userAgent = this.GetUserAgent();
+                string userAgent = HttpContext.GetUserAgent();
 
                 if (!string.IsNullOrEmpty(model.Referer))
                     referer = new Uri(model.Referer).Host;
