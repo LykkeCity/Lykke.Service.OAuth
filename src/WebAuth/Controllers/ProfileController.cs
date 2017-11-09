@@ -84,27 +84,17 @@ namespace WebAuth.Controllers
             await _personalDataService.DeleteAvatarAsync(_userManager.GetCurrentUserId());
         }
 
-        [HttpGet("~/personal-information")]
-        public async Task<ActionResult> PersonalInformation(string returnUrl = null)
-        {
-            var model = await _profileActionHandler.GetPersonalInformation(returnUrl);
-
-            return View("PersonalInformation", model);
-        }
-
-        [HttpPost("~/personal-information")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> PersonalInformation(PersonalInformationViewModel viewModel)
-        {
-            if (ModelState.IsValid)
-            {
-                await _profileActionHandler.UpdatePersonalInformation(viewModel);
-
-                return RedirectToLocal(viewModel.ReturnUrl);
-            }
-
-            return View("PersonalInformation", viewModel);
-        }
+        //[HttpPost("~/personal-information")]
+        //[ValidateAntiForgeryToken]
+        //public async Task<ActionResult> PersonalInformation(PersonalInformationViewModel viewModel)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        await _profileActionHandler.UpdatePersonalInformation(viewModel);
+        //        return RedirectToLocal(viewModel.ReturnUrl);
+        //    }
+        //    return View("PersonalInformation", viewModel);
+        //}
 
         [HttpGet("~/address-information")]
         public async Task<ActionResult> AddressInformation(string returnUrl = null)

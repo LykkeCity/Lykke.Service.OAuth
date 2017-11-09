@@ -1,6 +1,6 @@
 [
   {
-    "outputFileName": "wwwroot/dist/site.min.css",
+    "outputFileName": "wwwroot/dist/styles.min.css",
     "inputFiles": [
       "wwwroot/styles/bootstrap-custom.min.css",
       "wwwroot/styles/style.css",
