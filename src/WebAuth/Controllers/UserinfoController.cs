@@ -18,27 +18,27 @@ namespace WebAuth.Controllers
 {
     public class UserinfoController : Controller
     {
+        private readonly ILog _log;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IKycRepository _kycRepository;
         private readonly IClientAccountsRepository _clientAccountsRepository;
         private readonly IClientsSessionsRepository _clientSessionsClient;
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
-        private readonly ILog _log;
 
         public UserinfoController(
-            IApplicationRepository applicationRepository, 
-            IKycRepository kycRepository, 
+            ILog log,
+            IApplicationRepository applicationRepository,
+            IKycRepository kycRepository,
             IClientAccountsRepository clientAccountsRepository,
             IClientsSessionsRepository clientSessionsClient,
-            IWalletCredentialsRepository walletCredentialsRepository,
-            ILog log)
+            IWalletCredentialsRepository walletCredentialsRepository)
         {
+            _log = log;
             _applicationRepository = applicationRepository;
             _kycRepository = kycRepository;
             _clientAccountsRepository = clientAccountsRepository;
             _clientSessionsClient = clientSessionsClient;
             _walletCredentialsRepository = walletCredentialsRepository;
-            _log = log;
         }
 
         [Authorize(ActiveAuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
@@ -47,6 +47,7 @@ namespace WebAuth.Controllers
         {
             var userInfo = new UserInfoViewModel
             {
+                ClientId = User.GetClaim(ClaimTypes.NameIdentifier),
                 Email = User.GetClaim(OpenIdConnectConstants.Claims.Email),
                 FirstName = User.GetClaim(OpenIdConnectConstants.Claims.GivenName),
                 LastName = User.GetClaim(OpenIdConnectConstants.Claims.FamilyName)
@@ -116,27 +117,25 @@ namespace WebAuth.Controllers
                 return BadRequest("Application Id Incorrect!");
 
             var clientId = User.GetClaim(ClaimTypes.NameIdentifier);
-            string token = string.Empty;
 
-            if (clientId != null)
+            if (clientId == null)
+                return NotFound("Can't get clientId from claims");
+
+            var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
+
+            if (clientAccount == null)
+                return NotFound("Client not found");
+
+            try
             {
-                var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
-
-                if (clientAccount == null)
-                    return Json(new { Token = token });
-
-                try
-                {
-                    var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server");
-                    return Json(new {Token = authResult.SessionToken});
-                }
-                catch (Exception ex)
-                {
-                    await _log.WriteErrorAsync(nameof(UserinfoController), nameof(GetLykkewalletToken), $"clientId = {clientAccount.Id}", ex);
-                }
+                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server");
+                return Json(new { Token = authResult.SessionToken });
             }
-
-            return Json(new { Token = token});
+            catch (Exception ex)
+            {
+                await _log.WriteErrorAsync(nameof(UserinfoController), nameof(GetLykkewalletToken), $"clientId = {clientAccount.Id}", ex);
+                return StatusCode(500, new { Message = "auth error" });
+            }
         }
 
         [HttpGet("~/getprivatekey")]
