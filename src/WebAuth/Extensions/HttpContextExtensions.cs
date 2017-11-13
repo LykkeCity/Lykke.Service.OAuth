@@ -41,6 +41,11 @@ namespace WebAuth.Extensions
             return GetHeaderValueAs<string>(ctx, "User-Agent");
         }
 
+        public static string GetApplicationId(this HttpContext ctx)
+        {
+            return GetHeaderValueAs<string>(ctx, "application_id");
+        }
+
         #region Tools
 
         private static T GetHeaderValueAs<T>(HttpContext httpContext, string headerName)
