@@ -25,6 +25,7 @@
     <PackageReference Include="Flurl.Http" Version="1.2.0" />
     <PackageReference Include="Lykke.Common" Version="3.0.2" />
     <PackageReference Include="Lykke.Logs" Version="3.2.2" />
+    <PackageReference Include="Lykke.Messages" Version="1.0.18" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.26" />
     <PackageReference Include="Lykke.Service.Registration" Version="1.0.31" />
     <PackageReference Include="Lykke.Service.Session" Version="1.0.33" />
@@ -63,9 +64,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\images\profile\" />
+    <Folder Include="wwwroot\fonts\" />
     <Folder Include="wwwroot\dist\" />
-    <Folder Include="wwwroot\styles\profile\" />
+    <Folder Include="wwwroot\images\" />
+    <Folder Include="wwwroot\js\vendor\" />
   </ItemGroup>
 
   <Target Name="AddGeneratedContentItems" BeforeTargets="AssignTargetPaths" DependsOnTargets="PrepareForPublish">

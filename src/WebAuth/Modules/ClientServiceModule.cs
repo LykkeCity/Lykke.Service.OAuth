@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Common.Log;
 using Core.Settings;
+using Lykke.Messages.Email;
 using Lykke.Service.PersonalData.Client;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Settings;
@@ -26,9 +27,14 @@ namespace WebAuth.Modules
             builder.RegisterClientSessionService(_settings.CurrentValue.OAuth.SessionApiUrl, _log);
             builder.RegisterRegistrationClient(_settings.CurrentValue.OAuth.RegistrationApiUrl, _log);
             builder.RegisterInstance<IPersonalDataService>(
-                    new PersonalDataService(new PersonalDataServiceSettings { ApiKey = _settings.CurrentValue.PersonalDataServiceSettings.ApiKey, ServiceUri = _settings.CurrentValue.PersonalDataServiceSettings.ServiceUri }, _log))
+                    new PersonalDataService(new PersonalDataServiceSettings
+                    {
+                        ApiKey = _settings.CurrentValue.PersonalDataServiceSettings.ApiKey,
+                        ServiceUri = _settings.CurrentValue.PersonalDataServiceSettings.ServiceUri
+                    }, _log))
                 .SingleInstance();
 
+            builder.RegisterEmailSenderViaAzureQueueMessageProducer(_settings.ConnectionString(x => x.OAuth.Db.ClientPersonalInfoConnString));
         }
     }
 }

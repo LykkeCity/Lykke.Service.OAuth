@@ -1,6 +1,8 @@
 ﻿using Autofac;
+using BusinessService.Email;
 using BusinessService.Kyc;
 using Common.Log;
+using Core.Email;
 using Core.Kyc;
 using Core.Settings;
 using Lykke.SettingsReader;
@@ -22,6 +24,8 @@ namespace WebAuth.Modules
             builder.RegisterType<SrvKycManager>()
                 .As<ISrvKycManager>()
                 .SingleInstance();
+
+            builder.RegisterType<EmailFacadeService>().As<IEmailFacadeService>();
         }
     }
 }

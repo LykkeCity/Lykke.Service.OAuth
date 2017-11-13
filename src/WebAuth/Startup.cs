@@ -111,6 +111,8 @@ namespace WebAuth
         {
             try
             {
+
+
                 if (env.IsDevelopment())
                 {
                     app.UseDeveloperExceptionPage();
@@ -169,14 +171,14 @@ namespace WebAuth
 
                 app.UseSession();
 
-                var applicationRepository = app.ApplicationServices.GetService<IApplicationRepository>();
+                var applicationRepository = ApplicationContainer.Resolve<IApplicationRepository>();
 
                 app.UseOpenIdConnectServer(options =>
                 {
                     options.Provider = new AuthorizationProvider(applicationRepository);
 
-                // Enable the authorization, logout, token and userinfo endpoints.
-                options.AuthorizationEndpointPath = "/connect/authorize";
+                    // Enable the authorization, logout, token and userinfo endpoints.
+                    options.AuthorizationEndpointPath = "/connect/authorize";
                     options.LogoutEndpointPath = "/connect/logout";
                     options.TokenEndpointPath = "/connect/token";
                     options.UserinfoEndpointPath = "/connect/userinfo";
@@ -184,7 +186,6 @@ namespace WebAuth
                     options.ApplicationCanDisplayErrors = true;
                     options.AllowInsecureHttp = Environment.IsDevelopment();
                 });
-
 
                 app.UseCsp(options => options.DefaultSources(directive => directive.Self())
                     .ImageSources(directive => directive.Self()
