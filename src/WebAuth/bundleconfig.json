@@ -24,6 +24,7 @@
     "inputFiles": [
       "wwwroot/styles/profile/bootstrap-custom.min.css",
       "wwwroot/styles/profile/style.css",
+      "wwwroot/styles/ng-img-crop.css",
       "wwwroot/styles/style-custom.css"
     ]
   },
@@ -36,6 +37,7 @@
       "wwwroot/js/vendor/clipboard.min.js",
       "wwwroot/js/vendor/angular.js",
       "wwwroot/js/vendor/ng-file-upload-all.min.js",
+      "wwwroot/js/vendor/ng-img-crop.js",
       "wwwroot/js/app/profileModule.js",
       "wwwroot/js/app/controllers/userProfileController.js",
       "wwwroot/js/app/services/userProfileService.js",
