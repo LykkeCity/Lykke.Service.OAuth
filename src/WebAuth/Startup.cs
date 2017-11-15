@@ -187,9 +187,9 @@ namespace WebAuth
                     options.AllowInsecureHttp = Environment.IsDevelopment();
                 });
 
-                app.UseCsp(options => options.DefaultSources(directive => directive.Self())
+                app.UseCsp(options => options.DefaultSources(directive => directive.Self().CustomSources("blob:"))
                     .ImageSources(directive => directive.Self()
-                        .CustomSources("*", "data:"))
+                        .CustomSources("*", "data:", "blob:"))
                     .ScriptSources(directive =>
                     {
                         directive.Self().UnsafeInline();

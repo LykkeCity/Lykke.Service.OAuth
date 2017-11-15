@@ -15,6 +15,10 @@
                 twitter: 'https://twitter.com/'
             },
             loading: true,
+            avatar: {
+                file: null,
+                croppedDataUrl: ''
+            },
             form: {
                 origData: {},
                 edit: false,
@@ -31,7 +35,8 @@
             saveProfile: saveProfile,
 
             uploadAvatar: uploadAvatar,
-            deleteAvatar: deleteAvatar
+            deleteAvatar: deleteAvatar,
+            closeUploadModal: closeUploadModal
         };
 
         activate();
@@ -85,22 +90,35 @@
             });
         }
 
-        function uploadAvatar(files) {
-            if (files && files.length) {
-
-                var file = files[0];
+        function uploadAvatar() {
+            if (vm.data.avatar.file) {
                 vm.data.form.avatarLoading = true;
+
                 fileUpload.upload({
                     url: '/profile/uploadAvatar',
-                    file: file
+                    data: { file: vm.data.avatar.file, isPreview: false }
                 }).then(function (resp) {
                     if (resp.status === 200 && resp.data) {
-                        vm.data.personalData.avatarUrl = resp.data;
+                        fileUpload.upload({
+                            url: '/profile/uploadAvatar',
+                            data: { file: fileUpload.dataUrltoBlob(vm.data.avatar.croppedDataUrl, vm.data.avatar.file.name), isPreview: true }
+                        }).then(function (resp) {
+                            if (resp.status === 200 && resp.data) {
+                                vm.data.personalData.avatarUrl = resp.data;
+                            }
+                        }).finally(function () {
+                            closeUploadModal();
+                        });
                     }
-                }).finally(function() {
-                    vm.data.form.avatarLoading = false;
                 });
             }
+        }
+
+        function closeUploadModal() {
+            vm.data.form.avatarLoading = false;
+            vm.data.avatar.croppedDataUrl = '';
+            vm.data.avatar.file = null;
+            $('#modal_avatar').modal('hide');
         }
 
         function deleteAvatar() {

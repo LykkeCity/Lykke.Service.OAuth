@@ -14,7 +14,7 @@
                         </div>
                     </div>
                     <div data-ng-hide="vm.data.loading" id="profile-page" style="display: none;">
-                        <div class="user_badge user_badge--large" >
+                        <div class="user_badge user_badge--large">
                             <div class="user_badge__img">
                                 <img src="/images/profile/user_default.svg" data-ng-if="!vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="150">
                                 <img ng-src="{{vm.data.personalData.avatarUrl}}" data-ng-if="vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="150">
@@ -51,18 +51,10 @@
                                                             <img ng-src="{{vm.data.personalData.avatarUrl}}" data-ng-if="vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="120">
                                                         </div>
                                                         <div class="fileupload__buttons">
-                                                            <button type="button" class="btn btn--default fileupload__btn" name="file" data-ng-model="file"
-                                                                    data-ng-disabled="vm.data.form.avatarLoading" 
-                                                                    data-ng-class="{'btn_loading': vm.data.form.avatarLoading}"
-                                                                    data-ngf-select
-                                                                    data-ngf-accept="accept"
-                                                                    accept="image/*"
-                                                                    data-ngf-max-size="3MB"
-                                                                    data-ngf-change="vm.handlers.uploadAvatar($files)">
+                                                            <button type="button" class="btn btn--default fileupload__btn" data-toggle="modal" data-target="#modal_avatar">
                                                                 Upload Image...
                                                             </button>
                                                             <button type="button" class="btn btn--default" data-ng-disabled="!vm.data.personalData.avatarUrl" data-toggle="modal" data-target="#modal_message">Delete</button>
-                                                            <div class="label_error" data-ng-show="vm.personalDataForm.file.$error.maxSize">File too large. Maximum allowed 3Mb</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -73,7 +65,7 @@
                                                     <button type="button" class="btn btn-sm pull-right" data-ng-show="vm.data.form.edit" data-ng-click="vm.handlers.cancelEdit()">Cancel</button>
                                                 </div>
 
-                                                
+
 
                                                 <div class="form-group">
                                                     <label class="control-label pull-right">Optional</label>
@@ -110,7 +102,7 @@
                                                             <input type="text" class="form-control" id="twitter" name="twitter" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.twitter">
                                                         </div>
                                                     </div>
-                                                    
+
                                                 </div>
 
                                                 <div class="form-group">
@@ -121,7 +113,7 @@
                                                             <input type="text" class="form-control" id="github" name="github" data-ng-disabled="!vm.data.form.edit" data-ng-model="vm.data.personalData.github">
                                                         </div>
                                                     </div>
-                                                    
+
                                                 </div>
 
                                                 <!-- TODO show if user click on "Edit" buttom-->
@@ -134,9 +126,11 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-xs-12 col-sm-6 text-right pull-right">
-                                                            <button type="button" class="btn" data-ng-disabled="vm.handlers.isSaveDisabled() || vm.data.form.loading" 
+                                                            <button type="button" class="btn" data-ng-disabled="vm.handlers.isSaveDisabled() || vm.data.form.loading"
                                                                     data-ng-class="{'btn_loading': vm.data.form.loading}"
-                                                                    data-ng-click="vm.handlers.saveProfile()">Save Changes</button>
+                                                                    data-ng-click="vm.handlers.saveProfile()">
+                                                                Save Changes
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -171,6 +165,54 @@
                             <div class="modal__footer">
                                 <button type="button" class="btn btn--flat" data-dismiss="modal">Cancel</button>
                                 <button type="button" class="btn btn--primary" data-dismiss="modal" data-ng-click="vm.handlers.deleteAvatar()">Yes</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="modal modal--message fade" id="modal_avatar" tabindex="-1" role="dialog">
+
+        <div class="modal_valign">
+            <div class="modal_valign__row">
+                <div class="modal_valign__cell">
+
+                    <div class="modal__dialog" role="document">
+                        <div class="modal__content">
+                            <button type="button" class="close visible-xs" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+                            <div class="modal__body">
+                                <h3>Upload avatar</h3>
+                                <div class="text">
+                                    <div class="fileupload__buttons">
+                                        <button class="btn btn--default" accept="image/*" name="file"
+                                                data-ngf-select data-ng-model="vm.data.avatar.file"
+                                                data-ng-disabled="vm.data.form.avatarLoading"
+                                                data-ngf-accept="accept"
+                                                data-ngf-max-size="3MB"
+                                                data-ng-class="{'btn_loading': vm.data.form.avatarLoading}"
+                                                >Select image</button>
+                                        <div class="avatar-crop-area"
+                                             data-ng-model="file"
+                                             data-ngf-drop
+                                             ngf-pattern="image/*">
+                                            <p class="preview" data-ng-hide="vm.data.avatar.file">Image preview</p>
+                                            <img-crop image="vm.data.avatar.file | ngfDataUrl" result-image="vm.data.avatar.croppedDataUrl"></img-crop>
+
+                                        </div>
+                                        <div class="label_error" data-ng-show="vm.personalDataForm.file.$error.maxSize">File too large. Maximum allowed 3Mb</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal__footer">
+                                <button type="button" class="btn btn--flat" data-ng-click="vm.handlers.closeUploadModal()">Cancel</button>
+                                <button type="button" class="btn btn--primary" data-ng-click="vm.handlers.uploadAvatar()" 
+                                        data-ng-disabled="!vm.data.avatar.file || vm.data.form.avatarLoading">Upload</button>
                             </div>
                         </div>
                     </div>
