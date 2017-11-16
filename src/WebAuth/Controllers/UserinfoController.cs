@@ -1,7 +1,9 @@
-﻿using System.Security.Claims;
+﻿using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
+using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
 using Core.Clients;
@@ -9,12 +11,14 @@ using Core.Kyc;
 using Lykke.Service.Session;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebAuth.Extensions;
 using WebAuth.Models;
 
 namespace WebAuth.Controllers
 {
     public class UserinfoController : Controller
     {
+        private readonly ILog _log;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IKycRepository _kycRepository;
         private readonly IClientAccountsRepository _clientAccountsRepository;
@@ -22,12 +26,14 @@ namespace WebAuth.Controllers
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
 
         public UserinfoController(
-            IApplicationRepository applicationRepository, 
-            IKycRepository kycRepository, 
+            ILog log,
+            IApplicationRepository applicationRepository,
+            IKycRepository kycRepository,
             IClientAccountsRepository clientAccountsRepository,
             IClientsSessionsRepository clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository)
         {
+            _log = log;
             _applicationRepository = applicationRepository;
             _kycRepository = kycRepository;
             _clientAccountsRepository = clientAccountsRepository;
@@ -41,6 +47,7 @@ namespace WebAuth.Controllers
         {
             var userInfo = new UserInfoViewModel
             {
+                ClientId = User.GetClaim(ClaimTypes.NameIdentifier),
                 Email = User.GetClaim(OpenIdConnectConstants.Claims.Email),
                 FirstName = User.GetClaim(OpenIdConnectConstants.Claims.GivenName),
                 LastName = User.GetClaim(OpenIdConnectConstants.Claims.FamilyName)
@@ -51,12 +58,16 @@ namespace WebAuth.Controllers
         [HttpGet("~/getkycstatus")]
         public async Task<IActionResult> GetKycStatus(string email)
         {
-            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var applicationId = HttpContext.GetApplicationId();
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
-            if (app == null) return Json("Application Id Incorrect!");
+            if (app == null)
+                return BadRequest("Application Id Incorrect!");
 
             var client = await _clientAccountsRepository.GetByEmailAsync(email);
+
+            if (client == null)
+                return NotFound("Client not found!");
 
             var kycStatus = await _kycRepository.GetKycStatusAsync(client.Id);
             return Json(kycStatus.ToString());
@@ -65,61 +76,76 @@ namespace WebAuth.Controllers
         [HttpGet("~/getidbyemail")]
         public async Task<IActionResult> GetIdByEmail(string email)
         {
-            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var applicationId = HttpContext.GetApplicationId();
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
-            if (app == null) return Json("Application Id Incorrect!");
+            if (app == null)
+                return BadRequest("Application Id Incorrect!");
 
             var client = await _clientAccountsRepository.GetByEmailAsync(email);
+
+            if (client == null)
+                return NotFound("Client not found!");
+
             return Json(client.Id);
         }
 
         [HttpGet("~/getemailbyid")]
         public async Task<IActionResult> GetEmailById(string id)
         {
-            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var applicationId = HttpContext.GetApplicationId();
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
-            if (app == null) return Json("Application Id Incorrect!");
+            if (app == null)
+                return BadRequest("Application Id Incorrect!");
 
             var client = await _clientAccountsRepository.GetByIdAsync(id);
+
+            if (client == null)
+                return NotFound("Client not found!");
+
             return Json(client.Email);
         }
 
         [HttpGet("~/getlykkewallettoken")]
         public async Task<IActionResult> GetLykkewalletToken()
         {
-            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var applicationId = HttpContext.GetApplicationId();
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
-            if (app == null) return Json("Application Id Incorrect!");
+            if (app == null)
+                return BadRequest("Application Id Incorrect!");
 
             var clientId = User.GetClaim(ClaimTypes.NameIdentifier);
-            string token = string.Empty;
 
-            if (clientId != null)
+            if (clientId == null)
+                return NotFound("Can't get clientId from claims");
+
+            var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
+
+            if (clientAccount == null)
+                return NotFound("Client not found");
+
+            try
             {
-                var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
-
-                if (clientAccount == null)
-                {
-                    return Json(new { Token = token });
-                }
-                
                 var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server");
                 return Json(new { Token = authResult.SessionToken });
             }
-
-            return Json(new { Token = token});
+            catch (Exception ex)
+            {
+                await _log.WriteErrorAsync(nameof(UserinfoController), nameof(GetLykkewalletToken), $"clientId = {clientAccount.Id}", ex);
+                return StatusCode(500, new { Message = "auth error" });
+            }
         }
 
         [HttpGet("~/getprivatekey")]
         public async Task<IActionResult> GetPrivateKey()
         {
-            var applicationId = HttpContext.Request.Headers["application_id"].ToString();
+            var applicationId = HttpContext.GetApplicationId();
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
-            if (app == null) return Json("Application Id Incorrect!");
+            if (app == null)
+                return BadRequest("Application Id Incorrect!");
 
             var clientId = User.GetClaim(ClaimTypes.NameIdentifier);
             string encodedPrivateKey = string.Empty;
