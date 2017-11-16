@@ -8,7 +8,7 @@
 .fileupload__buttons { padding: 1rem 0 1.25rem; }
 .btn_loading-standalone { width: 25px; height: 25px; background-color: transparent!important;}
 .btn_loading-standalone:before { background-color: transparent!important;}
-.avatar-crop-area { border: 1px solid #E4E4E4; overflow: hidden; width:390px; height:300px; text-align: center; }
+.avatar-crop-area { border: 1px solid #E4E4E4; overflow: hidden; width:390px; height:300px; text-align: center; margin-bottom: 20px;}
 .avatar-crop-area .preview { color: #E4E4E4; line-height: 300px; }
 fieldset .form-control.ng-invalid { border-color: #ff3e2e; box-shadow: inset 0 0 0 1px #ff3e2e !important; }
 fieldset .form-control.ng-invalid:focus { border-color: #ff3e2e; box-shadow: inset 0 0 0 1px #ff3e2e !important; }

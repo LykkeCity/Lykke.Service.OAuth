@@ -188,26 +188,22 @@
 
                             <div class="modal__body">
                                 <h3>Upload avatar</h3>
-                                <div class="text">
-                                    <div class="fileupload__buttons">
-                                        <button class="btn btn--default" accept="image/*" name="file"
-                                                data-ngf-select data-ng-model="vm.data.avatar.file"
-                                                data-ng-disabled="vm.data.form.avatarLoading"
-                                                data-ngf-accept="accept"
-                                                data-ngf-max-size="3MB"
-                                                data-ng-class="{'btn_loading': vm.data.form.avatarLoading}"
-                                                >Select image</button>
-                                        <div class="avatar-crop-area"
-                                             data-ng-model="file"
-                                             data-ngf-drop
-                                             ngf-pattern="image/*">
-                                            <p class="preview" data-ng-hide="vm.data.avatar.file">Image preview</p>
-                                            <img-crop image="vm.data.avatar.file | ngfDataUrl" result-image="vm.data.avatar.croppedDataUrl"></img-crop>
+                                <div class="avatar-crop-area"
+                                        data-ng-model="file"
+                                        data-ngf-drop
+                                        ngf-pattern="image/*">
+                                    <p class="preview" data-ng-hide="vm.data.avatar.file">Image preview</p>
+                                    <img-crop image="vm.data.avatar.file | ngfDataUrl" result-image="vm.data.avatar.croppedDataUrl"></img-crop>
 
-                                        </div>
-                                        <div class="label_error" data-ng-show="vm.personalDataForm.file.$error.maxSize">File too large. Maximum allowed 3Mb</div>
-                                    </div>
                                 </div>
+                                <button class="btn btn--default btn-block" accept="image/*" name="file"
+                                        data-ngf-select data-ng-model="vm.data.avatar.file"
+                                        data-ng-disabled="vm.data.form.avatarLoading"
+                                        data-ngf-accept="accept"
+                                        data-ngf-max-size="3MB"
+                                        data-ng-class="{'btn_loading': vm.data.form.avatarLoading}"
+                                >Select image</button>
+                                <div class="label_error" data-ng-show="vm.personalDataForm.file.$error.maxSize">File too large. Maximum allowed 3Mb</div>
                             </div>
                             <div class="modal__footer">
                                 <button type="button" class="btn btn--flat" data-ng-click="vm.handlers.closeUploadModal()">Cancel</button>
