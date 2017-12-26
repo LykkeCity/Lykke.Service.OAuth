@@ -4,6 +4,7 @@
     "inputFiles": [
       "wwwroot/styles/bootstrap-custom.min.css",
       "wwwroot/styles/style.css",
+      "wwwroot/styles/ng-img-crop.css",
       "wwwroot/styles/style-custom.css"
     ]
   },
@@ -39,15 +40,6 @@
       "renameLocals": false
     },
     "sourceMap": false
-  },
-  {
-    "outputFileName": "wwwroot/dist/profile.min.css",
-    "inputFiles": [
-      "wwwroot/styles/profile/bootstrap-custom.min.css",
-      "wwwroot/styles/profile/style.css",
-      "wwwroot/styles/ng-img-crop.css",
-      "wwwroot/styles/style-custom.css"
-    ]
   },
   {
     "outputFileName": "wwwroot/dist/profile.min.js",
