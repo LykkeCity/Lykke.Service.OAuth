@@ -22,6 +22,7 @@ namespace WebAuth
                     var host = new WebHostBuilder()
                         .UseKestrel()
                         .UseContentRoot(Directory.GetCurrentDirectory())
+                        .UseApplicationInsights()
                         .UseUrls("http://*:5000/")
                         .UseStartup<Startup>()
                         .Build();
@@ -47,6 +48,7 @@ namespace WebAuth
                             x.AddServerHeader = false;
                         })
                         .UseContentRoot(Directory.GetCurrentDirectory())
+                        .UseApplicationInsights()
                         .UseUrls("https://*:443/")
                         .UseStartup<Startup>()
                         .Build();
