@@ -69,10 +69,11 @@ namespace WebAuth.Controllers
         {
             if (model.IsLogin)
             {
+                if (!model.Username.IsValidEmailAndRowKey())
+                    ModelState.AddModelError(nameof(model.Username), "Please enter a valid email address");
+
                 if (!ModelState.IsValid)
-                {
                     return View("Login", model);
-                }
 
                 AuthResponse authResult = await _registrationClient.AuthorizeAsync(new AuthModel
                 {
@@ -112,8 +113,9 @@ namespace WebAuth.Controllers
                 return View("Login", model);
             }
 
-            if (ModelState.GetFieldValidationState("Email") == ModelValidationState.Invalid)
+            if (!model.Email.IsValidEmailAndRowKey())
             {
+                ModelState.AddModelError(nameof(model.Email), "Please enter a valid email address");
                 return View("Login", model);
             }
 
