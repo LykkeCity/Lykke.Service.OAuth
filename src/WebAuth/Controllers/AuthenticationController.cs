@@ -129,6 +129,9 @@ namespace WebAuth.Controllers
         [HttpGet("~/signup/{key}")]
         public async Task<ActionResult> Signup(string key)
         {
+            if (!key.IsValidRowKey())
+                return RedirectToAction("Signin");
+
             var code = await _verificationCodesRepository.GetCodeAsync(key);
 
             if (code == null)
@@ -142,6 +145,9 @@ namespace WebAuth.Controllers
         public async Task<VerificationCodeResult> VerifyEmail([FromBody] VerificationCodeRequest request)
         {
             var result = new VerificationCodeResult();
+
+            if (request == null || !request.Key.IsValidRowKey())
+                return result;
 
             var existingCode = await _verificationCodesRepository.GetCodeAsync(request.Key);
 
@@ -161,6 +167,9 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task ResendCode([FromBody]string key)
         {
+            if (!key.IsValidRowKey())
+                return;
+
             var code = await _verificationCodesRepository.GetCodeAsync(key);
 
             if (code != null && code.ResendCount < 2)
@@ -179,12 +188,29 @@ namespace WebAuth.Controllers
 
             if (ModelState.IsValid)
             {
+                if (!model.Email.IsValidEmailAndRowKey())
+                {
+                    regResult.Errors.Add("Invalid email address");
+                    return regResult;
+                }
+
                 string userIp = HttpContext.GetIp();
                 string referer = null;
                 string userAgent = HttpContext.GetUserAgent();
 
                 if (!string.IsNullOrEmpty(model.Referer))
-                    referer = new Uri(model.Referer).Host;
+                {
+                    try
+                    {
+                        referer = new Uri(model.Referer).Host;
+                    }
+                    catch
+                    {
+                        regResult.Errors.Add("Invalid referer url");
+                        return regResult;
+                    }
+                }
+                    
 
                 RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
                 {

@@ -9,5 +9,10 @@ namespace WebAuth.Extensions
         {
             return src.IsValidEmail() && !Regex.IsMatch(src, @"[\p{C}|/|\\|#|?]+");
         }
+        
+        public static bool IsValidRowKey(this string src)
+        {
+            return !Regex.IsMatch(src, @"[\p{C}|/|\\|#|?]+");
+        }
     }
 }
