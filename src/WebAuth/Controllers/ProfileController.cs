@@ -19,17 +19,14 @@ namespace WebAuth.Controllers
     {
         private readonly IUserManager _userManager;
         private readonly IPersonalDataService _personalDataService;
-        private readonly IClientAccountsRepository _clientAccountsRepository;
         private readonly ProfileActionHandler _profileActionHandler;
 
         public ProfileController(IUserManager userManager, 
             IPersonalDataService personalDataService,
-            IClientAccountsRepository clientAccountsRepository,
             ProfileActionHandler profileActionHandler)
         {
             _userManager = userManager;
             _personalDataService = personalDataService;
-            _clientAccountsRepository = clientAccountsRepository;
             _profileActionHandler = profileActionHandler;
         }
 
@@ -60,7 +57,7 @@ namespace WebAuth.Controllers
         [HttpPost]
         [Route("uploadavatar")]
         [ValidateAntiForgeryToken]
-        public async Task<string> UploadAvatar(IFormFile file)
+        public async Task<string> UploadAvatar(IFormFile file, bool isPreview)
         {
             if (file != null && file.Length <= 3 * 1024 * 1024 && file.ContentType.Contains("image"))
             {
@@ -69,7 +66,7 @@ namespace WebAuth.Controllers
                     await file.CopyToAsync(memoryStream);
                     byte[] image = memoryStream.ToArray();
 
-                    return await _personalDataService.AddAvatarAsync(_userManager.GetCurrentUserId(), image);
+                    return await _personalDataService.AddAvatarAsync(_userManager.GetCurrentUserId(), isPreview, image);
                 }
             }
 

@@ -34,6 +34,9 @@ namespace WebAuth
         public IContainer ApplicationContainer { get; set; }
         public ILog Log { get; private set; }
         private OAuthSettings _settings;
+        private const string BlobSource = "blob:";
+        private const string DataSource = "data:";
+        private const string AnySource = "*";
 
         public Startup(IHostingEnvironment env)
         {
@@ -111,8 +114,6 @@ namespace WebAuth
         {
             try
             {
-
-
                 if (env.IsDevelopment())
                 {
                     app.UseDeveloperExceptionPage();
@@ -187,9 +188,9 @@ namespace WebAuth
                     options.AllowInsecureHttp = Environment.IsDevelopment();
                 });
 
-                app.UseCsp(options => options.DefaultSources(directive => directive.Self())
+                app.UseCsp(options => options.DefaultSources(directive => directive.Self().CustomSources(BlobSource))
                     .ImageSources(directive => directive.Self()
-                        .CustomSources("*", "data:"))
+                        .CustomSources(AnySource, DataSource, BlobSource))
                     .ScriptSources(directive =>
                     {
                         directive.Self().UnsafeInline();

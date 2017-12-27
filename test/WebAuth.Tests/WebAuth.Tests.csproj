@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Lykke.Common" Version="3.0.2" />
-    <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.26" />
+    <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.28" />
     <PackageReference Include="Lykke.Service.Registration" Version="1.0.31" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.3" />

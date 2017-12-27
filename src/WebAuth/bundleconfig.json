@@ -4,6 +4,7 @@
     "inputFiles": [
       "wwwroot/styles/bootstrap-custom.min.css",
       "wwwroot/styles/style.css",
+      "wwwroot/styles/ng-img-crop.css",
       "wwwroot/styles/style-custom.css"
     ]
   },
@@ -40,7 +41,7 @@
     },
     "sourceMap": false
   },
-    {
+  {
     "outputFileName": "wwwroot/dist/profile.min.js",
     "inputFiles": [
       "wwwroot/js/vendor/jquery.min.js",
@@ -49,6 +50,7 @@
       "wwwroot/js/vendor/clipboard.min.js",
       "wwwroot/js/vendor/angular.js",
       "wwwroot/js/vendor/ng-file-upload-all.min.js",
+      "wwwroot/js/vendor/ng-img-crop.js",
       "wwwroot/js/app/profileModule.js",
       "wwwroot/js/app/controllers/userProfileController.js",
       "wwwroot/js/app/services/userProfileService.js",
