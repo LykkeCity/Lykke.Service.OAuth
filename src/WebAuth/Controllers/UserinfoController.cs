@@ -64,7 +64,7 @@ namespace WebAuth.Controllers
 
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidEmailAndRowKey())
+            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -89,7 +89,7 @@ namespace WebAuth.Controllers
 
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidEmailAndRowKey())
+            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -113,7 +113,7 @@ namespace WebAuth.Controllers
 
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidEmailAndRowKey())
+            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -134,7 +134,7 @@ namespace WebAuth.Controllers
         {
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidEmailAndRowKey())
+            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -169,7 +169,7 @@ namespace WebAuth.Controllers
         {
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidEmailAndRowKey())
+            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
