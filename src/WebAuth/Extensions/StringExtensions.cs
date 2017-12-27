@@ -7,12 +7,12 @@ namespace WebAuth.Extensions
     {
         public static bool IsValidEmailAndRowKey(this string src)
         {
-            return src.IsValidEmail() && !Regex.IsMatch(src, @"[\p{C}|/|\\|#|?]+");
+            return src.IsValidEmail() && src.IsValidRowKey();
         }
         
         public static bool IsValidRowKey(this string src)
         {
-            return !Regex.IsMatch(src, @"[\p{C}|/|\\|#|?]+");
+            return !string.IsNullOrEmpty(src) && !Regex.IsMatch(src, @"[\p{C}|/|\\|#|?]+");
         }
     }
 }

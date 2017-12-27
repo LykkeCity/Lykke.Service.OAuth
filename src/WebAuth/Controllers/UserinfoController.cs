@@ -59,12 +59,12 @@ namespace WebAuth.Controllers
         [HttpGet("~/getkycstatus")]
         public async Task<IActionResult> GetKycStatus(string email)
         {
-            if (string.IsNullOrEmpty(email) || !email.IsValidEmailAndRowKey())
+            if (!email.IsValidEmailAndRowKey())
                 return BadRequest("Invalid email");
 
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
+            if (!applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -84,12 +84,12 @@ namespace WebAuth.Controllers
         [HttpGet("~/getidbyemail")]
         public async Task<IActionResult> GetIdByEmail(string email)
         {
-            if (string.IsNullOrEmpty(email) || !email.IsValidEmailAndRowKey())
+            if (!email.IsValidEmailAndRowKey())
                 return BadRequest("Invalid email");
 
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
+            if (!applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -108,12 +108,12 @@ namespace WebAuth.Controllers
         [HttpGet("~/getemailbyid")]
         public async Task<IActionResult> GetEmailById(string id)
         {
-            if (string.IsNullOrEmpty(id) || !id.IsValidRowKey() || !id.IsGuid())
+            if (!id.IsValidRowKey() && !id.IsGuid())
                 return BadRequest("Invalid id");
 
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
+            if (!applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -134,7 +134,7 @@ namespace WebAuth.Controllers
         {
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
+            if (!applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -169,7 +169,7 @@ namespace WebAuth.Controllers
         {
             var applicationId = HttpContext.GetApplicationId();
 
-            if (string.IsNullOrEmpty(applicationId) || !applicationId.IsValidRowKey())
+            if (!applicationId.IsValidRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
