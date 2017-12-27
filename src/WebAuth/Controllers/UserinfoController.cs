@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
+using Common;
 using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
@@ -58,7 +59,14 @@ namespace WebAuth.Controllers
         [HttpGet("~/getkycstatus")]
         public async Task<IActionResult> GetKycStatus(string email)
         {
+            if (!email.IsValidEmailAndRowKey())
+                return BadRequest("Invalid email");
+
             var applicationId = HttpContext.GetApplicationId();
+
+            if (!applicationId.IsValidRowKey())
+                return BadRequest("Invalid applicationId");
+
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
             if (app == null)
@@ -76,7 +84,14 @@ namespace WebAuth.Controllers
         [HttpGet("~/getidbyemail")]
         public async Task<IActionResult> GetIdByEmail(string email)
         {
+            if (!email.IsValidEmailAndRowKey())
+                return BadRequest("Invalid email");
+
             var applicationId = HttpContext.GetApplicationId();
+
+            if (!applicationId.IsValidRowKey())
+                return BadRequest("Invalid applicationId");
+
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
             if (app == null)
@@ -93,7 +108,14 @@ namespace WebAuth.Controllers
         [HttpGet("~/getemailbyid")]
         public async Task<IActionResult> GetEmailById(string id)
         {
+            if (!id.IsValidRowKey() && !id.IsGuid())
+                return BadRequest("Invalid id");
+
             var applicationId = HttpContext.GetApplicationId();
+
+            if (!applicationId.IsValidRowKey())
+                return BadRequest("Invalid applicationId");
+
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
             if (app == null)
@@ -111,6 +133,10 @@ namespace WebAuth.Controllers
         public async Task<IActionResult> GetLykkewalletToken()
         {
             var applicationId = HttpContext.GetApplicationId();
+
+            if (!applicationId.IsValidRowKey())
+                return BadRequest("Invalid applicationId");
+
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
             if (app == null)
@@ -142,6 +168,10 @@ namespace WebAuth.Controllers
         public async Task<IActionResult> GetPrivateKey()
         {
             var applicationId = HttpContext.GetApplicationId();
+
+            if (!applicationId.IsValidRowKey())
+                return BadRequest("Invalid applicationId");
+
             var app = await _applicationRepository.GetByIdAsync(applicationId);
 
             if (app == null)
