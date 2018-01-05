@@ -155,7 +155,7 @@ namespace WebAuth.Controllers
             try
             {
                 var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server");
-                return Json(new { Token = authResult.SessionToken });
+                return Json(new { Token = authResult.SessionToken, NotificationsId = clientAccount.NotificationsId });
             }
             catch (Exception ex)
             {
