@@ -48,7 +48,6 @@ namespace WebAuth.Controllers
         {
             var userInfo = new UserInfoViewModel
             {
-                ClientId = User.GetClaim(ClaimTypes.NameIdentifier),
                 Email = User.GetClaim(OpenIdConnectConstants.Claims.Email),
                 FirstName = User.GetClaim(OpenIdConnectConstants.Claims.GivenName),
                 LastName = User.GetClaim(OpenIdConnectConstants.Claims.FamilyName)
