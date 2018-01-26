@@ -123,11 +123,16 @@ namespace WebAuth
                     app.UseExceptionHandler("/Home/Error");
                 }
 
-                app.UseForwardedHeaders(new ForwardedHeadersOptions
+                var forwardingOptions = new ForwardedHeadersOptions
                 {
-                    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-                });
-
+                    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+                };
+                
+                forwardingOptions.KnownNetworks.Clear(); //its loopback by default
+                forwardingOptions.KnownProxies.Clear();
+            
+                app.UseForwardedHeaders(forwardingOptions);
+                
                 var supportedCultures = new[]
                 {
                     new CultureInfo("en-US"),
