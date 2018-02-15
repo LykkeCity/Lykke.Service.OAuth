@@ -59,11 +59,11 @@ namespace WebAuth.Providers
             // but this authorization provider only accepts response_type=code authorization/authentication requests.
             // You may consider relaxing it to support the implicit or hybrid flows. In this case, consider adding
             // checks rejecting implicit/hybrid authorization requests when the client is a confidential application.
-            if (!context.Request.IsAuthorizationCodeFlow())
+            if (!context.Request.IsAuthorizationCodeFlow() && !context.Request.IsImplicitFlow())
             {
                 context.Reject(
                     OpenIdConnectConstants.Errors.UnsupportedResponseType,
-                    "Only the authorization code flow is supported by this authorization server");
+                    "Only the authorization and implicit code flows are supported by this authorization server");
 
                 return;
             }
