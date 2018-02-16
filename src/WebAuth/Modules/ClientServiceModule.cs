@@ -1,22 +1,24 @@
 ﻿using Autofac;
 using Common.Log;
-using Core.Settings;
 using Lykke.Messages.Email;
+using Lykke.Service.ClientAccount.Client;
+using Lykke.Service.Kyc.Abstractions.Services;
+using Lykke.Service.Kyc.Client;
 using Lykke.Service.PersonalData.Client;
 using Lykke.Service.PersonalData.Contract;
-using Lykke.Service.PersonalData.Settings;
 using Lykke.Service.Registration;
 using Lykke.Service.Session;
 using Lykke.SettingsReader;
+using WebAuth.Settings;
 
 namespace WebAuth.Modules
 {
     public class ClientServiceModule : Module
     {
-        private readonly IReloadingManager<OAuthSettings> _settings;
+        private readonly IReloadingManager<AppSettings> _settings;
         private readonly ILog _log;
 
-        public ClientServiceModule(IReloadingManager<OAuthSettings> settings, ILog log)
+        public ClientServiceModule(IReloadingManager<AppSettings> settings, ILog log)
         {
             _settings = settings;
             _log = log;
@@ -27,14 +29,18 @@ namespace WebAuth.Modules
             builder.RegisterClientSessionService(_settings.CurrentValue.OAuth.SessionApiUrl, _log);
             builder.RegisterRegistrationClient(_settings.CurrentValue.OAuth.RegistrationApiUrl, _log);
             builder.RegisterInstance<IPersonalDataService>(
-                    new PersonalDataService(new PersonalDataServiceSettings
-                    {
-                        ApiKey = _settings.CurrentValue.PersonalDataServiceSettings.ApiKey,
-                        ServiceUri = _settings.CurrentValue.PersonalDataServiceSettings.ServiceUri
-                    }, _log))
+                    new PersonalDataService(_settings.CurrentValue.PersonalDataServiceSettings, _log))
                 .SingleInstance();
 
             builder.RegisterEmailSenderViaAzureQueueMessageProducer(_settings.ConnectionString(x => x.OAuth.Db.ClientPersonalInfoConnString));
+            builder.RegisterLykkeServiceClient(_settings.CurrentValue.ClientAccountClient.ServiceUrl);
+            builder.RegisterInstance<IKycProfileServiceV2>(
+                new KycProfileServiceV2Client(_settings.CurrentValue.KycServiceSettings, _log)
+            ).SingleInstance();
+            
+            builder.RegisterInstance<IKycProfileService>(
+                new KycProfileServiceClient(_settings.CurrentValue.KycServiceSettings, _log)
+            ).SingleInstance();
         }
     }
 }

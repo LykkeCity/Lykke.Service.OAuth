@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc;
 
 namespace WebAuth.Models
 {
@@ -16,7 +15,6 @@ namespace WebAuth.Models
 
         [Required(ErrorMessage = "E-mail is required")]
         [DataType(DataType.EmailAddress)]
-        //[Remote("VerifyEmail", "UserValidation")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Password is required")]

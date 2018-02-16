@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -25,8 +24,7 @@ namespace WebAuth.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            ModelStateEntry entry;
-            ViewContext.ViewData.ModelState.TryGetValue(For.Name, out entry);
+            ViewContext.ViewData.ModelState.TryGetValue(For.Name, out var entry);
             if (entry == null || !entry.Errors.Any()) return;
             var tagBuilder = new TagBuilder("div");
             tagBuilder.AddCssClass(ValidationErrorClass);

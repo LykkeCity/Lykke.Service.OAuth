@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using System;
 using System.Text;
 
 namespace WebAuth.Controllers

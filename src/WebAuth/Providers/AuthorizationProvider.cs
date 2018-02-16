@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Application;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace WebAuth.Providers
 {
@@ -24,19 +26,19 @@ namespace WebAuth.Providers
             if (context.Options.AuthorizationEndpointPath.HasValue &&
                 context.Request.Path.StartsWithSegments(context.Options.AuthorizationEndpointPath))
             {
-                context.MatchesAuthorizationEndpoint();
+                context.MatchAuthorizationEndpoint();
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
-
+        
         public override Task ExtractAuthorizationRequest(ExtractAuthorizationRequestContext context)
         {
             // If a request_id parameter can be found in the authorization request,
             // restore the complete authorization request stored in the user session.
-            if (!string.IsNullOrEmpty(context.Request.GetRequestId()))
+            if (!string.IsNullOrEmpty(context.Request.RequestId))
             {
-                var payload = context.HttpContext.Session.Get("authorization-request:" + context.Request.GetRequestId());
+                var payload = context.HttpContext.Session.Get("authorization-request:" + context.Request.RequestId);
                 if (payload == null)
                 {
                     context.Reject(
@@ -46,11 +48,15 @@ namespace WebAuth.Providers
                     return Task.FromResult(0);
                 }
 
-                // Restore the authorization request parameters.
-                context.Request.Import(payload);
+                var request = JsonConvert.DeserializeObject<OpenIdConnectRequest>(Encoding.UTF8.GetString(payload));
+
+                foreach (var prop in request.GetParameters())
+                {
+                    context.Request.SetParameter(prop.Key, prop.Value);
+                }
             }
 
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public override async Task ValidateAuthorizationRequest(ValidateAuthorizationRequestContext context)
@@ -107,10 +113,11 @@ namespace WebAuth.Providers
             context.Validate(application.RedirectUri);
         }
 
-        public override async Task ValidateLogoutRequest(ValidateLogoutRequestContext context)
+        public override Task ValidateLogoutRequest(ValidateLogoutRequestContext context)
         {
             // Don't validate logout url, as we don't have it
             context.Validate();
+            return Task.CompletedTask;
         }
 
         public override async Task ValidateTokenRequest(ValidateTokenRequestContext context)
@@ -180,7 +187,7 @@ namespace WebAuth.Providers
             // userinfo requests and directly writes the JSON response to the response stream.
             // Calling context.SkipToNextMiddleware() bypasses the default request processing
             // and delegates it to a custom ASP.NET Core MVC controller (UserinfoController).
-            context.SkipToNextMiddleware();
+            context.SkipHandler();
 
             return Task.FromResult(0);
         }

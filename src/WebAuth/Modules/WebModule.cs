@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
+using WebAuth.Providers;
 
 namespace WebAuth.Modules
 {
@@ -15,9 +16,8 @@ namespace WebAuth.Modules
             builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>().SingleInstance();
             builder.RegisterType<ActionContextAccessor>().As<IActionContextAccessor>().SingleInstance();
             builder.RegisterType<UrlHelperFactory>().As<IUrlHelperFactory>().SingleInstance();
-            builder.RegisterType<AuthenticationActionHandler>().AsSelf().SingleInstance();
             builder.RegisterType<ProfileActionHandler>().AsSelf().SingleInstance();
-            builder.RegisterType<AuthorizationActionHandler>().AsSelf().SingleInstance();
+            builder.RegisterType<AuthorizationProvider>().AsSelf().SingleInstance();
         }
     }
 }

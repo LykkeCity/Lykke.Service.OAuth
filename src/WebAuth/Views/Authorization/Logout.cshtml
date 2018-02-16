@@ -1,4 +1,5 @@
-﻿@model Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectMessage
+﻿@using AspNet.Security.OpenIdConnect.Primitives
+@model OpenIdConnectRequest
 
 <div class="text-center">
     <h3>Logging out, please wait...</h3>
@@ -6,9 +7,9 @@
         @Html.AntiForgeryToken()
 
         @* Flow the logout request *@
-        @foreach (var parameter in Model.Parameters)
+        @foreach (var parameter in Model.GetParameters())
         {
-            <input type="hidden" name="@parameter.Key" value="@parameter.Value" />
+            <input type="hidden" name="@parameter.Key" value="@parameter.Value.Value?.ToString()" />
         }
     </form>
 </div>

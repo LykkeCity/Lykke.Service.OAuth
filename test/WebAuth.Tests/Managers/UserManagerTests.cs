@@ -4,9 +4,9 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
-using Core.Clients;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Core.Extensions;
-using Core.Kyc;
+using Lykke.Service.Kyc.Abstractions.Services;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
@@ -25,22 +25,15 @@ namespace WebAuth.Tests.Managers
                 personalDataService = Substitute.For<IPersonalDataService>();
             }
 
-            var kycDocumentRepository = Substitute.For<IKycDocumentsRepository>();
+            var kycProfileService = Substitute.For<IKycProfileServiceV2>();
             var httpAccessor = Substitute.For<IHttpContextAccessor>();
-            var userManager = new UserManager(personalDataService, kycDocumentRepository, httpAccessor);
+            var userManager = new UserManager(personalDataService, httpAccessor, kycProfileService);
             return userManager;
         }
 
         [Fact]
         public async Task Email_IsRequired_ForUserIdentity()
         {
-            //arrange
-            var client = new ClientAccount
-            {
-                Email = null,
-                Id = "test"
-            };
-
             var personalData = new FullPersonalDataModel();
 
             //act
@@ -52,7 +45,7 @@ namespace WebAuth.Tests.Managers
             //assert
             await
                 Assert.ThrowsAsync<ArgumentNullException>(
-                    async () => await userManager.CreateUserIdentityAsync(client.Id, client.Email, client.Email));
+                    async () => await userManager.CreateUserIdentityAsync("test", null, null));
         }
 
         [Fact]
@@ -143,7 +136,7 @@ namespace WebAuth.Tests.Managers
             var result = userManager.CreateIdentity(scopes, claims);
 
             //assert
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.Email));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.Email));
         }
 
         [Fact]
@@ -161,7 +154,7 @@ namespace WebAuth.Tests.Managers
             var result = userManager.CreateIdentity(scopes, claims);
 
             //assert
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.Email));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.Email));
         }
 
         [Fact]
@@ -183,8 +176,8 @@ namespace WebAuth.Tests.Managers
             var result = userManager.CreateIdentity(scopes, claims);
 
             //assert
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
         }
 
         [Fact]
@@ -203,20 +196,14 @@ namespace WebAuth.Tests.Managers
             var result = userManager.CreateIdentity(scopes, claims);
 
             //assert
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
         }
 
         [Fact]
         public async Task OptionalFields_AreAdded_ToUserIdentity()
         {
             //arrange
-            var client = new ClientAccount
-            {
-                Email = "test@test.com",
-                Id = "test"
-            };
-
             var personalData = new FullPersonalDataModel
             {
                 FirstName = "test",
@@ -230,14 +217,14 @@ namespace WebAuth.Tests.Managers
             personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(personalData);
 
             var userManager = CreateUserManager(personalDataService);
-            var result = await userManager.CreateUserIdentityAsync(client.Id, client.Email, "test");
+            var result = await userManager.CreateUserIdentityAsync("test", "test@test.com", "test");
 
             //assert
             Assert.Equal(personalData.FirstName, result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
             Assert.Equal(personalData.LastName, result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
-            Assert.Equal(client.Email, result.GetClaim(OpenIdConnectConstants.Claims.Email));
+            Assert.Equal("test@test.com", result.GetClaim(OpenIdConnectConstants.Claims.Email));
             Assert.Equal(personalData.Country, result.GetClaim(OpenIdConnectConstantsExt.Claims.Country));
-            Assert.Equal(7, result.Claims.Count());
+            Assert.Equal(6, result.Claims.Count());
         }
     }
 }

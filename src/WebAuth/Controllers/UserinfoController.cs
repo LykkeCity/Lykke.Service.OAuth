@@ -2,13 +2,16 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Common;
 using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
-using Core.Clients;
-using Core.Kyc;
+using Lykke.Service.ClientAccount.Client;
+using Lykke.Service.ClientAccount.Client.Models;
+using Lykke.Service.Kyc.Abstractions.Domain.Profile;
+using Lykke.Service.Kyc.Abstractions.Services;
 using Lykke.Service.Session;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,28 +24,28 @@ namespace WebAuth.Controllers
     {
         private readonly ILog _log;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly IKycRepository _kycRepository;
-        private readonly IClientAccountsRepository _clientAccountsRepository;
+        private readonly IKycProfileServiceV2 _kycProfileService;
         private readonly IClientsSessionsRepository _clientSessionsClient;
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
+        private readonly IClientAccountClient _clientAccountClient;
 
         public UserinfoController(
             ILog log,
             IApplicationRepository applicationRepository,
-            IKycRepository kycRepository,
-            IClientAccountsRepository clientAccountsRepository,
+            IKycProfileServiceV2 kycProfileService,
             IClientsSessionsRepository clientSessionsClient,
-            IWalletCredentialsRepository walletCredentialsRepository)
+            IWalletCredentialsRepository walletCredentialsRepository,
+            IClientAccountClient clientAccountClient)
         {
             _log = log;
             _applicationRepository = applicationRepository;
-            _kycRepository = kycRepository;
-            _clientAccountsRepository = clientAccountsRepository;
+            _kycProfileService = kycProfileService;
             _clientSessionsClient = clientSessionsClient;
             _walletCredentialsRepository = walletCredentialsRepository;
+            _clientAccountClient = clientAccountClient;
         }
 
-        [Authorize(ActiveAuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
         [HttpGet("~/connect/userinfo")]
         public IActionResult GetUserInfo()
         {
@@ -71,13 +74,13 @@ namespace WebAuth.Controllers
             if (app == null)
                 return BadRequest("Application Id Incorrect!");
 
-            var client = await _clientAccountsRepository.GetByEmailAsync(email);
+            ClientAccountInformationModel client = await GetClientByEmailAsync(email);
 
             if (client == null)
                 return NotFound("Client not found!");
 
-            var kycStatus = await _kycRepository.GetKycStatusAsync(client.Id);
-            return Json(kycStatus.ToString());
+            var kycStatus = await _kycProfileService.GetStatusAsync(client.Id, KycProfile.Default);
+            return Json(kycStatus.Name);
         }
 
         [HttpGet("~/getidbyemail")]
@@ -96,7 +99,7 @@ namespace WebAuth.Controllers
             if (app == null)
                 return BadRequest("Application Id Incorrect!");
 
-            var client = await _clientAccountsRepository.GetByEmailAsync(email);
+            ClientAccountInformationModel client = await GetClientByEmailAsync(email);
 
             if (client == null)
                 return NotFound("Client not found!");
@@ -120,7 +123,7 @@ namespace WebAuth.Controllers
             if (app == null)
                 return BadRequest("Application Id Incorrect!");
 
-            var client = await _clientAccountsRepository.GetByIdAsync(id);
+            ClientModel client = await GetClientByIdAsync(id);
 
             if (client == null)
                 return NotFound("Client not found!");
@@ -146,7 +149,7 @@ namespace WebAuth.Controllers
             if (clientId == null)
                 return NotFound("Can't get clientId from claims");
 
-            var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
+            ClientModel clientAccount = await GetClientByIdAsync(clientId);
 
             if (clientAccount == null)
                 return NotFound("Client not found");
@@ -187,6 +190,38 @@ namespace WebAuth.Controllers
             }
 
             return Json(new { EncodedPrivateKey = encodedPrivateKey });
+        }
+
+        private async Task<ClientAccountInformationModel> GetClientByEmailAsync(string email)
+        {
+            ClientAccountInformationModel client = null;
+
+            try
+            {
+                client = await _clientAccountClient.GetClientByEmailAndPartnerIdAsync(email, null);
+            }
+            catch (Exception)
+            {
+                _log.WriteInfo(nameof(GetKycStatus), email.SanitizeEmail(), "Can't get client info");
+            }
+
+            return client;
+        }
+        
+        private async Task<ClientModel> GetClientByIdAsync(string clientId)
+        {
+            ClientModel client = null;
+
+            try
+            {
+                client = await _clientAccountClient.GetByIdAsync(clientId);
+            }
+            catch (Exception)
+            {
+                _log.WriteInfo(nameof(GetKycStatus), clientId, "Can't get client info");
+            }
+
+            return client;
         }
     }
 }

@@ -8,5 +8,10 @@
             public const string Documents = "documents";
             public const string SignType = "SignType";
         }
+
+        public static class Auth
+        {
+            public const string DefaultScheme = "ServerCookie";
+        }
     }
 }

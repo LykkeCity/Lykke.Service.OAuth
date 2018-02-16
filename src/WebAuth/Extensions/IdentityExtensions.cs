@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 
 namespace WebAuth.Extensions
 {

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lykke.Common.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using WebAuth.Extensions;
 using WebAuth.Models;
 
 namespace WebAuth.ViewComponents
