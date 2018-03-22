@@ -37,18 +37,19 @@
             }); var f = d.getElementsByTagName(s)[0],
                 j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
                     'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-K5Q43JZ');</script>
+        })(window, document, 'script', 'dataLayer', 'GTM-K5Q43JZ');
+    </script>
     <!-- End Google Tag Manager -->
 
 </head>
 <body>
+    @await Component.InvokeAsync("GaUserId")
     <!-- Google Tag Manager (noscript) -->
     <noscript>
-        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K5Q43JZ"
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-56X376S"
                 height="0" width="0" style="display:none;visibility:hidden"></iframe>
     </noscript>
     <!-- End Google Tag Manager (noscript) -->
-
 
     <article class="content page page_auth">
 
@@ -92,20 +93,6 @@
     </environment>
 
     @RenderSection("scripts", false)
-
-    @*<script>
-            $('.datetimepicker').datetimepicker({
-                format: 'DD.MM.YYYY',
-                icons: {
-                    time: "icon--clock",
-                    date: "icon--cal",
-                    up: "icon--chevron-thin-up",
-                    down: "icon--chevron-thin-down",
-                    previous: "icon--chevron-thin-left",
-                    next: "icon--chevron-thin-right"
-                }
-            });
-        </script>*@
 
 </body>
 </html>

@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Server;
+using Common;
 using Common.Log;
 using Common.PasswordTools;
 using Core;
@@ -17,7 +19,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using WebAuth.ActionHandlers;
-using WebAuth.Extensions;
 using WebAuth.Managers;
 using WebAuth.Models;
 
@@ -133,7 +134,7 @@ namespace WebAuth.Controllers
         [HttpGet("~/signup/{key}")]
         public async Task<ActionResult> Signup(string key)
         {
-            if (!key.IsValidRowKey())
+            if (!key.IsValidPartitionOrRowKey())
                 return RedirectToAction("Signin");
 
             var code = await _verificationCodesRepository.GetCodeAsync(key);
@@ -150,7 +151,7 @@ namespace WebAuth.Controllers
         {
             var result = new VerificationCodeResult();
 
-            if (request == null || !request.Key.IsValidRowKey())
+            if (request == null || !request.Key.IsValidPartitionOrRowKey())
                 return result;
 
             var existingCode = await _verificationCodesRepository.GetCodeAsync(request.Key);
@@ -172,7 +173,7 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task ResendCode([FromBody]string key)
         {
-            if (!key.IsValidRowKey())
+            if (!key.IsValidPartitionOrRowKey())
                 return;
 
             var code = await _verificationCodesRepository.GetCodeAsync(key);
@@ -258,8 +259,10 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signout")]
         [HttpPost("~/signout")]
-        public ActionResult SignOut()
+        public async Task<ActionResult> SignOut()
         {
+            await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
+            await HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
             return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme);
         }
     }

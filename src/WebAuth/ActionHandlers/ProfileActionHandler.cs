@@ -9,6 +9,7 @@ using Lykke.Service.Kyc.Abstractions.Services.Models;
 using Lykke.Service.PersonalData.Contract.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 using WebAuth.Managers;
 
 namespace WebAuth.ActionHandlers
@@ -40,7 +41,7 @@ namespace WebAuth.ActionHandlers
             var changes = new KycPersonalDataChanges
             {
                 Changer = RecordChanger.Client,
-                Items = new Dictionary<string, string>
+                Items = new Dictionary<string, JToken>
                 {
                     {nameof(IPersonalData.FirstName), firstName},
                     {nameof(IPersonalData.LastName), lastName},

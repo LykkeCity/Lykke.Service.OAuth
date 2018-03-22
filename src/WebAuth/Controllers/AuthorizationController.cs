@@ -174,8 +174,6 @@ namespace WebAuth.Controllers
                 OpenIdConnectConstants.Scopes.OfflineAccess
             }.Intersect(request.GetScopes()));
 
-            // Set the resources servers the access token should be issued for.
-            ticket.SetResources("resource_server");
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 

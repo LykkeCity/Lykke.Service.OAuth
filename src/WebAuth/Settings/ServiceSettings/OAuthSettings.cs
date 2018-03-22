@@ -4,7 +4,9 @@ namespace WebAuth.Settings.ServiceSettings
 {
     public class OAuthSettings
     {
+        [HttpCheck("/api/isalive")]
         public string RegistrationApiUrl { get; set; }
+        [HttpCheck("/api/isalive")]
         public string SessionApiUrl { get; set; }
         public DbSettings Db { get; set; }
         public CorsSettings Cors { get; set; } = new CorsSettings();
