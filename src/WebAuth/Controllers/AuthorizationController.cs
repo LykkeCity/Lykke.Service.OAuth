@@ -5,17 +5,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
-using Core.Application;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.Extensions.DependencyInjection;
+using Core.Application;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
+using WebAuth.Extensions;
 
 namespace WebAuth.Controllers
 {
@@ -51,12 +53,16 @@ namespace WebAuth.Controllers
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
             {
-                return View("Error", new OpenIdConnectMessage
+                return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
             }
+
+            var paramDict = request
+                .GetParameters()
+                .ToDictionary(i => i.Key, i => i.Value.Value.ToString());
 
             // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
             // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
@@ -70,10 +76,9 @@ namespace WebAuth.Controllers
                 // Store the authorization request in the user session.
                 HttpContext.Session.Set("authorization-request:" + identifier, request.Export());
 
-                var parameters = request.Parameters;
-                parameters.Add("request_id", identifier);
+                paramDict.Add("request_id", identifier);
 
-                var redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
+                var redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), paramDict);
 
                 return Challenge(new AuthenticationProperties
                 {
@@ -88,7 +93,7 @@ namespace WebAuth.Controllers
             var application = await _applicationRepository.GetByIdAsync(request.ClientId);
             if (application == null)
             {
-                return View("Error", new OpenIdConnectMessage
+                return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
                     ErrorDescription =
@@ -98,9 +103,8 @@ namespace WebAuth.Controllers
 
             if (await _authorizationActionHandler.IsTrustedApplicationAsync(_userManager.GetCurrentUserId(), application.ApplicationId))
             {
-                var parameters = request.Parameters;
                 var acceptUri = Url.Action("Accept");
-                var redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
+                var redirectUrl = QueryHelpers.AddQueryString(acceptUri, paramDict);
 
                 return Redirect(redirectUrl);
             }
@@ -108,7 +112,7 @@ namespace WebAuth.Controllers
             return View("Authorize", new AuthorizeViewModel
             {
                 ApplicationName = application.DisplayName,
-                Parameters = request.Parameters,
+                Parameters = paramDict,
                 Scopes = request.GetScopes(),
                 Scope = request.Scope
             });
@@ -128,7 +132,7 @@ namespace WebAuth.Controllers
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
             {
-                return View("Error", new OpenIdConnectMessage
+                return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
@@ -136,9 +140,9 @@ namespace WebAuth.Controllers
             }
 
             // Remove the authorization request from the user session.
-            if (!string.IsNullOrEmpty(request.GetRequestId()))
+            if (!string.IsNullOrEmpty(request.RequestId))
             {
-                HttpContext.Session.Remove("authorization-request:" + request.GetRequestId());
+                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
             }
 
             var scopes = request.GetScopes().ToList();
@@ -149,7 +153,7 @@ namespace WebAuth.Controllers
             var application = await _applicationRepository.GetByIdAsync(request.ClientId);
             if (application == null)
             {
-                return View("Error", new OpenIdConnectMessage
+                return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
                     ErrorDescription =
@@ -204,7 +208,7 @@ namespace WebAuth.Controllers
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
             {
-                return View("Error", new OpenIdConnectMessage
+                return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
@@ -212,9 +216,9 @@ namespace WebAuth.Controllers
             }
 
             // Remove the authorization request from the user session.
-            if (!string.IsNullOrEmpty(request.GetRequestId()))
+            if (!string.IsNullOrEmpty(request.RequestId))
             {
-                HttpContext.Session.Remove("authorization-request:" + request.GetRequestId());
+                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
             }
 
             // Notify ASOS that the authorization grant has been denied by the resource owner.
@@ -235,7 +239,7 @@ namespace WebAuth.Controllers
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
             {
-                return View("Error", new OpenIdConnectMessage
+                return View("Error", new OpenIdConnectResponse
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
@@ -248,7 +252,7 @@ namespace WebAuth.Controllers
         [HttpPost("~/connect/logout")]
         public ActionResult Logout()
         {
-            return SignOut("ServerCookie", OpenIdConnectServerDefaults.AuthenticationScheme);
+            return SignOut(CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
         }
     }
 }

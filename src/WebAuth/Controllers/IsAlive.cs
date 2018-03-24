@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
 
 namespace WebAuth.Controllers
@@ -12,8 +13,8 @@ namespace WebAuth.Controllers
         {
             var response = new IsAliveResponse
             {
-                Version =
-                    Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationVersion,
+                Name = PlatformServices.Default.Application.ApplicationName,
+                Version = PlatformServices.Default.Application.ApplicationVersion,
                 Env = Environment.GetEnvironmentVariable("ENV_INFO")
             };
 
@@ -22,6 +23,7 @@ namespace WebAuth.Controllers
 
         public class IsAliveResponse
         {
+            public string Name { get; set; }
             public string Version { get; set; }
             public string Env { get; set; }
         }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Core.Clients;
 using Core.Extensions;
 using Core.Kyc;
@@ -143,7 +144,7 @@ namespace WebAuth.Tests.Managers
             var result = userManager.CreateIdentity(scopes, claims);
 
             //assert
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.Email));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.Email));
         }
 
         [Fact]
@@ -161,7 +162,7 @@ namespace WebAuth.Tests.Managers
             var result = userManager.CreateIdentity(scopes, claims);
 
             //assert
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.Email));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.Email));
         }
 
         [Fact]
@@ -183,8 +184,8 @@ namespace WebAuth.Tests.Managers
             var result = userManager.CreateIdentity(scopes, claims);
 
             //assert
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
         }
 
         [Fact]
@@ -203,8 +204,8 @@ namespace WebAuth.Tests.Managers
             var result = userManager.CreateIdentity(scopes, claims);
 
             //assert
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
-            Assert.Equal(null, result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
+            Assert.Null(result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
         }
 
         [Fact]

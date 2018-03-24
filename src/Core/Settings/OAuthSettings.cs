@@ -18,7 +18,9 @@ namespace Core.Settings
 
     public class OAuth
     {
+        [HttpCheck("/api/isalive")]
         public string RegistrationApiUrl { get; set; }
+        [HttpCheck("/api/isalive")]
         public string SessionApiUrl { get; set; }
         public DbSettings Db { get; set; }
         public CorsSettings Cors { get; set; } = new CorsSettings();
@@ -28,8 +30,11 @@ namespace Core.Settings
 
     public class DbSettings
     {
+        [AzureTableCheck]
         public string ClientPersonalInfoConnString { get; set; }
+        [AzureTableCheck]
         public string LogsConnString { get; set; }
+        [AzureTableCheck]
         public string BackOfficeConnString { get; set; }
     }
 

@@ -2,16 +2,19 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using BusinessService.Kyc;
+using Common;
 using Common.Log;
 using Common.PasswordTools;
 using Core.Clients;
 using Core.Email;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using WebAuth.ActionHandlers;
 using WebAuth.Extensions;
 using WebAuth.Managers;
@@ -98,7 +101,7 @@ namespace WebAuth.Controllers
                 var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id,
                     authResult.Account.Email, model.Username, false);
 
-                await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity));
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
                 return RedirectToLocal(model.ReturnUrl);
             }
@@ -129,7 +132,7 @@ namespace WebAuth.Controllers
         [HttpGet("~/signup/{key}")]
         public async Task<ActionResult> Signup(string key)
         {
-            if (!key.IsValidRowKey())
+            if (!key.IsValidPartitionOrRowKey())
                 return RedirectToAction("Signin");
 
             var code = await _verificationCodesRepository.GetCodeAsync(key);
@@ -146,7 +149,7 @@ namespace WebAuth.Controllers
         {
             var result = new VerificationCodeResult();
 
-            if (request == null || !request.Key.IsValidRowKey())
+            if (request == null || !request.Key.IsValidPartitionOrRowKey())
                 return result;
 
             var existingCode = await _verificationCodesRepository.GetCodeAsync(request.Key);
@@ -167,7 +170,7 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task ResendCode([FromBody]string key)
         {
-            if (!key.IsValidRowKey())
+            if (!key.IsValidPartitionOrRowKey())
                 return;
 
             var code = await _verificationCodesRepository.GetCodeAsync(key);
@@ -210,7 +213,6 @@ namespace WebAuth.Controllers
                         return regResult;
                     }
                 }
-                    
 
                 RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
                 {
@@ -241,7 +243,7 @@ namespace WebAuth.Controllers
 
                 var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, model.Email, true);
 
-                await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity));
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
                 await _profileActionHandler.UpdatePersonalInformation(clientAccount.Id, model.FirstName, model.LastName);
                 await _verificationCodesRepository.DeleteCodesAsync(model.Email);
@@ -265,7 +267,7 @@ namespace WebAuth.Controllers
         [HttpPost("~/signout")]
         public ActionResult SignOut()
         {
-            return SignOut("ServerCookie");
+            return SignOut(CookieAuthenticationDefaults.AuthenticationScheme);
         }
     }
 }

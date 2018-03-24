@@ -22,11 +22,16 @@ namespace WebAuth.Modules
     public class DbModule : Module
     {
         private readonly IReloadingManager<OAuthSettings> _settings;
+        private readonly IApplicationRepository _applicationRepository;
         private readonly ILog _log;
 
-        public DbModule(IReloadingManager<OAuthSettings> settings, ILog log)
+        public DbModule(
+            IReloadingManager<OAuthSettings> settings,
+            IApplicationRepository applicationRepository,
+            ILog log)
         {
             _settings = settings;
+            _applicationRepository = applicationRepository;
             _log = log;
         }
 
@@ -40,7 +45,8 @@ namespace WebAuth.Modules
             ).As<IAuditLogRepository>().SingleInstance();
 
             builder.RegisterInstance(
-                AzureRepoFactories.Applications.CreateApplicationsRepository(clientPersonalInfoConnString, _log)
+                //AzureRepoFactories.Applications.CreateApplicationsRepository(clientPersonalInfoConnString, _log)
+                _applicationRepository
             ).As<IApplicationRepository>().SingleInstance();
 
             builder.RegisterInstance(

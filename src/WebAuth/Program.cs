@@ -1,10 +1,12 @@
-﻿using System.IO;
-using Microsoft.AspNetCore.Hosting;
-using System;
-using AzureStorage.Blob;
+﻿using System;
+using System.IO;
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Common;
+using AzureStorage.Blob;
+using Lykke.SettingsReader.ReloadingManager;
 
 namespace WebAuth
 {
@@ -36,15 +38,16 @@ namespace WebAuth
                     var sertFilename = Environment.GetEnvironmentVariable("CertFileName");
                     var sertPassword = Environment.GetEnvironmentVariable("CertPassword");
 
-                    var certBlob = new AzureBlobStorage(sertConnString);
-                    var cert = certBlob.GetAsync(sertContainer, sertFilename).Result.ToBytes();
+                    var settingsManager = ConstantReloadingManager.From(sertConnString);
+                    var certBlob = AzureBlobStorage.Create(settingsManager);
+                    var cert = certBlob.GetAsync(sertContainer, sertFilename).GetAwaiter().GetResult().ToBytes();
 
                     X509Certificate2 xcert = new X509Certificate2(cert, sertPassword);
 
                     var host = new WebHostBuilder()
                         .UseKestrel(x =>
                         {
-                            x.UseHttps(xcert);
+                            x.Listen(IPAddress.Any, 443, o => o.UseHttps(xcert));
                             x.AddServerHeader = false;
                         })
                         .UseContentRoot(Directory.GetCurrentDirectory())

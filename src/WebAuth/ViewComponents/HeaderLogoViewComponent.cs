@@ -9,7 +9,7 @@ namespace WebAuth.ViewComponents
 {
     public class HeaderLogoViewComponent : ViewComponent
     {
-        public async Task<IViewComponentResult> InvokeAsync()
+        public Task<IViewComponentResult> InvokeAsync()
         {
             var referer = HttpContext.GetReferer();
             var streamsUrls = new List<string> {"streams", "localhost:53395" };
@@ -20,7 +20,7 @@ namespace WebAuth.ViewComponents
                 IsStreams = streamsUrls.Any(item => referer?.ToLower().Contains(item) ?? false)
             };
 
-            return View(model);
+            return Task.FromResult<IViewComponentResult>(View(model));
         }
     }
 }

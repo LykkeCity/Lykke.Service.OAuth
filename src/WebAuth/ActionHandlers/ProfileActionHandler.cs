@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using AutoMapper;
 using BusinessService.Kyc;
 using Core.Clients;
 using Core.Kyc;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Contract.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.Routing;
 using WebAuth.Managers;
 using WebAuth.Models;
 using WebAuth.Models.Profile;
@@ -73,11 +72,11 @@ namespace WebAuth.ActionHandlers
             //update client identity
             var clientAccount = await _clientAccountsRepository.GetByIdAsync(clientId);
 
-            await _httpContextAccessor.HttpContext.Authentication.SignOutAsync("ServerCookie");
+            await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, clientAccount.Email, true);
 
-            await _httpContextAccessor.HttpContext.Authentication.SignInAsync("ServerCookie",
+            await _httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                     new ClaimsPrincipal(identity),
                     new AuthenticationProperties());
         }

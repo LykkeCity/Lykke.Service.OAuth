@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
+using AspNet.Security.OpenIdConnect.Primitives;
 using Common;
 using Common.Log;
 using Core.Application;
@@ -42,7 +43,7 @@ namespace WebAuth.Controllers
             _walletCredentialsRepository = walletCredentialsRepository;
         }
 
-        [Authorize(ActiveAuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
         [HttpGet("~/connect/userinfo")]
         public IActionResult GetUserInfo()
         {
@@ -63,7 +64,7 @@ namespace WebAuth.Controllers
 
             var applicationId = HttpContext.GetApplicationId();
 
-            if (!applicationId.IsValidRowKey())
+            if (!applicationId.IsValidPartitionOrRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -88,7 +89,7 @@ namespace WebAuth.Controllers
 
             var applicationId = HttpContext.GetApplicationId();
 
-            if (!applicationId.IsValidRowKey())
+            if (!applicationId.IsValidPartitionOrRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -107,12 +108,12 @@ namespace WebAuth.Controllers
         [HttpGet("~/getemailbyid")]
         public async Task<IActionResult> GetEmailById(string id)
         {
-            if (!id.IsValidRowKey() && !id.IsGuid())
+            if (!id.IsValidPartitionOrRowKey() && !id.IsGuid())
                 return BadRequest("Invalid id");
 
             var applicationId = HttpContext.GetApplicationId();
 
-            if (!applicationId.IsValidRowKey())
+            if (!applicationId.IsValidPartitionOrRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -133,7 +134,7 @@ namespace WebAuth.Controllers
         {
             var applicationId = HttpContext.GetApplicationId();
 
-            if (!applicationId.IsValidRowKey())
+            if (!applicationId.IsValidPartitionOrRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -168,7 +169,7 @@ namespace WebAuth.Controllers
         {
             var applicationId = HttpContext.GetApplicationId();
 
-            if (!applicationId.IsValidRowKey())
+            if (!applicationId.IsValidPartitionOrRowKey())
                 return BadRequest("Invalid applicationId");
 
             var app = await _applicationRepository.GetByIdAsync(applicationId);
@@ -177,7 +178,7 @@ namespace WebAuth.Controllers
                 return BadRequest("Application Id Incorrect!");
 
             var clientId = User.GetClaim(ClaimTypes.NameIdentifier);
-            string encodedPrivateKey = string.Empty;
+            var encodedPrivateKey = string.Empty;
 
             if (clientId != null)
             {

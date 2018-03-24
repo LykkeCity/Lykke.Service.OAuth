@@ -2,9 +2,8 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
@@ -54,49 +53,35 @@ namespace WebAuth.Tests.OAuth
 
             builder.ConfigureServices(services =>
             {
-                services.AddAuthentication();
+                services
+                    .AddAuthentication()
+                    .AddOpenIdConnectServer(options =>
+                    {
+                        options.Provider = new OpenIdConnectServerProvider
+                        {
+                            OnValidateLogoutRequest = context =>
+                            {
+                                // Reject non-POST logout requests.
+                                if (!string.Equals(context.HttpContext.Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+                                    context.Reject(OpenIdConnectConstants.Errors.InvalidRequest, "Only POST requests are supported.");
+
+                                return Task.FromResult(0);
+                            },
+                            OnValidateAuthorizationRequest = context =>
+                            {
+                                if (!string.Equals(context.HttpContext.Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
+                                    context.Reject(OpenIdConnectConstants.Errors.InvalidRequest, "Only POST requests are supported.");
+
+                                return Task.FromResult(0);
+                            }
+                        };
+
+                        configuration?.Invoke(options);
+                    });
                 services.AddLogging();
             });
 
-            builder.Configure(app =>
-            {
-                app.UseOpenIdConnectServer(options =>
-                {
-                    options.Provider = new OpenIdConnectServerProvider
-                    {
-                        OnValidateLogoutRequest = context =>
-                        {
-                            // Reject non-POST logout requests.
-                            if (
-                                !string.Equals(context.HttpContext.Request.Method, "POST",
-                                    StringComparison.OrdinalIgnoreCase))
-                            {
-                                context.Reject(
-                                    OpenIdConnectConstants.Errors.InvalidRequest,
-                                    "Only POST requests are supported.");
-                            }
-
-                            return Task.FromResult(0);
-                        },
-                        OnValidateAuthorizationRequest = context =>
-                        {
-                            if (
-                                !string.Equals(context.HttpContext.Request.Method, "POST",
-                                    StringComparison.OrdinalIgnoreCase))
-                            {
-                                context.Reject(
-                                    OpenIdConnectConstants.Errors.InvalidRequest,
-                                    "Only POST requests are supported.");
-                            }
-
-                            return Task.FromResult(0);
-                        }
-                    };
-
-                    configuration?.Invoke(options);
-                });
-
-            });
+            builder.Configure(app => { });
 
             return new TestServer(builder);
         }

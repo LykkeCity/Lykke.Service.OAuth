@@ -3,12 +3,13 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Server;
+using AspNet.Security.OpenIdConnect.Primitives;
+using Lykke.Service.PersonalData.Contract;
 using Core.Extensions;
 using Core.Kyc;
-using Lykke.Service.PersonalData.Contract;
-using Microsoft.AspNetCore.Http;
 
 namespace WebAuth.Managers
 {

@@ -27,7 +27,7 @@ namespace WebAuth.Modules
             builder.RegisterClientSessionService(_settings.CurrentValue.OAuth.SessionApiUrl, _log);
             builder.RegisterRegistrationClient(_settings.CurrentValue.OAuth.RegistrationApiUrl, _log);
             builder.RegisterInstance<IPersonalDataService>(
-                    new PersonalDataService(new PersonalDataServiceSettings
+                    new PersonalDataService(new PersonalDataServiceClientSettings
                     {
                         ApiKey = _settings.CurrentValue.PersonalDataServiceSettings.ApiKey,
                         ServiceUri = _settings.CurrentValue.PersonalDataServiceSettings.ServiceUri
