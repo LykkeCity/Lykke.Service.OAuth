@@ -263,7 +263,7 @@ namespace WebAuth.Controllers
         {
             await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
             await HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
-            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme);
+            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
         }
     }
 }
