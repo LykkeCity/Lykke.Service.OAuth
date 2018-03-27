@@ -146,7 +146,7 @@ namespace WebAuth.Controllers
             if (app == null)
                 return BadRequest("Application Id Incorrect!");
 
-            var clientId = User.GetClaim(ClaimTypes.NameIdentifier);
+            var clientId = User.Identity.GetClientId();
 
             if (clientId == null)
                 return NotFound("Can't get clientId from claims");
@@ -182,7 +182,7 @@ namespace WebAuth.Controllers
             if (app == null)
                 return BadRequest("Application Id Incorrect!");
 
-            var clientId = User.GetClaim(ClaimTypes.NameIdentifier);
+            var clientId = User.Identity.GetClientId();
             string encodedPrivateKey = string.Empty;
 
             if (clientId != null)

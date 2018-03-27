@@ -17,5 +17,15 @@ namespace WebAuth.Extensions
 
             return claimsList.FirstOrDefault(c => c.Type == OpenIdConnectConstants.Claims.GivenName)?.Value;
         }
+        
+        public static string GetClientId(this IIdentity src)
+        {
+            var claimsIdentity = (ClaimsIdentity)src;
+            var claims = claimsIdentity.Claims;
+
+            var claimsList = claims as IList<Claim> ?? claims.ToList();
+
+            return claimsList.FirstOrDefault(c => c.Type == OpenIdConnectConstants.Claims.Subject)?.Value;
+        }
     }
 }

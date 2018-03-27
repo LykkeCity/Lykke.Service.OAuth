@@ -39,7 +39,7 @@ namespace WebAuth.Managers
                 {
                     case ClaimTypes.NameIdentifier:
                     {
-                        AddClaim(claim, identity);
+                        identity.AddClaim(claim);
                         identity.AddClaim(OpenIdConnectConstants.Claims.Subject, claim.Value);
                         break;
                     }
