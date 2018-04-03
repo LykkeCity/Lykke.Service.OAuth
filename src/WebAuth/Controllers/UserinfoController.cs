@@ -46,8 +46,8 @@ namespace WebAuth.Controllers
             _clientAccountClient = clientAccountClient;
         }
 
-        [Authorize(AuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
         [HttpGet("~/connect/userinfo")]
+        [Authorize(AuthenticationSchemes = OAuthValidationConstants.Schemes.Bearer)]
         public IActionResult GetUserInfo()
         {
             var userInfo = new UserInfoViewModel
