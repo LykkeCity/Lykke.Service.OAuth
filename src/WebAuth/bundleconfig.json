@@ -30,7 +30,6 @@
     "inputFiles": [
       "wwwroot/js/vendor/angular.js",
       "wwwroot/js/app/registerModule.js",
-      "wwwroot/js/app/antiforeryInterceptor.js",
       "wwwroot/js/app/controllers/registrationController.js",
       "wwwroot/js/app/services/registerService.js",
       "wwwroot/js/app/directives/strongPassword.js"

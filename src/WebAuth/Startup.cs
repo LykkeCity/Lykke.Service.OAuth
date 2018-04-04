@@ -2,14 +2,12 @@
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using AspNet.Security.OAuth.Validation;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
 using AzureStorage.Tables;
 using Common.Log;
-using Core.Application;
-using Core.Settings;
+using Core.Extensions;
 using Lykke.Logs;
 using Lykke.SettingsReader;
 using Lykke.SlackNotification.AzureQueue;
@@ -22,8 +20,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WebAuth.EventFilter;
 using WebAuth.Providers;
-using Microsoft.AspNetCore.HttpOverrides;
 using WebAuth.Modules;
+using WebAuth.Settings;
 
 namespace WebAuth
 {
@@ -33,7 +31,7 @@ namespace WebAuth
         public IHostingEnvironment Environment { get; }
         public IContainer ApplicationContainer { get; set; }
         public ILog Log { get; private set; }
-        private OAuthSettings _settings;
+        private AppSettings _settings;
         private const string BlobSource = "blob:";
         private const string DataSource = "data:";
         private const string AnySource = "*";
@@ -42,8 +40,6 @@ namespace WebAuth
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile("appsettings.dev.json", true, true)
                 .AddEnvironmentVariables();
 
             Configuration = builder.Build();
@@ -54,7 +50,28 @@ namespace WebAuth
         {
             try
             {
-                services.AddAuthentication(options => { options.SignInScheme = "ServerCookie"; });
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                })
+                .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
+                {
+                    options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+                    options.LoginPath = new PathString("/signin");
+                    options.LogoutPath = new PathString("/signout");
+                })
+                .AddOAuthValidation()
+                .AddOpenIdConnectServer(options =>
+                {
+                    options.ProviderType = typeof(AuthorizationProvider);
+                    options.AuthorizationEndpointPath = "/connect/authorize";
+                    options.LogoutEndpointPath = "/connect/logout";
+                    options.TokenEndpointPath = "/connect/token";
+                    options.UserinfoEndpointPath = "/connect/userinfo";
+                    options.ApplicationCanDisplayErrors = true;
+                    options.AllowInsecureHttp = Environment.IsDevelopment();
+                });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
 
@@ -80,13 +97,8 @@ namespace WebAuth
 
                 services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(30); });
 
-                services.Configure<ForwardedHeadersOptions>(options =>
-                {
-                    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-                });
-
                 var builder = new ContainerBuilder();
-                var settings = Configuration.LoadSettings<OAuthSettings>();
+                var settings = Configuration.LoadSettings<AppSettings>();
                 _settings = settings.CurrentValue;
 
                 Log = CreateLogWithSlack(services, settings);
@@ -123,16 +135,8 @@ namespace WebAuth
                     app.UseExceptionHandler("/Home/Error");
                 }
 
-                var forwardingOptions = new ForwardedHeadersOptions
-                {
-                    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
-                };
-                
-                forwardingOptions.KnownNetworks.Clear(); //its loopback by default
-                forwardingOptions.KnownProxies.Clear();
-            
-                app.UseForwardedHeaders(forwardingOptions);
-                
+                app.UseForwardedHeaders();
+
                 var supportedCultures = new[]
                 {
                     new CultureInfo("en-US"),
@@ -153,45 +157,10 @@ namespace WebAuth
                 });
 
                 app.UseCors("Lykke");
-
-                // Create a new branch where the registered middleware will be executed only for API calls.
-                app.UseOAuthValidation(new OAuthValidationOptions
-
-                {
-                    AutomaticAuthenticate = true,
-                    AutomaticChallenge = true
-                });
-
-                // Create a new branch where the registered middleware will be executed only for non API calls.
-                app.UseCookieAuthentication(new CookieAuthenticationOptions
-
-                {
-                    AutomaticAuthenticate = true,
-                    AutomaticChallenge = true,
-                    AuthenticationScheme = "ServerCookie",
-                    CookieName = CookieAuthenticationDefaults.CookiePrefix + "ServerCookie",
-                    ExpireTimeSpan = TimeSpan.FromHours(24),
-                    LoginPath = new PathString("/signin"),
-                    LogoutPath = new PathString("/signout")
-                });
+                
+                app.UseAuthentication();
 
                 app.UseSession();
-
-                var applicationRepository = ApplicationContainer.Resolve<IApplicationRepository>();
-
-                app.UseOpenIdConnectServer(options =>
-                {
-                    options.Provider = new AuthorizationProvider(applicationRepository);
-
-                    // Enable the authorization, logout, token and userinfo endpoints.
-                    options.AuthorizationEndpointPath = "/connect/authorize";
-                    options.LogoutEndpointPath = "/connect/logout";
-                    options.TokenEndpointPath = "/connect/token";
-                    options.UserinfoEndpointPath = "/connect/userinfo";
-
-                    options.ApplicationCanDisplayErrors = true;
-                    options.AllowInsecureHttp = Environment.IsDevelopment();
-                });
 
                 app.UseCsp(options => options.DefaultSources(directive => directive.Self().CustomSources(BlobSource))
                     .ImageSources(directive => directive.Self()
@@ -288,7 +257,7 @@ namespace WebAuth
             }
         }
 
-        private static ILog CreateLogWithSlack(IServiceCollection services, IReloadingManager<OAuthSettings> settings)
+        private static ILog CreateLogWithSlack(IServiceCollection services, IReloadingManager<AppSettings> settings)
         {
             var consoleLogger = new LogToConsole();
             var aggregateLogger = new AggregateLogger();

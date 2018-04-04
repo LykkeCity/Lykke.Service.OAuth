@@ -1,20 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>Core</AssemblyName>
     <PackageId>Core</PackageId>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="3.0.2" />
-    <PackageReference Include="Lykke.SettingsReader" Version="1.0.42" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.0" />
+    <PackageReference Include="Lykke.Common" Version="6.1.0" />
+    <PackageReference Include="Lykke.SettingsReader" Version="2.2.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.1" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Extensions\" />
-    <Folder Include="Properties\" />
   </ItemGroup>
-
 </Project>

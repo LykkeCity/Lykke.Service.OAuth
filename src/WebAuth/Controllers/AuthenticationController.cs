@@ -2,18 +2,23 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using BusinessService.Kyc;
+using AspNet.Security.OpenIdConnect.Server;
+using Common;
 using Common.Log;
 using Common.PasswordTools;
-using Core.Clients;
+using Core;
 using Core.Email;
+using Core.Extensions;
+using Lykke.Common.Extensions;
+using Lykke.Service.ClientAccount.Client;
+using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using WebAuth.ActionHandlers;
-using WebAuth.Extensions;
 using WebAuth.Managers;
 using WebAuth.Models;
 
@@ -22,28 +27,28 @@ namespace WebAuth.Controllers
     public class AuthenticationController : BaseController
     {
         private readonly ILykkeRegistrationClient _registrationClient;
-        private readonly IClientAccountsRepository _clientAccountsRepository;
         private readonly IVerificationCodesRepository _verificationCodesRepository;
         private readonly IEmailFacadeService _emailFacadeService;
         private readonly ProfileActionHandler _profileActionHandler;
         private readonly IUserManager _userManager;
+        private readonly IClientAccountClient _clientAccountClient;
         private readonly ILog _log;
 
         public AuthenticationController(
             ILykkeRegistrationClient registrationClient,
-            IClientAccountsRepository clientAccountsRepository,
             IVerificationCodesRepository verificationCodesRepository,
             IEmailFacadeService emailFacadeService,
             ProfileActionHandler profileActionHandler,
-            IUserManager userManager, 
+            IUserManager userManager,
+            IClientAccountClient clientAccountClient,
             ILog log)
         {
             _registrationClient = registrationClient;
-            _clientAccountsRepository = clientAccountsRepository;
             _verificationCodesRepository = verificationCodesRepository;
             _emailFacadeService = emailFacadeService;
             _profileActionHandler = profileActionHandler;
             _userManager = userManager;
+            _clientAccountClient = clientAccountClient;
             _log = log;
         }
 
@@ -98,7 +103,7 @@ namespace WebAuth.Controllers
                 var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id,
                     authResult.Account.Email, model.Username, false);
 
-                await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity));
+                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
                 return RedirectToLocal(model.ReturnUrl);
             }
@@ -129,7 +134,7 @@ namespace WebAuth.Controllers
         [HttpGet("~/signup/{key}")]
         public async Task<ActionResult> Signup(string key)
         {
-            if (!key.IsValidRowKey())
+            if (!key.IsValidPartitionOrRowKey())
                 return RedirectToAction("Signin");
 
             var code = await _verificationCodesRepository.GetCodeAsync(key);
@@ -146,7 +151,7 @@ namespace WebAuth.Controllers
         {
             var result = new VerificationCodeResult();
 
-            if (request == null || !request.Key.IsValidRowKey())
+            if (request == null || !request.Key.IsValidPartitionOrRowKey())
                 return result;
 
             var existingCode = await _verificationCodesRepository.GetCodeAsync(request.Key);
@@ -154,7 +159,8 @@ namespace WebAuth.Controllers
             if (existingCode != null && existingCode.Code == request.Code)
             {
                 result.Code = existingCode;
-                result.IsEmailTaken = await _clientAccountsRepository.IsTraderWithEmailExistsAsync(existingCode.Email);
+                AccountExistsModel accountExistsModel = await _clientAccountClient.IsTraderWithEmailExistsAsync(existingCode.Email, null);
+                result.IsEmailTaken = accountExistsModel.IsClientAccountExisting;
 
                 if (result.IsEmailTaken)
                     await _verificationCodesRepository.DeleteCodesAsync(existingCode.Email);
@@ -167,7 +173,7 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task ResendCode([FromBody]string key)
         {
-            if (!key.IsValidRowKey())
+            if (!key.IsValidPartitionOrRowKey())
                 return;
 
             var code = await _verificationCodesRepository.GetCodeAsync(key);
@@ -211,7 +217,6 @@ namespace WebAuth.Controllers
                     }
                 }
                     
-
                 RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
                 {
                     Email = model.Email,
@@ -230,20 +235,11 @@ namespace WebAuth.Controllers
                     return regResult;
                 }
 
-                var clientAccount = new Core.Clients.ClientAccount
-                {
-                    Id = result.Account.Id,
-                    Email = result.Account.Email,
-                    Registered = result.Account.Registered,
-                    NotificationsId = result.Account.NotificationsId,
-                    Phone = result.Account.Phone
-                };
+                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, true);
 
-                var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, model.Email, true);
+                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-                await HttpContext.Authentication.SignInAsync("ServerCookie", new ClaimsPrincipal(identity));
-
-                await _profileActionHandler.UpdatePersonalInformation(clientAccount.Id, model.FirstName, model.LastName);
+                await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
                 await _verificationCodesRepository.DeleteCodesAsync(model.Email);
             }
             else
@@ -263,9 +259,11 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signout")]
         [HttpPost("~/signout")]
-        public ActionResult SignOut()
+        public async Task<ActionResult> SignOut()
         {
-            return SignOut("ServerCookie");
+            await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
+            await HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
+            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
         }
     }
 }

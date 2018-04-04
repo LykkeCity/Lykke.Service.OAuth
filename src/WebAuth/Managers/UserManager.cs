@@ -4,9 +4,11 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Extensions;
-using Core.Kyc;
+using Lykke.Service.Kyc.Abstractions.Domain.Profile;
+using Lykke.Service.Kyc.Abstractions.Services;
 using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
 
@@ -14,16 +16,18 @@ namespace WebAuth.Managers
 {
     public class UserManager : IUserManager
     {
-        private readonly IKycDocumentsRepository _kycDocumentsRepository;
         private readonly IPersonalDataService _personalDataService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IKycProfileServiceV2 _kycProfileService;
 
         public UserManager(IPersonalDataService personalDataService,
-            IKycDocumentsRepository kycDocumentsRepository, IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IKycProfileServiceV2 kycProfileService
+            )
         {
             _personalDataService = personalDataService;
-            _kycDocumentsRepository = kycDocumentsRepository;
             _httpContextAccessor = httpContextAccessor;
+            _kycProfileService = kycProfileService;
         }
 
         public ClaimsIdentity CreateIdentity(List<string> scopes, IEnumerable<Claim> claims)
@@ -36,6 +40,7 @@ namespace WebAuth.Managers
                     case ClaimTypes.NameIdentifier:
                     {
                         identity.AddClaim(claim);
+                        identity.AddClaim(OpenIdConnectConstants.Claims.Subject, claim.Value);
                         break;
                     }
                     case ClaimTypes.Name:
@@ -90,7 +95,8 @@ namespace WebAuth.Managers
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, clientId),
-                new Claim(OpenIdConnectConstants.Claims.Email, email)
+                new Claim(OpenIdConnectConstants.Claims.Email, email),
+                new Claim(OpenIdConnectConstants.Claims.Subject, clientId)
             };
 
             if (!string.IsNullOrEmpty(personalData.FirstName))
@@ -120,9 +126,9 @@ namespace WebAuth.Managers
 
         private async Task<IEnumerable<string>> GetDocumentListAsync(string clientId)
         {
-            var documents = await _kycDocumentsRepository.GetAsync(clientId);
+            var documents = await _kycProfileService.GetDocumentsAsync(clientId, KycProfile.Default);
 
-            var uploadedDocumentTypes = documents?.Select(d => d.Type);
+            var uploadedDocumentTypes = documents?.Select(d => d.Value.Type.Name);
 
             return uploadedDocumentTypes;
         }

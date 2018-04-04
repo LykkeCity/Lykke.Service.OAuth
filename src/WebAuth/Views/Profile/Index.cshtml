@@ -16,7 +16,7 @@
                     <div data-ng-hide="vm.data.loading" id="profile-page" style="display: none;">
                         <div class="user_badge user_badge--large">
                             <div class="user_badge__img">
-                                <img src="/images/profile/user_default.svg" data-ng-if="!vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="150">
+                                <img src="/images/user_default.svg" data-ng-if="!vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="150">
                                 <img ng-src="{{vm.data.personalData.avatarUrl}}" data-ng-if="vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="150">
                             </div>
                             <h2 class="user_badge__title" data-ng-bind="vm.data.personalData.fullName"></h2>
@@ -47,7 +47,7 @@
                                                 <div class="form-group">
                                                     <div class="fileupload fileupload_userimg">
                                                         <div class="fileupload__preview">
-                                                            <img src="/images/profile/user_default.svg" data-ng-if="!vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="120">
+                                                            <img src="/images/user_default.svg" data-ng-if="!vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="120">
                                                             <img ng-src="{{vm.data.personalData.avatarUrl}}" data-ng-if="vm.data.personalData.avatarUrl" class="avatar" alt="user_preview" width="120">
                                                         </div>
                                                         <div class="fileupload__buttons">
