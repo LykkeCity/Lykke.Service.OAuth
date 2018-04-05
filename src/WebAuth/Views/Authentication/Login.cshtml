@@ -40,10 +40,11 @@
 
         <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
         <input type="hidden" name="Referer" value="@Model.Referer" />
+        <input type="hidden" name="Cid" id="Cid" />
         <input type="hidden" name="IsLogin" value="false" />
     </div>
     <div class="submit-group">
-        <button class="btn btn--primary btn-block" type="submit">Sign up</button>
+        <button class="btn btn--primary btn-block" onclick="getGaCid()" type="submit">Sign up</button>
     </div>
 </form>
 
@@ -56,13 +57,20 @@
 {
     <script>
         $(function() {
-            $('#show-password').on('click', function () {
-                var $this = $(this);
-                var pass = $('#Password');
-                pass.prop('type', pass.prop('type') === 'text' ? 'password' : 'text');
-                $this.toggleClass('icon--show_password');
-                $this.toggleClass('icon--hide_password');
-            });
-        })
+            $('#show-password').on('click',
+                function() {
+                    var $this = $(this);
+                    var pass = $('#Password');
+                    pass.prop('type', pass.prop('type') === 'text' ? 'password' : 'text');
+                    $this.toggleClass('icon--show_password');
+                    $this.toggleClass('icon--hide_password');
+                });
+        });
+        
+        function getGaCid(){
+            var tracker = ga.getAll()[0];
+            $('#Cid').val(tracker.get('clientId'));
+        }
+        
     </script>
 }

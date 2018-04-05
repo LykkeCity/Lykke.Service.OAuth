@@ -6,13 +6,13 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc2-final" />
-    <PackageReference Include="Lykke.Common" Version="6.1.0" />
-    <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.38" />
-    <PackageReference Include="Lykke.Service.Registration" Version="1.2.2" />
+    <PackageReference Include="Lykke.Common" Version="6.1.1" />
+    <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.40" />
+    <PackageReference Include="Lykke.Service.Registration" Version="1.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.0.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
     <PackageReference Include="NSubstitute" Version="3.1.0" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
