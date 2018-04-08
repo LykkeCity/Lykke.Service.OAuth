@@ -29,8 +29,16 @@
                     return data.data;
                 });
         }
+        
+        function checkPassword(password) {
+            return $http.post('/signup/checkPassword', '\''+ password + '\'')
+                .then(function (data) {
+                    return data.data;
+                });
+        }
         return {
             verifyEmail: verifyEmail,
+            checkPassword: checkPassword,
             resendCode: resendCode,
             register: register
         }

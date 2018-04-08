@@ -185,6 +185,13 @@ namespace WebAuth.Controllers
                 await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
             }
         }
+        
+        [HttpPost("~/signup/checkPassword")]  
+        [ValidateAntiForgeryToken]
+        public bool CheckPassword([FromBody]string passowrd)
+        {
+            return passowrd.IsPasswordComplex();
+        }
 
         [HttpPost("~/signup/complete")]
         [ValidateAntiForgeryToken]
