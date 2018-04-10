@@ -12,6 +12,7 @@ using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Kyc.Abstractions.Domain.Profile;
 using Lykke.Service.Kyc.Abstractions.Services;
 using Lykke.Service.Session;
+using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebAuth.Extensions;
@@ -24,7 +25,7 @@ namespace WebAuth.Controllers
         private readonly ILog _log;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IKycProfileServiceV2 _kycProfileService;
-        private readonly IClientsSessionsRepository _clientSessionsClient;
+        private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
         private readonly IClientAccountClient _clientAccountClient;
 
@@ -32,7 +33,7 @@ namespace WebAuth.Controllers
             ILog log,
             IApplicationRepository applicationRepository,
             IKycProfileServiceV2 kycProfileService,
-            IClientsSessionsRepository clientSessionsClient,
+            IClientSessionsClient clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository,
             IClientAccountClient clientAccountClient)
         {
@@ -156,7 +157,7 @@ namespace WebAuth.Controllers
 
             try
             {
-                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server");
+                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", application: app.Type);
                 return Json(new { Token = authResult.SessionToken });
             }
             catch (Exception ex)
