@@ -124,7 +124,9 @@ namespace WebAuth.Controllers
                 return View("Login", model);
             }
 
-            var code = await _verificationCodesRepository.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl);
+            var traffic = Request.Cookies["sbjs_current"];
+            
+            var code = await _verificationCodesRepository.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
             var url = Url.Action("Signup", "Authentication", new {key = code.Key}, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(model.Email, code.Code, url);
 
@@ -216,6 +218,8 @@ namespace WebAuth.Controllers
                         return regResult;
                     }
                 }
+                
+                var code = await _verificationCodesRepository.GetCodeAsync(model.Key);
                     
                 RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
                 {
@@ -224,7 +228,10 @@ namespace WebAuth.Controllers
                     Ip = userIp,
                     Changer = RecordChanger.Client,
                     UserAgent = userAgent,
-                    Referer = referer
+                    Referer = referer,
+                    CreatedAt = DateTime.UtcNow,
+                    Cid = code?.Cid,
+                    Traffic = code?.Traffic
                 });
 
                 regResult.RegistrationResponse = result;

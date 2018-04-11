@@ -24,5 +24,6 @@ namespace WebAuth.Models
         public string Email { get; set; }
         public string Referer { get; set; }
         public bool IsLogin { get; set; }
+        public string Cid { get; set; }
     }
 }

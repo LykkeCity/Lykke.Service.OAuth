@@ -30,8 +30,10 @@ namespace AzureDataAccess.Email
         public string Key => RowKey;
         public string Referer { get; set; }
         public string ReturnUrl { get; set; }
+        public string Cid { get; set; }
+        public string Traffic { get; set; }
 
-        public static VerificationCodeEntity Create(string email, string referer, string returnUrl)
+        public static VerificationCodeEntity Create(string email, string referer, string returnUrl, string cid, string traffic)
         {
             var rowKey = Guid.NewGuid().ToString("N");
             var code = GenerateCode();
@@ -43,7 +45,9 @@ namespace AzureDataAccess.Email
                 Code = code,
                 Email = email,
                 Referer = referer,
-                ReturnUrl = returnUrl
+                ReturnUrl = returnUrl,
+                Cid = cid,
+                Traffic = traffic
             };
         }
     }
@@ -57,11 +61,11 @@ namespace AzureDataAccess.Email
             _tablestorage = tablestorage;
         }
 
-        public async Task<IVerificationCode> AddCodeAsync(string email, string referer, string returnUrl)
+        public async Task<IVerificationCode> AddCodeAsync(string email, string referer, string returnUrl, string cid, string traffic)
         {
             await DeleteCodesAsync(email);
 
-            var entity = VerificationCodeEntity.Create(email, referer, returnUrl);
+            var entity = VerificationCodeEntity.Create(email, referer, returnUrl, cid, traffic);
             await _tablestorage.InsertOrReplaceAsync(entity);
 
             return entity;

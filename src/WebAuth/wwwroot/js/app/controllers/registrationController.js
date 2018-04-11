@@ -89,6 +89,7 @@
         function register() {
             vm.data.model.firstName = vm.data.step3Form.firstName;
             vm.data.model.lastName = vm.data.step3Form.lastName;
+            vm.data.model.key = vm.data.key;
             vm.data.loading = true;
             registerService.register(vm.data.model).then(function (result) {
                 if (result.errors.length) {

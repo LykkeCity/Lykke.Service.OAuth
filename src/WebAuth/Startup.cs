@@ -8,7 +8,9 @@ using AutoMapper;
 using AzureStorage.Tables;
 using Common.Log;
 using Core.Extensions;
+using Lykke.AzureQueueIntegration;
 using Lykke.Logs;
+using Lykke.Logs.Slack;
 using Lykke.SettingsReader;
 using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -264,34 +266,43 @@ namespace WebAuth
 
             aggregateLogger.AddLog(consoleLogger);
 
+            var dbLogConnectionStringManager = settings.Nested(x => x.OAuth.Db.LogsConnString);
+            var dbLogConnectionString = dbLogConnectionStringManager.CurrentValue;
+
+            if (string.IsNullOrEmpty(dbLogConnectionString))
+            {
+                consoleLogger.WriteWarningAsync(nameof(Startup), nameof(CreateLogWithSlack), "Table loggger is not inited").Wait();
+                return aggregateLogger;
+            }
+
+            if (dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}"))
+                throw new InvalidOperationException($"LogsConnString {dbLogConnectionString} is not filled in settings");
+
+            var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
+                AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "OauthLog", consoleLogger),
+                consoleLogger);
+
             // Creating slack notification service, which logs own azure queue processing messages to aggregate log
-            var slackService = services.UseSlackNotificationsSenderViaAzureQueue(new Lykke.AzureQueueIntegration.AzureQueueSettings
+            var slackService = services.UseSlackNotificationsSenderViaAzureQueue(new AzureQueueSettings
             {
                 ConnectionString = settings.CurrentValue.SlackNotifications.AzureQueue.ConnectionString,
                 QueueName = settings.CurrentValue.SlackNotifications.AzureQueue.QueueName
             }, aggregateLogger);
 
-            var dbLogConnectionStringManager = settings.Nested(x => x.OAuth.Db.LogsConnString);
-            var dbLogConnectionString = dbLogConnectionStringManager.CurrentValue;
+            var slackNotificationsManager = new LykkeLogToAzureSlackNotificationsManager(slackService, consoleLogger);
 
             // Creating azure storage logger, which logs own messages to concole log
-            if (!string.IsNullOrEmpty(dbLogConnectionString) && !(dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}")))
-            {
-                var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
-                    AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "OauthLog", consoleLogger),
-                    consoleLogger);
+            var azureStorageLogger = new LykkeLogToAzureStorage(
+                persistenceManager,
+                slackNotificationsManager,
+                consoleLogger);
 
-                var slackNotificationsManager = new LykkeLogToAzureSlackNotificationsManager(slackService, consoleLogger);
+            azureStorageLogger.Start();
 
-                var azureStorageLogger = new LykkeLogToAzureStorage(
-                    persistenceManager,
-                    slackNotificationsManager,
-                    consoleLogger);
-
-                azureStorageLogger.Start();
-
-                aggregateLogger.AddLog(azureStorageLogger);
-            }
+            aggregateLogger.AddLog(azureStorageLogger);
+            
+            var logToSlack = LykkeLogToSlack.Create(slackService, "oauth", LogLevel.Error | LogLevel.FatalError | LogLevel.Warning);
+            aggregateLogger.AddLog(logToSlack);
 
             return aggregateLogger;
         }

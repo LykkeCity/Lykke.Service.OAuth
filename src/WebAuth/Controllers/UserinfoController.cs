@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OAuth.Validation;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
-using AspNet.Security.OpenIdConnect.Server;
 using Common;
 using Common.Log;
 using Core.Application;
