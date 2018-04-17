@@ -32,7 +32,7 @@ namespace WebAuth.Managers
             _personalDataService = personalDataService;
             _httpContextAccessor = httpContextAccessor;
             _kycProfileService = kycProfileService;
-            _log = log;
+            _log = log.CreateComponentScope(nameof(UserManager));
         }
 
         public ClaimsIdentity CreateIdentity(List<string> scopes, IEnumerable<Claim> claims)
