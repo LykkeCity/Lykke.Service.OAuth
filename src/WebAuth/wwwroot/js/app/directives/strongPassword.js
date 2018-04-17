@@ -1,22 +1,25 @@
 ﻿var app = angular.module('registerApp');
 
-app.directive('strongPassword', function() {
+app.directive('strongPassword', ['$q', 'registerService', function($q, registerService) {
     return {
         require: 'ngModel',
         link: function(scope, elm, attrs, ctrl) {
-            ctrl.$validators.strongPassword = function(modelValue, viewValue) {
+            ctrl.$asyncValidators.strongPassword = function(modelValue, viewValue) {
                 if (ctrl.$isEmpty(modelValue)) {
-                    return true;
+                    return $q.resolve();
                 }
 
-                if (modelValue.length < 8)
-                    return false;
+                var def = $q.defer();
+                
+                registerService.checkPassword(modelValue).then(function (result) {
+                    if (result)
+                        def.resolve();
+                    else
+                        def.reject();
+                });
 
-                var hasUpperCase = /[A-Z]/.test(modelValue);
-                var hasLowerCase = /[a-z]/.test(modelValue);
-                var hasNumbers = /\d/.test(modelValue);
-                return hasUpperCase && hasLowerCase && hasNumbers;
+                return def.promise;
             };
         }
     };
-});
+}]);
