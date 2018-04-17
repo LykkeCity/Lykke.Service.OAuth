@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
+using Common.Log;
 using Core.Extensions;
 using Lykke.Service.Kyc.Abstractions.Domain.Profile;
 using Lykke.Service.Kyc.Abstractions.Services;
@@ -19,15 +21,18 @@ namespace WebAuth.Managers
         private readonly IPersonalDataService _personalDataService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IKycProfileServiceV2 _kycProfileService;
+        private readonly ILog _log;
 
         public UserManager(IPersonalDataService personalDataService,
             IHttpContextAccessor httpContextAccessor,
-            IKycProfileServiceV2 kycProfileService
+            IKycProfileServiceV2 kycProfileService,
+            ILog log
             )
         {
             _personalDataService = personalDataService;
             _httpContextAccessor = httpContextAccessor;
             _kycProfileService = kycProfileService;
+            _log = log.CreateComponentScope(nameof(UserManager));
         }
 
         public ClaimsIdentity CreateIdentity(List<string> scopes, IEnumerable<Claim> claims)
@@ -124,12 +129,21 @@ namespace WebAuth.Managers
             return _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
         }
 
-        private async Task<IEnumerable<string>> GetDocumentListAsync(string clientId)
+        private async Task<List<string>> GetDocumentListAsync(string clientId)
         {
-            var documents = await _kycProfileService.GetDocumentsAsync(clientId, KycProfile.Default);
+            var uploadedDocumentTypes = new List<string>();
+            
+            try
+            {
+                var documents = await _kycProfileService.GetDocumentsAsync(clientId, KycProfile.Default);
 
-            var uploadedDocumentTypes = documents?.Select(d => d.Value.Type.Name);
-
+                uploadedDocumentTypes = documents?.Select(d => d.Value.Type.Name).ToList();
+            }
+            catch (Exception)
+            {
+                _log.WriteWarning(nameof(GetDocumentListAsync), clientId, "Error getting documents");
+            }
+            
             return uploadedDocumentTypes;
         }
 
