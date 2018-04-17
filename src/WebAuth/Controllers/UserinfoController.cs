@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using AspNet.Security.OAuth.Validation;
 using AspNet.Security.OpenIdConnect.Extensions;
@@ -79,8 +80,15 @@ namespace WebAuth.Controllers
             if (client == null)
                 return NotFound("Client not found!");
 
-            var kycStatus = await _kycProfileService.GetStatusAsync(client.Id, KycProfile.Default);
-            return Json(kycStatus.Name);
+            try
+            {
+                var kycStatus = await _kycProfileService.GetStatusAsync(client.Id, KycProfile.Default);
+                return Json(kycStatus.Name);
+            }
+            catch(Exception)
+            {
+                return StatusCode((int) HttpStatusCode.InternalServerError, "Can't get KYC status");
+            }
         }
 
         [HttpGet("~/getidbyemail")]
