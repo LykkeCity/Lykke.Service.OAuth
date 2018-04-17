@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
+using Common.Log;
 using Core.Extensions;
 using Lykke.Service.Kyc.Abstractions.Services;
 using Lykke.Service.PersonalData.Client.Models;
@@ -27,7 +28,8 @@ namespace WebAuth.Tests.Managers
 
             var kycProfileService = Substitute.For<IKycProfileServiceV2>();
             var httpAccessor = Substitute.For<IHttpContextAccessor>();
-            var userManager = new UserManager(personalDataService, httpAccessor, kycProfileService);
+            var log = Substitute.For<ILog>();
+            var userManager = new UserManager(personalDataService, httpAccessor, kycProfileService, log);
             return userManager;
         }
 
