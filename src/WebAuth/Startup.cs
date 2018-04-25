@@ -107,7 +107,7 @@ namespace WebAuth
 
                 builder.RegisterInstance(Log).As<ILog>().SingleInstance();
 
-                builder.RegisterModule(new WebModule());
+                builder.RegisterModule(new WebModule(settings));
                 builder.RegisterModule(new DbModule(settings, Log));
                 builder.RegisterModule(new BusinessModule(settings, Log));
                 builder.RegisterModule(new ClientServiceModule(settings, Log));
@@ -164,7 +164,7 @@ namespace WebAuth
 
                 app.UseSession();
 
-                app.UseCsp(options => options.DefaultSources(directive => directive.Self().CustomSources(BlobSource))
+                app.UseCsp(options => options.DefaultSources(directive => directive.Self().CustomSources(BlobSource, "www.google.com"))
                     .ImageSources(directive => directive.Self()
                         .CustomSources(AnySource, DataSource, BlobSource))
                     .ScriptSources(directive =>
