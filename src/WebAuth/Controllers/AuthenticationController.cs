@@ -9,6 +9,7 @@ using Common.PasswordTools;
 using Core;
 using Core.Email;
 using Core.Extensions;
+using Core.Recaptcha;
 using Lykke.Common.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
@@ -21,6 +22,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
+using WebAuth.Settings.ServiceSettings;
 
 namespace WebAuth.Controllers
 {
@@ -32,6 +34,8 @@ namespace WebAuth.Controllers
         private readonly ProfileActionHandler _profileActionHandler;
         private readonly IUserManager _userManager;
         private readonly IClientAccountClient _clientAccountClient;
+        private readonly IRecaptchaService _recaptchaService;
+        private readonly SecuritySettings _securitySettings;
         private readonly ILog _log;
 
         public AuthenticationController(
@@ -41,6 +45,8 @@ namespace WebAuth.Controllers
             ProfileActionHandler profileActionHandler,
             IUserManager userManager,
             IClientAccountClient clientAccountClient,
+            IRecaptchaService recaptchaService,
+            SecuritySettings securitySettings,
             ILog log)
         {
             _registrationClient = registrationClient;
@@ -49,6 +55,8 @@ namespace WebAuth.Controllers
             _profileActionHandler = profileActionHandler;
             _userManager = userManager;
             _clientAccountClient = clientAccountClient;
+            _recaptchaService = recaptchaService;
+            _securitySettings = securitySettings;
             _log = log;
         }
 
@@ -58,8 +66,14 @@ namespace WebAuth.Controllers
         {
             try
             {
-                string referer = HttpContext.GetReferer() ?? Request.GetUri().ToString();
-                return View("Login", new LoginViewModel(returnUrl, referer));
+                var model = new LoginViewModel
+                {
+                    ReturnUrl = returnUrl,
+                    Referer = HttpContext.GetReferer() ?? Request.GetUri().ToString(),
+                    RecaptchaKey = _securitySettings.RecaptchaKey
+                };
+                
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -76,6 +90,9 @@ namespace WebAuth.Controllers
             {
                 if (!model.Username.IsValidEmailAndRowKey())
                     ModelState.AddModelError(nameof(model.Username), "Please enter a valid email address");
+                
+                if (!await _recaptchaService.Validate())
+                    ModelState.AddModelError("", "Captcha is not validated"); 
 
                 if (!ModelState.IsValid)
                     return View("Login", model);

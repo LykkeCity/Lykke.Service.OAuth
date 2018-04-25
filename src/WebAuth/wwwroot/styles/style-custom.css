@@ -15,3 +15,4 @@ fieldset .form-control.ng-invalid:focus { border-color: #ff3e2e; box-shadow: ins
 ::-ms-reveal {
     display: none;
 }
+.g-recaptcha div { margin: 0 auto; }

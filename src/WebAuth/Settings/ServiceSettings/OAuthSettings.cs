@@ -12,5 +12,6 @@ namespace WebAuth.Settings.ServiceSettings
         public CorsSettings Cors { get; set; } = new CorsSettings();
         [Optional]
         public CspSettings Csp { get; set; } = new CspSettings();
+        public SecuritySettings Security { get; set; }
     }
 }

@@ -4,14 +4,6 @@ namespace WebAuth.Models
 {
     public class LoginViewModel : ViewModel
     {
-        public LoginViewModel() {}
-
-        public LoginViewModel(string returnUrl, string referer)
-        {
-            ReturnUrl = returnUrl;
-            Referer = referer;
-        }
-
         [Required(ErrorMessage = "E-mail is required and can't be empty")]
         [DataType(DataType.EmailAddress)]
         public string Username { get; set; }
@@ -23,6 +15,7 @@ namespace WebAuth.Models
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; }
         public string Referer { get; set; }
+        public string RecaptchaKey { get; set; }
         public bool IsLogin { get; set; }
         public string Cid { get; set; }
     }
