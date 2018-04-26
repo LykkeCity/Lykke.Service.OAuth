@@ -70,7 +70,8 @@ namespace WebAuth.Controllers
                 {
                     ReturnUrl = returnUrl,
                     Referer = HttpContext.GetReferer() ?? Request.GetUri().ToString(),
-                    RecaptchaKey = _securitySettings.RecaptchaKey
+                    LoginRecaptchaKey = _securitySettings.RecaptchaKey,
+                    RegisterRecaptchaKey = _securitySettings.RecaptchaKey
                 };
                 
                 return View(model);
@@ -86,13 +87,16 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Signin(LoginViewModel model)
         {
-            if (model.IsLogin)
+            model.LoginRecaptchaKey = _securitySettings.RecaptchaKey;
+            model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
+            
+            if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
                 if (!model.Username.IsValidEmailAndRowKey())
                     ModelState.AddModelError(nameof(model.Username), "Please enter a valid email address");
                 
                 if (!await _recaptchaService.Validate())
-                    ModelState.AddModelError("", "Captcha is not validated"); 
+                    ModelState.AddModelError(nameof(model.LoginRecaptchaKey), "Captcha is not validated"); 
 
                 if (!ModelState.IsValid)
                     return View("Login", model);
@@ -138,6 +142,12 @@ namespace WebAuth.Controllers
             if (!model.Email.IsValidEmailAndRowKey())
             {
                 ModelState.AddModelError(nameof(model.Email), "Please enter a valid email address");
+                return View("Login", model);
+            }
+
+            if (!await _recaptchaService.Validate())
+            {
+                ModelState.AddModelError(nameof(model.RegisterRecaptchaKey), "Captcha is not validated");
                 return View("Login", model);
             }
 
