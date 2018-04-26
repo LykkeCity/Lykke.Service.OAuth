@@ -3,21 +3,24 @@
 
     angular.module('registerApp').controller('registrationController', registrationController);
 
-    registrationController.$inject = ['registerService'];
+    registrationController.$inject = ['registerService', 'vcRecaptchaService'];
 
-    function registrationController(registerService) {
+    function registrationController(registerService, vcRecaptchaService) {
         var vm = this;
 
         vm.data = {
             step: 1,
             loading: false,
+            showResendBlock: false,
+            captchaId: 0,
             model: {},
             step1Form: {
                 code: null,
                 result: true,
                 isEmailTaken: false,
                 resendingCode: false,
-                resendCount: 0
+                resendCount: 0,
+                captchaResponse : null
             },
             step2Form: {
                 showPassword: false,
@@ -33,7 +36,10 @@
             resendCode: resendCode,
             isStep2FormSubmitDisabled: isStep2FormSubmitDisabled,
             setPassword: setPassword,
-            register: register
+            register: register,
+            createCaptcha: createCaptcha,
+            successCaptcha: successCaptcha,
+            errorCaptcha: errorCaptcha
         };
 
         vm.init = function(key, email, resendCount) {
@@ -64,14 +70,20 @@
         }
 
         function resendCode() {
-            if (vm.data.step1Form.resendingCode || vm.data.step1Form.resendCount >= 2)
+            if (vm.data.step1Form.resendingCode || vm.data.step1Form.resendCount > 2)
                 return;
 
             vm.data.step1Form.resendingCode = true;
-            registerService.resendCode(vm.data.key).then(function (result) {
-                $.notify({ title: 'Code successfully sent!' }, { className: 'success' });
+            registerService.resendCode(vm.data.key, vm.data.step1Form.captchaResponse).then(function (result) {
+                if (result) {
+                    $.notify({ title: 'Code successfully sent!' }, { className: 'success' });
+                    vm.data.step1Form.resendCount++;
+                    vm.data.step1Form.captchaResponse = null;
+                    vm.data.showResendBlock = false;
+                }
+                
                 vm.data.step1Form.resendingCode = false;
-                vm.data.step1Form.resendCount++;
+                vcRecaptchaService.reload(vm.data.captchaId);
             });
         }
 
@@ -100,7 +112,18 @@
                     window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
                 }
             });
-
+        }
+        
+        function createCaptcha(id){
+            vm.data.captchaId = id;
+        }
+        
+        function successCaptcha(token){
+            vm.data.step1Form.captchaResponse = token;
+        }
+        
+        function errorCaptcha(){
+            vm.data.step1Form.captchaResponse = null;
         }
 
         function goToLogin() {

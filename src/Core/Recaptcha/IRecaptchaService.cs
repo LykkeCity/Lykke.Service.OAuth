@@ -4,6 +4,6 @@ namespace Core.Recaptcha
 {
     public interface IRecaptchaService
     {
-        Task<bool> Validate();
+        Task<bool> Validate(string response = null);
     }
 }

@@ -171,6 +171,8 @@ namespace WebAuth.Controllers
             if (code == null)
                 return RedirectToAction("Signin");
 
+            ViewBag.RecaptchaKey = _securitySettings.RecaptchaKey;
+
             return View(code);
         }
 
@@ -200,19 +202,24 @@ namespace WebAuth.Controllers
 
         [HttpPost("~/signup/resendCode")]  
         [ValidateAntiForgeryToken]
-        public async Task ResendCode([FromBody]string key)
+        public async Task<bool> ResendCode([FromBody] ResendCodeRequest request)
         {
-            if (!key.IsValidPartitionOrRowKey())
-                return;
+            if (!request.Key.IsValidPartitionOrRowKey())
+                return false;
 
-            var code = await _verificationCodesRepository.GetCodeAsync(key);
+            if (string.IsNullOrEmpty(request.Captcha) || !await _recaptchaService.Validate(request.Captcha))
+                return false;
 
-            if (code != null && code.ResendCount < 2)
-            {
-                code = await _verificationCodesRepository.UpdateCodeAsync(key);
-                var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
-                await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
-            }
+            var code = await _verificationCodesRepository.GetCodeAsync(request.Key);
+
+            if (code == null || code.ResendCount > 2) 
+                return false;
+            
+            code = await _verificationCodesRepository.UpdateCodeAsync(request.Key);
+            var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
+            await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
+           
+            return true;
         }
         
         [HttpPost("~/signup/checkPassword")]  
