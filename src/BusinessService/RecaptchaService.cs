@@ -23,9 +23,9 @@ namespace BusinessService
             _log = log.CreateComponentScope(nameof(RecaptchaService));
         }
         
-        public async Task<bool> Validate()
+        public async Task<bool> Validate(string response = null)
         {
-            var resp = (string)_httpContextAccessor.HttpContext.Request.Form["g-recaptcha-response"];
+            var resp = response ?? (string)_httpContextAccessor.HttpContext.Request.Form["g-recaptcha-response"];
 
             if (resp == null)
                 return false;
@@ -38,9 +38,6 @@ namespace BusinessService
                         secret = _secret,
                         response = resp
                     }).ReceiveJson<RecaptchaResponse>();
-
-                if (!result.Success)
-                    _log.WriteWarning(nameof(Validate), result, "Captcha validation errors");
 
                 return result.Success;
             }
