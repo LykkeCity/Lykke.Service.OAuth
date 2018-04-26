@@ -15,8 +15,9 @@ namespace WebAuth.Models
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; }
         public string Referer { get; set; }
-        public string RecaptchaKey { get; set; }
-        public bool IsLogin { get; set; }
+        public string LoginRecaptchaKey { get; set; }
+        public string RegisterRecaptchaKey { get; set; }
+        public bool? IsLogin { get; set; }
         public string Cid { get; set; }
     }
 }
