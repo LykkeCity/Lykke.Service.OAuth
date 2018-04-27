@@ -81,7 +81,7 @@
                     vm.data.step1Form.captchaResponse = null;
                     vm.data.showResendBlock = false;
                 }
-                
+
                 vm.data.step1Form.resendingCode = false;
                 vcRecaptchaService.reload(vm.data.captchaId);
             });
@@ -117,11 +117,11 @@
         function createCaptcha(id){
             vm.data.captchaId = id;
         }
-        
+
         function successCaptcha(token){
             vm.data.step1Form.captchaResponse = token;
         }
-        
+
         function errorCaptcha(){
             vm.data.step1Form.captchaResponse = null;
         }

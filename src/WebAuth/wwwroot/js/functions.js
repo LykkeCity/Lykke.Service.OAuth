@@ -144,7 +144,7 @@ function initSmoothScroll() {
                 return false;
             }
         }
-        
+
         return true;
     });
 }
