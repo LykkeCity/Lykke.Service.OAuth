@@ -1,7 +1,7 @@
 ﻿(function () {
     'use strict';
 
-    var app = angular.module('profileApp', ['ngFileUpload', 'ngImgCrop']).run(function ($http) {
+    angular.module('profileApp', ['ngFileUpload', 'ngImgCrop']).run(function ($http) {
         $http.defaults.headers.common['RequestVerificationToken'] =
             angular.element('input[name="__RequestVerificationToken"]').attr('value');
 

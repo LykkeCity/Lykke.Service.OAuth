@@ -79,8 +79,6 @@ function initHeader() {
         $('.header_nav .nav_list__item > a').on('click', function(e) {
             e.stopPropagation();
 
-            var href = $(this).attr('href');
-
             if (!$(this).parent('.nav_list__item').hasClass('nav_list__item--selected')) {
                 $('.header_nav').addClass('header_nav--selected');
                 $('.header_nav .nav_list__item').removeClass('nav_list__item--selected');
@@ -89,6 +87,8 @@ function initHeader() {
             } else {
                 return true;
             }
+
+            return false;
         });
 
     } else {
@@ -133,7 +133,7 @@ function hideSubMenu() {
 
 function initSmoothScroll() {
     $('.smooth_scroll').click(function() {
-        if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+        if (location.pathname.replace(/^\//,'') === this.pathname.replace(/^\//,'') && location.hostname === this.hostname) {
             var target = $(this.hash),
                 offset = $(this).data('scroll-offset') ? $(this).data('scroll-offset') : 0;
             target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
@@ -144,6 +144,8 @@ function initSmoothScroll() {
                 return false;
             }
         }
+        
+        return true;
     });
 }
 
@@ -234,9 +236,8 @@ function initFileupload() {
         }, 1);
 
         $field.change(function() {
-            var files = [], fileArr, filename;
-            filename = $(this).val().split('\\').pop();
-            $notice.text( filename ).attr('title', filename)
+            var filename = $(this).val().split('\\').pop();
+            $notice.text(filename).attr('title', filename);
         });
     })
 }
