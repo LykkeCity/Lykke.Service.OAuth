@@ -21,8 +21,8 @@
     </div>
     <div class="form-group @(Model.IsLogin.HasValue ? (Model.IsLogin.Value ? null : "hidden") : "hidden")" id="login-recaptcha">
         @Html.HiddenFor(m => m.LoginRecaptchaKey)
-        <div class="g-recaptcha" data-sitekey="@Model.LoginRecaptchaKey"></div>
-        <span class="label_error" asp-validation-for="LoginRecaptchaKey"></span>
+        <div class="g-recaptcha" data-sitekey="@Model.LoginRecaptchaKey" data-callback="loginCaptchaSuccess"></div>
+        <span id="login-recaptcha-error" class="label_error" asp-validation-for="LoginRecaptchaKey"></span>
     </div>
     <div asp-validation-summary="ModelOnly" class="label_error"></div>
     <div class="submit-group">
@@ -51,8 +51,8 @@
     </div>
     <div class="form-group @(Model.IsLogin.HasValue ? (Model.IsLogin.Value ? "hidden" : null) : "hidden")" id="reg-recaptcha">
         @Html.HiddenFor(m => m.RegisterRecaptchaKey)
-        <div class="g-recaptcha" data-sitekey="@Model.RegisterRecaptchaKey"></div>
-        <span class="label_error" asp-validation-for="RegisterRecaptchaKey"></span>
+        <div class="g-recaptcha" data-sitekey="@Model.RegisterRecaptchaKey" data-callback="regCaptchaSuccess"></div>
+        <span id="reg-recaptcha-error" class="label_error" asp-validation-for="RegisterRecaptchaKey"></span>
     </div>
     <div class="submit-group">
         <button class="btn btn--primary btn-block" onclick="getGaCid()" type="submit">Sign up</button>
@@ -104,6 +104,14 @@
             
             $('#login-recaptcha').addClass('hidden');
             $('#reg-recaptcha').removeClass('hidden');
+        }
+        
+        function loginCaptchaSuccess() {
+            $('#login-recaptcha-error').html('');
+        }
+        
+        function regCaptchaSuccess() {
+            $('#reg-recaptcha-error').html('');
         }
     </script>
 }
