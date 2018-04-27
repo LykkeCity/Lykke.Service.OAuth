@@ -96,7 +96,7 @@ namespace WebAuth.Controllers
                     ModelState.AddModelError(nameof(model.Username), "Please enter a valid email address");
                 
                 if (!await _recaptchaService.Validate())
-                    ModelState.AddModelError(nameof(model.LoginRecaptchaKey), "Captcha is not validated"); 
+                    ModelState.AddModelError(nameof(model.LoginRecaptchaKey), "Captcha validation failed"); 
 
                 if (!ModelState.IsValid)
                     return View("Login", model);
@@ -147,7 +147,7 @@ namespace WebAuth.Controllers
 
             if (!await _recaptchaService.Validate())
             {
-                ModelState.AddModelError(nameof(model.RegisterRecaptchaKey), "Captcha is not validated");
+                ModelState.AddModelError(nameof(model.RegisterRecaptchaKey), "Captcha validation failed");
                 return View("Login", model);
             }
 

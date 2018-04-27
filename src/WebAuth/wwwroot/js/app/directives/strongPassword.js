@@ -10,7 +10,7 @@ app.directive('strongPassword', ['$q', 'registerService', function($q, registerS
                 }
 
                 var def = $q.defer();
-                
+
                 registerService.checkPassword(modelValue).then(function (result) {
                     if (result)
                         def.resolve();
