@@ -15,11 +15,23 @@
                     <span class="label_error" data-ng-show="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken"
                           data-ng-bind="'Email '+vm.data.step1Form.email+ ' is already in use. Your verification code is no longer valid. Try with another email.'"></span>
                 </div>
-                <button type="button" class="btn btn--flat" data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken" data-ng-click="vm.handlers.resendCode()"
-                        data-ng-disabled="vm.data.step1Form.resendCount >= 2"
-                        data-ng-bind="vm.data.step1Form.resendCount === 0 ? 'Resend the code' : 'Resend the code again'"></button>
-                <span class="btn btn--flat btn_loading btn_loading-standalone" data-ng-show="vm.data.step1Form.resendingCode"></span>
+                <button class="btn btn--flat" type="button" data-ng-click="vm.data.showResendBlock = !vm.data.showResendBlock"
+                        data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken">Resend the code</button>
             </div>
+            
+            <div data-ng-show="vm.data.showResendBlock">
+                <div class="form-group" data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.resendCount > 2">
+                    <div class="g-recaptcha" vc-recaptcha key="'@ViewBag.RecaptchaKey'" on-success="vm.handlers.successCaptcha(response)" on-expire="vm.handlers.errorCaptcha()" required="false"></div>
+                    <div class="text-center" style="margin-top: 10px;">
+                        <button type="button" class="btn btn--primary btn-sm" data-ng-disabled="!vm.data.step1Form.captchaResponse || vm.data.step1Form.resendCount > 2"
+                                data-ng-class="{'btn_loading': vm.data.step1Form.resendingCode}"
+                                data-ng-bind="vm.data.step1Form.resendCount === 0 ? 'Send' : 'Send again'"
+                                data-ng-click="vm.handlers.resendCode()"></button>
+                    </div>
+                </div>
+                <div data-ng-show="vm.data.step1Form.resendCount > 2">Max resend count reached</div>
+            </div>
+            
             <div class="submit-group">
                 <button class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" type="submit"
                         data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken"
@@ -95,6 +107,7 @@
 {
     <environment names="Development">
         <script src="/js/vendor/angular.min.js"></script>
+        <script src="/js/vendor/angular-recaptcha.min.js"></script>
         <script src="/js/app/registerModule.js"></script>
         <script src="/js/app/directives/strongPassword.js"></script>
         <script src="/js/app/controllers/registrationController.js"></script>

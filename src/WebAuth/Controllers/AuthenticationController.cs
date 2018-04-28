@@ -9,6 +9,7 @@ using Common.PasswordTools;
 using Core;
 using Core.Email;
 using Core.Extensions;
+using Core.Recaptcha;
 using Lykke.Common.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
@@ -21,6 +22,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
+using WebAuth.Settings.ServiceSettings;
 
 namespace WebAuth.Controllers
 {
@@ -32,6 +34,8 @@ namespace WebAuth.Controllers
         private readonly ProfileActionHandler _profileActionHandler;
         private readonly IUserManager _userManager;
         private readonly IClientAccountClient _clientAccountClient;
+        private readonly IRecaptchaService _recaptchaService;
+        private readonly SecuritySettings _securitySettings;
         private readonly ILog _log;
 
         public AuthenticationController(
@@ -41,6 +45,8 @@ namespace WebAuth.Controllers
             ProfileActionHandler profileActionHandler,
             IUserManager userManager,
             IClientAccountClient clientAccountClient,
+            IRecaptchaService recaptchaService,
+            SecuritySettings securitySettings,
             ILog log)
         {
             _registrationClient = registrationClient;
@@ -49,6 +55,8 @@ namespace WebAuth.Controllers
             _profileActionHandler = profileActionHandler;
             _userManager = userManager;
             _clientAccountClient = clientAccountClient;
+            _recaptchaService = recaptchaService;
+            _securitySettings = securitySettings;
             _log = log;
         }
 
@@ -58,8 +66,15 @@ namespace WebAuth.Controllers
         {
             try
             {
-                string referer = HttpContext.GetReferer() ?? Request.GetUri().ToString();
-                return View("Login", new LoginViewModel(returnUrl, referer));
+                var model = new LoginViewModel
+                {
+                    ReturnUrl = returnUrl,
+                    Referer = HttpContext.GetReferer() ?? Request.GetUri().ToString(),
+                    LoginRecaptchaKey = _securitySettings.RecaptchaKey,
+                    RegisterRecaptchaKey = _securitySettings.RecaptchaKey
+                };
+                
+                return View(model);
             }
             catch (Exception ex)
             {
@@ -72,10 +87,16 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Signin(LoginViewModel model)
         {
-            if (model.IsLogin)
+            model.LoginRecaptchaKey = _securitySettings.RecaptchaKey;
+            model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
+            
+            if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
                 if (!model.Username.IsValidEmailAndRowKey())
                     ModelState.AddModelError(nameof(model.Username), "Please enter a valid email address");
+                
+                if (!await _recaptchaService.Validate())
+                    ModelState.AddModelError(nameof(model.LoginRecaptchaKey), "Captcha validation failed"); 
 
                 if (!ModelState.IsValid)
                     return View("Login", model);
@@ -124,6 +145,12 @@ namespace WebAuth.Controllers
                 return View("Login", model);
             }
 
+            if (!await _recaptchaService.Validate())
+            {
+                ModelState.AddModelError(nameof(model.RegisterRecaptchaKey), "Captcha validation failed");
+                return View("Login", model);
+            }
+
             var traffic = Request.Cookies["sbjs_current"];
             
             var code = await _verificationCodesRepository.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
@@ -143,6 +170,8 @@ namespace WebAuth.Controllers
 
             if (code == null)
                 return RedirectToAction("Signin");
+
+            ViewBag.RecaptchaKey = _securitySettings.RecaptchaKey;
 
             return View(code);
         }
@@ -173,19 +202,24 @@ namespace WebAuth.Controllers
 
         [HttpPost("~/signup/resendCode")]  
         [ValidateAntiForgeryToken]
-        public async Task ResendCode([FromBody]string key)
+        public async Task<bool> ResendCode([FromBody] ResendCodeRequest request)
         {
-            if (!key.IsValidPartitionOrRowKey())
-                return;
+            if (!request.Key.IsValidPartitionOrRowKey())
+                return false;
 
-            var code = await _verificationCodesRepository.GetCodeAsync(key);
+            if (string.IsNullOrEmpty(request.Captcha) || !await _recaptchaService.Validate(request.Captcha))
+                return false;
 
-            if (code != null && code.ResendCount < 2)
-            {
-                code = await _verificationCodesRepository.UpdateCodeAsync(key);
-                var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
-                await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
-            }
+            var code = await _verificationCodesRepository.GetCodeAsync(request.Key);
+
+            if (code == null || code.ResendCount > 2) 
+                return false;
+            
+            code = await _verificationCodesRepository.UpdateCodeAsync(request.Key);
+            var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
+            await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
+           
+            return true;
         }
         
         [HttpPost("~/signup/checkPassword")]  

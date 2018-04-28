@@ -41,7 +41,7 @@
         })(window, document, 'script', 'dataLayer', 'GTM-K5Q43JZ');
     </script>
     <!-- End Google Tag Manager -->
-
+    @RenderSection("HeadScripts", false)
 </head>
 <body>
     @await Component.InvokeAsync("GaUserId")
