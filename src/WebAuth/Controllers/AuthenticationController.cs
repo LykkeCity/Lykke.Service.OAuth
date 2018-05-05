@@ -60,9 +60,9 @@ namespace WebAuth.Controllers
             _log = log;
         }
 
-        [HttpGet("~/signin")]
+        [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
-        public async Task<ActionResult> Login(string returnUrl = null)
+        public async Task<ActionResult> Login(string returnUrl = null, string platform = null)
         {
             try
             {
@@ -73,8 +73,10 @@ namespace WebAuth.Controllers
                     LoginRecaptchaKey = _securitySettings.RecaptchaKey,
                     RegisterRecaptchaKey = _securitySettings.RecaptchaKey
                 };
-                
-                return View(model);
+
+                var viewName = PlatformToViewName(platform);
+
+                return View(viewName, model);
             }
             catch (Exception ex)
             {
@@ -83,23 +85,44 @@ namespace WebAuth.Controllers
             }
         }
 
-        [HttpPost("~/signin")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Signin(LoginViewModel model)
+        private static string PlatformToViewName(string platform)
         {
+            switch (platform?.ToLower())
+            {
+                case "android":
+                    return "Login.android";
+                case "ios":
+                    return "Login.ios";
+                default:
+                    return "Login";
+            }
+        }
+
+        [HttpPost("~/signin/{platform?}")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Signin(LoginViewModel model, string platform = null)
+        {
+
+
+            var viewName = PlatformToViewName(platform);
+
+            if (!ModelState.IsValid)
+                return View(viewName, model);
+
             model.LoginRecaptchaKey = _securitySettings.RecaptchaKey;
             model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
-            
+
+
             if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
                 if (!model.Username.IsValidEmailAndRowKey())
                     ModelState.AddModelError(nameof(model.Username), "Please enter a valid email address");
-                
+
                 if (!await _recaptchaService.Validate())
-                    ModelState.AddModelError(nameof(model.LoginRecaptchaKey), "Captcha validation failed"); 
+                    ModelState.AddModelError(nameof(model.LoginRecaptchaKey), "Captcha validation failed");
 
                 if (!ModelState.IsValid)
-                    return View("Login", model);
+                    return View(viewName, model);
 
                 AuthResponse authResult = await _registrationClient.AuthorizeAsync(new AuthModel
                 {
@@ -112,13 +135,13 @@ namespace WebAuth.Controllers
                 if (authResult == null)
                 {
                     ModelState.AddModelError("", "Technical problems during authorization.");
-                    return View("Login", model);
+                    return View(viewName, model);
                 }
 
                 if (authResult.Status == AuthenticationStatus.Error)
                 {
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
-                    return View("Login", model);
+                    return View(viewName, model);
                 }
 
                 var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id,
@@ -135,29 +158,29 @@ namespace WebAuth.Controllers
             if (string.IsNullOrEmpty(model.Email))
             {
                 ModelState.AddModelError(nameof(model.Email), $"{nameof(model.Email)} is required and can't be empty");
-                
-                return View("Login", model);
+
+                return View(viewName, model);
             }
 
             if (!model.Email.IsValidEmailAndRowKey())
             {
                 ModelState.AddModelError(nameof(model.Email), "Please enter a valid email address");
-                return View("Login", model);
+                return View(viewName, model);
             }
 
             if (!await _recaptchaService.Validate())
             {
                 ModelState.AddModelError(nameof(model.RegisterRecaptchaKey), "Captcha validation failed");
-                return View("Login", model);
+                return View(viewName, model);
             }
 
             var traffic = Request.Cookies["sbjs_current"];
-            
+
             var code = await _verificationCodesRepository.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
-            var url = Url.Action("Signup", "Authentication", new {key = code.Key}, Request.Scheme);
+            var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(model.Email, code.Code, url);
 
-            return RedirectToAction("Signup", new {key = code.Key});
+            return RedirectToAction("Signup", new { key = code.Key });
         }
 
         [HttpGet("~/signup/{key}")]
@@ -176,7 +199,7 @@ namespace WebAuth.Controllers
             return View(code);
         }
 
-        [HttpPost("~/signup/verifyEmail")]  
+        [HttpPost("~/signup/verifyEmail")]
         [ValidateAntiForgeryToken]
         public async Task<VerificationCodeResult> VerifyEmail([FromBody] VerificationCodeRequest request)
         {
@@ -200,7 +223,7 @@ namespace WebAuth.Controllers
             return result;
         }
 
-        [HttpPost("~/signup/resendCode")]  
+        [HttpPost("~/signup/resendCode")]
         [ValidateAntiForgeryToken]
         public async Task<bool> ResendCode([FromBody] ResendCodeRequest request)
         {
@@ -212,17 +235,17 @@ namespace WebAuth.Controllers
 
             var code = await _verificationCodesRepository.GetCodeAsync(request.Key);
 
-            if (code == null || code.ResendCount > 2) 
+            if (code == null || code.ResendCount > 2)
                 return false;
-            
+
             code = await _verificationCodesRepository.UpdateCodeAsync(request.Key);
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
-           
+
             return true;
         }
-        
-        [HttpPost("~/signup/checkPassword")]  
+
+        [HttpPost("~/signup/checkPassword")]
         [ValidateAntiForgeryToken]
         public bool CheckPassword([FromBody]string passowrd)
         {
@@ -235,62 +258,7 @@ namespace WebAuth.Controllers
         {
             var regResult = new RegistrationResultModel();
 
-            if (ModelState.IsValid)
-            {
-                if (!model.Email.IsValidEmailAndRowKey())
-                {
-                    regResult.Errors.Add("Invalid email address");
-                    return regResult;
-                }
-
-                string userIp = HttpContext.GetIp();
-                string referer = null;
-                string userAgent = HttpContext.GetUserAgent();
-
-                if (!string.IsNullOrEmpty(model.Referer))
-                {
-                    try
-                    {
-                        referer = new Uri(model.Referer).Host;
-                    }
-                    catch
-                    {
-                        regResult.Errors.Add("Invalid referer url");
-                        return regResult;
-                    }
-                }
-                
-                var code = await _verificationCodesRepository.GetCodeAsync(model.Key);
-                    
-                RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
-                {
-                    Email = model.Email,
-                    Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
-                    Ip = userIp,
-                    Changer = RecordChanger.Client,
-                    UserAgent = userAgent,
-                    Referer = referer,
-                    CreatedAt = DateTime.UtcNow,
-                    Cid = code?.Cid,
-                    Traffic = code?.Traffic
-                });
-
-                regResult.RegistrationResponse = result;
-
-                if (regResult.RegistrationResponse == null)
-                {
-                    regResult.Errors.Add("Technical problems during registration.");
-                    return regResult;
-                }
-
-                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, true);
-
-                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
-
-                await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
-                await _verificationCodesRepository.DeleteCodesAsync(model.Email);
-            }
-            else
+            if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
                     .Where(item => item.ValidationState == ModelValidationState.Invalid)
@@ -300,7 +268,62 @@ namespace WebAuth.Controllers
                 {
                     regResult.Errors.Add(error.ErrorMessage);
                 }
+
+                return regResult;
             }
+
+            if (!model.Email.IsValidEmailAndRowKey())
+            {
+                regResult.Errors.Add("Invalid email address");
+                return regResult;
+            }
+
+            string userIp = HttpContext.GetIp();
+            string referer = null;
+            string userAgent = HttpContext.GetUserAgent();
+
+            if (!string.IsNullOrEmpty(model.Referer))
+            {
+                try
+                {
+                    referer = new Uri(model.Referer).Host;
+                }
+                catch
+                {
+                    regResult.Errors.Add("Invalid referer url");
+                    return regResult;
+                }
+            }
+
+            var code = await _verificationCodesRepository.GetCodeAsync(model.Key);
+
+            RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
+            {
+                Email = model.Email,
+                Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
+                Ip = userIp,
+                Changer = RecordChanger.Client,
+                UserAgent = userAgent,
+                Referer = referer,
+                CreatedAt = DateTime.UtcNow,
+                Cid = code?.Cid,
+                Traffic = code?.Traffic
+            });
+
+            regResult.RegistrationResponse = result;
+
+            if (regResult.RegistrationResponse == null)
+            {
+                regResult.Errors.Add("Technical problems during registration.");
+                return regResult;
+            }
+
+            var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, true);
+
+            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+
+            await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
+            await _verificationCodesRepository.DeleteCodesAsync(model.Email);
 
             return regResult;
         }
