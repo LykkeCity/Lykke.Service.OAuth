@@ -85,9 +85,9 @@ namespace WebAuth.Controllers
                 var kycStatus = await _kycProfileService.GetStatusAsync(client.Id, KycProfile.Default);
                 return Json(kycStatus.Name);
             }
-            catch(Exception)
+            catch (Exception)
             {
-                return StatusCode((int) HttpStatusCode.InternalServerError, "Can't get KYC status");
+                return StatusCode((int)HttpStatusCode.InternalServerError, "Can't get KYC status");
             }
         }
 
@@ -153,6 +153,21 @@ namespace WebAuth.Controllers
             if (app == null)
                 return BadRequest("Application Id Incorrect!");
 
+
+            return await GetToken();
+        }
+
+        [HttpGet("~/getlykkewallettokenmobile")]
+        [Authorize]
+        public Task<IActionResult> GetLykkewalletTokenMobile()
+        {
+            // Mobile client process authentication on AuthenticationController and get correct cookies.
+            // That should be enough to pass authorization validation here.
+            return GetToken();
+        }
+
+        private async Task<IActionResult> GetToken()
+        {
             var clientId = User.Identity.GetClientId();
 
             if (clientId == null)
@@ -165,7 +180,7 @@ namespace WebAuth.Controllers
 
             try
             {
-                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", application: app.Type);
+                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server");
                 return Json(new { Token = authResult.SessionToken, authResult.AuthId });
             }
             catch (Exception ex)
@@ -217,7 +232,7 @@ namespace WebAuth.Controllers
 
             return client;
         }
-        
+
         private async Task<ClientModel> GetClientByIdAsync(string clientId)
         {
             ClientModel client = null;
