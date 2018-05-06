@@ -106,8 +106,10 @@ namespace WebAuth.Controllers
 
             var viewName = PlatformToViewName(platform);
 
-            if (!ModelState.IsValid)
-                return View(viewName, model);
+            if (model == null)
+            {
+                return BadRequest();
+            }
 
             model.LoginRecaptchaKey = _securitySettings.RecaptchaKey;
             model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
