@@ -102,10 +102,6 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Signin(LoginViewModel model, string platform = null)
         {
-
-
-            var viewName = PlatformToViewName(platform);
-
             if (model == null)
             {
                 return BadRequest();
@@ -114,6 +110,7 @@ namespace WebAuth.Controllers
             model.LoginRecaptchaKey = _securitySettings.RecaptchaKey;
             model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
 
+            var viewName = PlatformToViewName(platform);
 
             if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
