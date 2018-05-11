@@ -1,10 +1,8 @@
 ﻿using AzureDataAccess.Application;
 using AzureDataAccess.Bitcoin;
-using AzureDataAccess.Email;
 using AzureStorage.Tables;
 using Common.Log;
 using Core.Bitcoin;
-using Core.Email;
 using Lykke.SettingsReader;
 
 namespace AzureDataAccess
@@ -21,12 +19,6 @@ namespace AzureDataAccess
         {
             return new WalletCredentialsRepository(AzureTableStorage<WalletCredentialsEntity>.Create(connecionString,
                 "WalletCredentials", log));
-        }
-        
-        public static IVerificationCodesRepository CreateVerificationCodesRepository(IReloadingManager<string> connecionString, ILog log)
-        {
-            return new VerificationCodesRepository(
-                AzureTableStorage<VerificationCodeEntity>.Create(connecionString, "VerificationCodes", log));
         }
     }
 }

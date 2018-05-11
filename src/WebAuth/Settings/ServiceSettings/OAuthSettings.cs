@@ -13,5 +13,6 @@ namespace WebAuth.Settings.ServiceSettings
         [Optional]
         public CspSettings Csp { get; set; } = new CspSettings();
         public SecuritySettings Security { get; set; }
+        public CacheSettings Cache { get; set; }
     }
 }
