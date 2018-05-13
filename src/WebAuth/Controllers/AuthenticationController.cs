@@ -61,9 +61,9 @@ namespace WebAuth.Controllers
             _log = log;
         }
 
-        [HttpGet("~/signin")]
+        [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
-        public async Task<ActionResult> Login(string returnUrl = null)
+        public async Task<ActionResult> Login(string returnUrl = null, string platform = null)
         {
             try
             {
@@ -75,7 +75,9 @@ namespace WebAuth.Controllers
                     RegisterRecaptchaKey = _securitySettings.RecaptchaKey
                 };
                 
-                return View(model);
+                var viewName = PlatformToViewName(platform);
+
+                return View(viewName, model);
             }
             catch (Exception ex)
             {
@@ -84,13 +86,33 @@ namespace WebAuth.Controllers
             }
         }
 
-        [HttpPost("~/signin")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Signin(LoginViewModel model)
+        private static string PlatformToViewName(string platform)
         {
+            switch (platform?.ToLower())
+            {
+                case "android":
+                    return "Login.android";
+                case "ios":
+                    return "Login.ios";
+                default:
+                    return "Login";
+            }
+        }
+
+        [HttpPost("~/signin/{platform?}")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Signin(LoginViewModel model, string platform = null)
+        {
+            if (model == null)
+            {
+                return BadRequest();
+            }
+
             model.LoginRecaptchaKey = _securitySettings.RecaptchaKey;
             model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
             
+            var viewName = PlatformToViewName(platform);
+
             if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
                 if (!model.Username.IsValidEmailAndRowKey())
@@ -100,7 +122,7 @@ namespace WebAuth.Controllers
                     ModelState.AddModelError(nameof(model.LoginRecaptchaKey), "Captcha validation failed"); 
 
                 if (!ModelState.IsValid)
-                    return View("Login", model);
+                    return View(viewName, model);
 
                 AuthResponse authResult = await _registrationClient.AuthorizeAsync(new AuthModel
                 {
@@ -113,13 +135,13 @@ namespace WebAuth.Controllers
                 if (authResult == null)
                 {
                     ModelState.AddModelError("", "Technical problems during authorization.");
-                    return View("Login", model);
+                    return View(viewName, model);
                 }
 
                 if (authResult.Status == AuthenticationStatus.Error)
                 {
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
-                    return View("Login", model);
+                    return View(viewName, model);
                 }
 
                 var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id,
@@ -137,19 +159,19 @@ namespace WebAuth.Controllers
             {
                 ModelState.AddModelError(nameof(model.Email), $"{nameof(model.Email)} is required and can't be empty");
                 
-                return View("Login", model);
+                return View(viewName, model);
             }
 
             if (!model.Email.IsValidEmailAndRowKey())
             {
                 ModelState.AddModelError(nameof(model.Email), "Please enter a valid email address");
-                return View("Login", model);
+                return View(viewName, model);
             }
 
             if (!await _recaptchaService.Validate())
             {
                 ModelState.AddModelError(nameof(model.RegisterRecaptchaKey), "Captcha validation failed");
-                return View("Login", model);
+                return View(viewName, model);
             }
 
             var traffic = Request.Cookies["sbjs_current"];
