@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AzureStorage;
 using Core.Application;
 using Microsoft.WindowsAzure.Storage.Table;
@@ -35,12 +33,13 @@ namespace AzureDataAccess.Application
             _applicationTablestorage = applicationTablestorage;
         }
 
-        public async Task<IApplication> GetByIdAsync(string id)
+        public async Task<Core.Application.Application> GetByIdAsync(string id)
         {
             var partitionKey = ApplicationEntity.GeneratePartitionKey();
             var rowKey = ApplicationEntity.GenerateRowKey(id);
 
-            return await _applicationTablestorage.GetDataAsync(partitionKey, rowKey);
+            var application = await _applicationTablestorage.GetDataAsync(partitionKey, rowKey);
+            return Core.Application.Application.Create(application);
         }
     }
 }

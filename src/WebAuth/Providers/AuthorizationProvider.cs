@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -100,8 +101,9 @@ namespace WebAuth.Providers
                 return;
             }
 
-            if (!string.IsNullOrEmpty(context.RedirectUri) &&
-                !string.Equals(context.RedirectUri, application.RedirectUri, StringComparison.Ordinal))
+            var redirectUrl = application.Urls.FirstOrDefault(item => item.Equals(context.RedirectUri, StringComparison.Ordinal));
+            
+            if (!string.IsNullOrEmpty(context.RedirectUri) && redirectUrl == null)
             {
                 context.Reject(
                     OpenIdConnectConstants.Errors.InvalidClient,
@@ -110,7 +112,7 @@ namespace WebAuth.Providers
                 return;
             }
 
-            context.Validate(application.RedirectUri);
+            context.Validate(redirectUrl);
         }
 
         public override Task ValidateLogoutRequest(ValidateLogoutRequestContext context)

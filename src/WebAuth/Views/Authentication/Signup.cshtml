@@ -1,5 +1,5 @@
-﻿@model Core.Email.IVerificationCode
-<div data-ng-app="registerApp" data-ng-controller="registrationController as vm" data-ng-init="vm.init('@Model.Key', '@Model.Email', @Model.ResendCount)" class="ng-cloak">
+﻿@model Core.VerificationCodes.VerificationCode
+<div data-ng-app="registerApp" data-ng-controller="registrationController as vm" data-ng-init="vm.init('@Model.Key', @Model.ResendCount)" class="ng-cloak">
     @Html.AntiForgeryToken()
     <div data-ng-show="vm.data.step == 1">
         <span class="hint_accent">Step 1 of 3</span>
@@ -11,16 +11,17 @@
                     <input type="text" placeholder="Code" class="form-control" name="Code" data-ng-model="vm.data.step1Form.code" required>
                 </div>
                 <div>
-                    <span class="label_error" data-ng-show="!vm.data.step1Form.result">This code is incorrect. Please retype</span>
+                    <span class="label_error" data-ng-show="!vm.data.step1Form.result && !vm.data.step1Form.isCodeExpired">This code is incorrect. Please retype</span>
+                    <span class="label_error" data-ng-show="vm.data.step1Form.isCodeExpired">The code has been expired and no longer valid. Try to sign up again</span>
                     <span class="label_error" data-ng-show="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken"
                           data-ng-bind="'Email '+vm.data.step1Form.email+ ' is already in use. Your verification code is no longer valid. Try with another email.'"></span>
                 </div>
                 <button class="btn btn--flat" type="button" data-ng-click="vm.data.showResendBlock = !vm.data.showResendBlock"
-                        data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken">Resend the code</button>
+                        data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired">Resend the code</button>
             </div>
             
             <div data-ng-show="vm.data.showResendBlock">
-                <div class="form-group" data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.resendCount > 2">
+                <div class="form-group" data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.resendCount > 2 || vm.data.step1Form.isCodeExpired">
                     <div class="g-recaptcha" vc-recaptcha key="'@ViewBag.RecaptchaKey'" on-success="vm.handlers.successCaptcha(response)" on-expire="vm.handlers.errorCaptcha()" required="false"></div>
                     <div class="text-center" style="margin-top: 10px;">
                         <button type="button" class="btn btn--primary btn-sm" data-ng-disabled="!vm.data.step1Form.captchaResponse || vm.data.step1Form.resendCount > 2"
@@ -34,10 +35,10 @@
             
             <div class="submit-group">
                 <button class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" type="submit"
-                        data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken"
+                        data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired"
                         data-ng-disabled="!vm.step1Form.$valid || vm.data.loading"
                         data-ng-click="vm.handlers.verifyEmail()">Submit</button>
-                <button data-ng-show="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken" class="btn btn--primary btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
+                <button data-ng-show="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired" class="btn btn--primary btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
             </div>
         </form>
     </div>

@@ -93,8 +93,6 @@ namespace WebAuth
                     .AddDataAnnotationsLocalization()
                     .AddMvcOptions(o => { o.Filters.Add(typeof(UnhandledExceptionFilter)); });
 
-                services.AddDistributedMemoryCache();
-
                 services.AddAutoMapper();
 
                 services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(30); });
