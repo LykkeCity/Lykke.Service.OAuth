@@ -21,7 +21,9 @@ namespace Core.Application
         public string Secret { get; set; }
         public string Type { get; set; }
 
-        public string[] Urls => RedirectUri.Split(new []{',', ';'}, StringSplitOptions.RemoveEmptyEntries).Select(item => item.Trim()).ToArray();
+        public string[] Urls => string.IsNullOrEmpty(RedirectUri?.Trim()) 
+            ? Array.Empty<string>()
+            : RedirectUri.Split(new []{',', ';'}, StringSplitOptions.RemoveEmptyEntries).Select(item => item.Trim()).ToArray();
 
         public static Application Create(IApplication src)
         {
