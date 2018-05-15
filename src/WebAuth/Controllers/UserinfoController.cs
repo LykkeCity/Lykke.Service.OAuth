@@ -9,10 +9,6 @@ using Core.Application;
 using Core.Bitcoin;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
-using Lykke.Service.Kyc.Abstractions.Domain.Profile;
-using Lykke.Service.Kyc.Abstractions.Services;
-using Lykke.Service.PersonalData.Contract;
-using Lykke.Service.Session;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,22 +24,19 @@ namespace WebAuth.Controllers
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
         private readonly IClientAccountClient _clientAccountClient;
-        private readonly IPersonalDataService _personalDataService;
 
         public UserinfoController(
             ILog log,
             IApplicationRepository applicationRepository,
             IClientSessionsClient clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository,
-            IClientAccountClient clientAccountClient,
-            IPersonalDataService personalDataService)
+            IClientAccountClient clientAccountClient)
         {
             _log = log;
             _applicationRepository = applicationRepository;
             _clientSessionsClient = clientSessionsClient;
             _walletCredentialsRepository = walletCredentialsRepository;
             _clientAccountClient = clientAccountClient;
-            _personalDataService = personalDataService;
         }
 
         [HttpGet("~/connect/userinfo")]
