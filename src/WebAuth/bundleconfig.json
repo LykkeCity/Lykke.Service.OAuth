@@ -9,6 +9,18 @@
     ]
   },
   {
+    "outputFileName": "wwwroot/dist/android.min.css",
+    "inputFiles": [
+      "wwwroot/styles/android.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/dist/ios.min.css",
+    "inputFiles": [
+      "wwwroot/styles/ios.css"
+    ]
+  },
+  {
     "outputFileName": "wwwroot/dist/site.min.js",
     "inputFiles": [
       "wwwroot/js/vendor/jquery.min.js",

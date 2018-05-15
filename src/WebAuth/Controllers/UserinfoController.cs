@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.Threading.Tasks;
 using AspNet.Security.OAuth.Validation;
 using AspNet.Security.OpenIdConnect.Extensions;
@@ -10,9 +9,6 @@ using Core.Application;
 using Core.Bitcoin;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
-using Lykke.Service.Kyc.Abstractions.Domain.Profile;
-using Lykke.Service.Kyc.Abstractions.Services;
-using Lykke.Service.Session;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +21,6 @@ namespace WebAuth.Controllers
     {
         private readonly ILog _log;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly IKycProfileServiceV2 _kycProfileService;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
         private readonly IClientAccountClient _clientAccountClient;
@@ -33,14 +28,12 @@ namespace WebAuth.Controllers
         public UserinfoController(
             ILog log,
             IApplicationRepository applicationRepository,
-            IKycProfileServiceV2 kycProfileService,
             IClientSessionsClient clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository,
             IClientAccountClient clientAccountClient)
         {
             _log = log;
             _applicationRepository = applicationRepository;
-            _kycProfileService = kycProfileService;
             _clientSessionsClient = clientSessionsClient;
             _walletCredentialsRepository = walletCredentialsRepository;
             _clientAccountClient = clientAccountClient;
@@ -59,86 +52,6 @@ namespace WebAuth.Controllers
             return Json(userInfo);
         }
 
-        [HttpGet("~/getkycstatus")]
-        public async Task<IActionResult> GetKycStatus(string email)
-        {
-            if (!email.IsValidEmailAndRowKey())
-                return BadRequest("Invalid email");
-
-            var applicationId = HttpContext.GetApplicationId();
-
-            if (!applicationId.IsValidPartitionOrRowKey())
-                return BadRequest("Invalid applicationId");
-
-            var app = await _applicationRepository.GetByIdAsync(applicationId);
-
-            if (app == null)
-                return BadRequest("Application Id Incorrect!");
-
-            ClientAccountInformationModel client = await GetClientByEmailAsync(email);
-
-            if (client == null)
-                return NotFound("Client not found!");
-
-            try
-            {
-                var kycStatus = await _kycProfileService.GetStatusAsync(client.Id, KycProfile.Default);
-                return Json(kycStatus.Name);
-            }
-            catch(Exception)
-            {
-                return StatusCode((int) HttpStatusCode.InternalServerError, "Can't get KYC status");
-            }
-        }
-
-        [HttpGet("~/getidbyemail")]
-        public async Task<IActionResult> GetIdByEmail(string email)
-        {
-            if (!email.IsValidEmailAndRowKey())
-                return BadRequest("Invalid email");
-
-            var applicationId = HttpContext.GetApplicationId();
-
-            if (!applicationId.IsValidPartitionOrRowKey())
-                return BadRequest("Invalid applicationId");
-
-            var app = await _applicationRepository.GetByIdAsync(applicationId);
-
-            if (app == null)
-                return BadRequest("Application Id Incorrect!");
-
-            ClientAccountInformationModel client = await GetClientByEmailAsync(email);
-
-            if (client == null)
-                return NotFound("Client not found!");
-
-            return Json(client.Id);
-        }
-
-        [HttpGet("~/getemailbyid")]
-        public async Task<IActionResult> GetEmailById(string id)
-        {
-            if (!id.IsValidPartitionOrRowKey() && !id.IsGuid())
-                return BadRequest("Invalid id");
-
-            var applicationId = HttpContext.GetApplicationId();
-
-            if (!applicationId.IsValidPartitionOrRowKey())
-                return BadRequest("Invalid applicationId");
-
-            var app = await _applicationRepository.GetByIdAsync(applicationId);
-
-            if (app == null)
-                return BadRequest("Application Id Incorrect!");
-
-            ClientModel client = await GetClientByIdAsync(id);
-
-            if (client == null)
-                return NotFound("Client not found!");
-
-            return Json(client.Email);
-        }
-
         [HttpGet("~/getlykkewallettoken")]
         [Authorize(AuthenticationSchemes = OAuthValidationConstants.Schemes.Bearer)]
         public async Task<IActionResult> GetLykkewalletToken()
@@ -153,6 +66,21 @@ namespace WebAuth.Controllers
             if (app == null)
                 return BadRequest("Application Id Incorrect!");
 
+
+            return await GetToken(app.Type);
+        }
+
+        [HttpGet("~/getlykkewallettokenmobile")]
+        [Authorize]
+        public Task<IActionResult> GetLykkewalletTokenMobile()
+        {
+            // Mobile client process authentication on AuthenticationController and get correct cookies.
+            // That should be enough to pass authorization validation here.
+            return GetToken(null);
+        }
+
+        private async Task<IActionResult> GetToken(string appType)
+        {
             var clientId = User.Identity.GetClientId();
 
             if (clientId == null)
@@ -165,7 +93,7 @@ namespace WebAuth.Controllers
 
             try
             {
-                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", application: app.Type);
+                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", application: appType);
                 return Json(new { Token = authResult.SessionToken, authResult.AuthId });
             }
             catch (Exception ex)
@@ -201,22 +129,6 @@ namespace WebAuth.Controllers
 
             return Json(new { EncodedPrivateKey = encodedPrivateKey });
         }
-
-        private async Task<ClientAccountInformationModel> GetClientByEmailAsync(string email)
-        {
-            ClientAccountInformationModel client = null;
-
-            try
-            {
-                client = await _clientAccountClient.GetClientByEmailAndPartnerIdAsync(email, null);
-            }
-            catch (Exception)
-            {
-                _log.WriteInfo(nameof(GetKycStatus), email.SanitizeEmail(), "Can't get client info");
-            }
-
-            return client;
-        }
         
         private async Task<ClientModel> GetClientByIdAsync(string clientId)
         {
@@ -228,7 +140,7 @@ namespace WebAuth.Controllers
             }
             catch (Exception)
             {
-                _log.WriteInfo(nameof(GetKycStatus), clientId, "Can't get client info");
+                _log.WriteInfo(nameof(GetClientByIdAsync), clientId, "Can't get client info");
             }
 
             return client;

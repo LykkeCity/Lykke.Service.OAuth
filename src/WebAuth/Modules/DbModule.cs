@@ -3,7 +3,6 @@ using AzureDataAccess;
 using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
-using Core.Email;
 using Lykke.SettingsReader;
 using WebAuth.Settings;
 
@@ -31,10 +30,6 @@ namespace WebAuth.Modules
             builder.RegisterInstance(
                 AzureRepoFactories.CreateWalletCredentialsRepository(clientPersonalInfoConnString, _log)
             ).As<IWalletCredentialsRepository>().SingleInstance();
-
-            builder.RegisterInstance(
-                AzureRepoFactories.CreateVerificationCodesRepository(clientPersonalInfoConnString, _log)
-            ).As<IVerificationCodesRepository>().SingleInstance();
         }
     }
 }
