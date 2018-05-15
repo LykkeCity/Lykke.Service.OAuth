@@ -6,6 +6,7 @@ using Core.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.Kyc.Abstractions.Services;
 using Lykke.Service.Kyc.Abstractions.Services.Models;
+using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Contract.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -20,6 +21,7 @@ namespace WebAuth.ActionHandlers
         private readonly IUserManager _userManager;
         private readonly IClientAccountClient _clientAccountClient;
         private readonly IKycProfileService _kycProfileService;
+        private readonly IPersonalDataService _personalDataService;
 
         public ProfileActionHandler(
             IHttpContextAccessor httpContextAccessor,
@@ -52,10 +54,11 @@ namespace WebAuth.ActionHandlers
             await _kycProfileService.UpdatePersonalDataAsync(clientId, changes);
 
             var clientAccount = await _clientAccountClient.GetByIdAsync(clientId);
+            var clientEmail = await _personalDataService.GetEmailAsync(clientId);
 
             await _httpContextAccessor.HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
 
-            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientAccount.Email, clientAccount.Email, true);
+            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientEmail, clientEmail, true);
 
             await _httpContextAccessor.HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
                     new ClaimsPrincipal(identity),
