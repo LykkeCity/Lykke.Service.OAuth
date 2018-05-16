@@ -27,13 +27,15 @@ namespace WebAuth.ActionHandlers
             IHttpContextAccessor httpContextAccessor,
             IUserManager userManager,
             IClientAccountClient clientAccountClient,
-            IKycProfileService kycProfileService
+            IKycProfileService kycProfileService,
+            IPersonalDataService personalDataService
             )
         {
             _httpContextAccessor = httpContextAccessor;
             _userManager = userManager;
             _clientAccountClient = clientAccountClient;
             _kycProfileService = kycProfileService;
+            _personalDataService = personalDataService;
         }
 
         public async Task UpdatePersonalInformation(string clientId, string firstName, string lastName)
