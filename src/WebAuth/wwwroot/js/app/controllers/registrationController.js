@@ -13,11 +13,13 @@
             loading: false,
             showResendBlock: false,
             captchaId: 0,
+            key: null,
             model: {},
             step1Form: {
                 code: null,
                 result: true,
                 isEmailTaken: false,
+                isCodeExpired: false,
                 resendingCode: false,
                 resendCount: 0,
                 captchaResponse : null
@@ -42,9 +44,8 @@
             errorCaptcha: errorCaptcha
         };
 
-        vm.init = function(key, email, resendCount) {
+        vm.init = function(key, resendCount) {
             vm.data.key = key;
-            vm.data.email = email;
             vm.data.step1Form.resendCount = resendCount;
         };
 
@@ -55,6 +56,8 @@
                     vm.data.model.returnUrl = result.code.returnUrl;
                     vm.data.model.referer = result.code.referer;
                     vm.data.model.email = result.code.email;
+                    vm.data.model.cid = result.code.cid;
+                    vm.data.model.traffic = result.code.traffic;
                     vm.data.step1Form.isEmailTaken = result.isEmailTaken;
                     vm.data.step1Form.result = true;
 
@@ -63,6 +66,7 @@
                     }
                 } else {
                     vm.data.step1Form.result = false;
+                    vm.data.step1Form.isCodeExpired = result.isCodeExpired;
                 }
 
                 vm.data.loading = false;
@@ -75,15 +79,20 @@
 
             vm.data.step1Form.resendingCode = true;
             registerService.resendCode(vm.data.key, vm.data.step1Form.captchaResponse).then(function (result) {
-                if (result) {
+                vm.data.step1Form.isCodeExpired = result.isCodeExpired;
+                
+                if (result.result) {
                     $.notify({ title: 'Code successfully sent!' }, { className: 'success' });
                     vm.data.step1Form.resendCount++;
                     vm.data.step1Form.captchaResponse = null;
                     vm.data.showResendBlock = false;
-                }
+                } 
 
+                if (!result.isCodeExpired) {
+                    vcRecaptchaService.reload(vm.data.captchaId);
+                }
+                
                 vm.data.step1Form.resendingCode = false;
-                vcRecaptchaService.reload(vm.data.captchaId);
             });
         }
 

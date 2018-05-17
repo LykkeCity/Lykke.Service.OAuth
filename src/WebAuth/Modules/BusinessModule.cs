@@ -4,6 +4,7 @@ using BusinessService.Email;
 using Common.Log;
 using Core.Email;
 using Core.Recaptcha;
+using Core.VerificationCodes;
 using Lykke.SettingsReader;
 using WebAuth.Settings;
 
@@ -26,6 +27,11 @@ namespace WebAuth.Modules
             builder.RegisterType<RecaptchaService>()
                 .As<IRecaptchaService>()
                 .WithParameter(TypedParameter.From(_settings.CurrentValue.OAuth.Security.RecaptchaSecrect))
+                .SingleInstance();
+            
+            builder.RegisterType<VerificationCodesService>()
+                .As<IVerificationCodesService>()
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.OAuth.Cache.VerificationCodeExpiration))
                 .SingleInstance();
         }
     }
