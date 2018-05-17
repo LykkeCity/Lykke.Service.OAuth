@@ -93,7 +93,7 @@ namespace WebAuth.Controllers
 
             try
             {
-                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", appType);
+                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", application: appType);
                 return Json(new { Token = authResult.SessionToken, authResult.AuthId });
             }
             catch (Exception ex)
@@ -129,7 +129,7 @@ namespace WebAuth.Controllers
 
             return Json(new { EncodedPrivateKey = encodedPrivateKey });
         }
-        
+
         private async Task<ClientModel> GetClientByIdAsync(string clientId)
         {
             ClientModel client = null;
