@@ -154,7 +154,7 @@ namespace WebAuth.Controllers
                 return BadRequest("Application Id Incorrect!");
 
 
-            return await GetToken();
+            return await GetToken(app.ApplicationId);
         }
 
         [HttpGet("~/getlykkewallettokenmobile")]
@@ -163,10 +163,10 @@ namespace WebAuth.Controllers
         {
             // Mobile client process authentication on AuthenticationController and get correct cookies.
             // That should be enough to pass authorization validation here.
-            return GetToken();
+            return GetToken(null);
         }
 
-        private async Task<IActionResult> GetToken()
+        private async Task<IActionResult> GetToken(string appApplicationId)
         {
             var clientId = User.Identity.GetClientId();
 
@@ -180,7 +180,7 @@ namespace WebAuth.Controllers
 
             try
             {
-                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server");
+                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", appApplicationId);
                 return Json(new { Token = authResult.SessionToken, authResult.AuthId });
             }
             catch (Exception ex)

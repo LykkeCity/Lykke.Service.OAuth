@@ -200,18 +200,18 @@ a {
     #recaptcha:empty:after {
         display: none;
     }
-    /* */
-    /* #recaptcha:after { */
-    /*     content: ""; */
-    /*     display: block; */
-    /*     position: absolute; */
-    /*     z-index: 1; */
-    /*     bottom: 3px; */
-    /*     right: 5px; */
-    /*     width: 100px; */
-    /*     height: 70px; */
-    /*     background-color: #f9f9f9; */
-    /* } */
+/* */
+/* #recaptcha:after { */
+/*     content: ""; */
+/*     display: block; */
+/*     position: absolute; */
+/*     z-index: 1; */
+/*     bottom: 3px; */
+/*     right: 5px; */
+/*     width: 100px; */
+/*     height: 70px; */
+/*     background-color: #f9f9f9; */
+/* } */
 
 .form-group-input {
     position: relative;
@@ -425,4 +425,10 @@ input:-webkit-autofill {
         stroke-dasharray: 89,200;
         stroke-dashoffset: -124;
     }
+}
+
+.error_message {
+    text-align: left;
+    font-size: 14px;
+    color: #b04037;
 }
