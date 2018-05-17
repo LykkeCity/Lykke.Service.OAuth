@@ -33,6 +33,7 @@
                 <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
                 <input type="hidden" name="IsLogin" value="true" />
             </div>
+            <div class="error_message" asp-validation-summary="All"></div>
             <div id="recaptcha" class="form-group text-center">
                 <div class="g-recaptcha" data-sitekey="@Model.LoginRecaptchaKey" data-theme="white" data-callback="captchaValid"></div>
             </div>

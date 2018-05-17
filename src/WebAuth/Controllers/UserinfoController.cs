@@ -93,7 +93,7 @@ namespace WebAuth.Controllers
 
             try
             {
-                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", application: appType);
+                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", appType);
                 return Json(new { Token = authResult.SessionToken, authResult.AuthId });
             }
             catch (Exception ex)
