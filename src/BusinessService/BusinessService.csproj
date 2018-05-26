@@ -9,7 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="1.2.0" />
-    <PackageReference Include="Lykke.Common" Version="6.7.0" />
+    <PackageReference Include="Lykke.Common" Version="6.8.2" />
     <PackageReference Include="Lykke.Messages" Version="1.2.0" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.58" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.0.3" />

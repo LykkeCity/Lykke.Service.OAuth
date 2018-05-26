@@ -5,7 +5,7 @@
     <PackageId>Core</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="6.7.0" />
+    <PackageReference Include="Lykke.Common" Version="6.8.2" />
     <PackageReference Include="Lykke.SettingsReader" Version="2.3.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.4.1" />
   </ItemGroup>
