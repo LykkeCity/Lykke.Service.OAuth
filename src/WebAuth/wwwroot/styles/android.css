@@ -1,5 +1,43 @@
 @import url("https://fonts.googleapis.com/css?family=Roboto:400,500");
 
+@font-face {
+    font-family: 'eye-icons';
+    src: url("../fonts/eye_icon.eot?28a6ip");
+    src: url("../fonts/eye_icon.eot?28a6ip#iefix") format("embedded-opentype"), url("../fonts/eye_icon.ttf?28a6ip") format("truetype"), url("../fonts/eye_icon.woff?28a6ip") format("woff"), url("../fonts/eye_icon.svg?28a6ip#icon") format("svg");
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="eye_icon--"], [class*=" eye_icon--"] {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'eye-icons' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.eye_icon--hide_password_alt:before {
+    content: "\e900";
+}
+
+.eye_icon--show_password_alt:before {
+    content: "\e901";
+}
+
+.eye_icon--show_password:before {
+    content: "\e965";
+}
+
+.eye_icon--hide_password:before {
+    content: "\e966";
+}
+
 html {
     font-size: 16px;
     min-height: 100%;
@@ -78,6 +116,16 @@ a {
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff9100', endColorstr='#ab00ff',GradientType=1 ) !important;
     /* IE6-9 */
 }
+
+.btn--icon {
+    background-color: transparent !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    border-radius: 0;
+}
+
+    .btn--icon:hover {
+        color: white !important;
+    }
 
 .btn--link {
     padding: 0 !important;
@@ -200,18 +248,18 @@ a {
     #recaptcha:empty:after {
         display: none;
     }
-/* */
-/* #recaptcha:after { */
-/*     content: ""; */
-/*     display: block; */
-/*     position: absolute; */
-/*     z-index: 1; */
-/*     bottom: 3px; */
-/*     right: 5px; */
-/*     width: 100px; */
-/*     height: 70px; */
-/*     background-color: #f9f9f9; */
-/* } */
+
+    #recaptcha:after {
+        content: "";
+        display: block;
+        position: absolute;
+        z-index: 1;
+        bottom: 3px;
+        right: 5px;
+        width: 100px;
+        height: 70px;
+        background-color: #f9f9f9;
+    }
 
 .form-group-input {
     position: relative;
@@ -285,13 +333,9 @@ a {
     color: #B2B8BF;
 }
 
-.invalid .form-control {
+.invalid .form-control:focus {
     border-color: #ff3e2e;
 }
-
-    .invalid .form-control:focus {
-        border-color: #ff3e2e;
-    }
 
 .help {
     position: absolute;
@@ -431,4 +475,21 @@ input:-webkit-autofill {
     text-align: left;
     font-size: 14px;
     color: #b04037;
+}
+
+.input-group-addon {
+    position: absolute;
+    right: -10px;
+    z-index: 10;
+    top: 24px;
+    padding: 10px;
+    font-size: 24px;
+    line-height: 10px;
+    height: auto;
+    cursor: pointer;
+    display: none;
+}
+
+.not-empty ~ .input-group-addon {
+    display: block;
 }

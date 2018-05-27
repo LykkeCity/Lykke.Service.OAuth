@@ -29,6 +29,7 @@
                 <div class="form-group-input">
                     <input type="password" id="password" required class="form-control" asp-for="Password">
                     <label for="password" class="control-label">Your password</label>
+                    <button class="btn btn--icon input-group-addon _toggle_password" type="button"><i class="eye_icon eye_icon--show_password_alt"></i></button>
                 </div>
                 <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
                 <input type="hidden" name="IsLogin" value="true" />
