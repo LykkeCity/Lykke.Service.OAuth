@@ -52,11 +52,7 @@
     </environment>
     <script>
         function enableSubmit(el, enable) {
-            if (enable === true) {
-                el.removeAttribute('disabled');
-            } else {
-                el.setAttribute('disabled', 'disabled');
-            }
+            el.prop("disabled", !enable);
         }
 
         function captchaValid(id) {
@@ -64,7 +60,7 @@
         }
 
         function validateInput() {
-            const submit = document.getElementById("submit");
+            const submit = $("#submit");
             const email = $("#email").val();
             const password = $("#password").val();
             const filter = /^(?!.*[\\#%+/?\u0000-\u001F\u007F-\u009F\s]).+@@(.+\..+)+$/;
@@ -73,12 +69,30 @@
             enableSubmit(submit, enable);
         }
 
+        $('._toggle_password').on('click',
+            function() {
+                var $this = $(this);
+                var pass = $('#password');
+                pass.prop('type', pass.prop('type') === 'text' ? 'password' : 'text');
+                $this.find('.eye_icon').toggleClass('eye_icon--show_password_alt');
+                $this.find('.eye_icon').toggleClass('eye_icon--hide_password_alt');
+            });
+        $('.form-control').each(function() {
+            if ($(this).val() !== '') {
+                $(this).addClass('not-empty');
+            }
+        }).keyup(function(){ //new
+            $(this).toggleClass('not-empty', $(this).val() !== '');
+        }).change(function(){
+            $(this).toggleClass('not-empty', $(this).val() !== '');
+        });
+
         (function () {
-            const submit = document.getElementById("submit");
+            const submit = $("#submit");
             const form = document.querySelector('.auth_group__form');
             var fields = [].slice.call(form.querySelectorAll('.form-group-input'));
 
-            submit.addEventListener('click', function () {
+            submit.on('click', function () {
 
 
                 var formValid = true;
