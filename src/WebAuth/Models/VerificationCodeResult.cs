@@ -1,10 +1,11 @@
-﻿using Core.Email;
+﻿using Core.VerificationCodes;
 
 namespace WebAuth.Models
 {
     public class VerificationCodeResult
     {
-        public IVerificationCode Code { get; set; }
+        public VerificationCode Code { get; set; }
         public bool IsEmailTaken { get; set; }
+        public bool IsCodeExpired { get; set; }
     }
 }

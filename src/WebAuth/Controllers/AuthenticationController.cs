@@ -10,6 +10,7 @@ using Core;
 using Core.Email;
 using Core.Extensions;
 using Core.Recaptcha;
+using Core.VerificationCodes;
 using Lykke.Common.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
@@ -29,7 +30,7 @@ namespace WebAuth.Controllers
     public class AuthenticationController : BaseController
     {
         private readonly ILykkeRegistrationClient _registrationClient;
-        private readonly IVerificationCodesRepository _verificationCodesRepository;
+        private readonly IVerificationCodesService _verificationCodesService;
         private readonly IEmailFacadeService _emailFacadeService;
         private readonly ProfileActionHandler _profileActionHandler;
         private readonly IUserManager _userManager;
@@ -40,7 +41,7 @@ namespace WebAuth.Controllers
 
         public AuthenticationController(
             ILykkeRegistrationClient registrationClient,
-            IVerificationCodesRepository verificationCodesRepository,
+            IVerificationCodesService verificationCodesService,
             IEmailFacadeService emailFacadeService,
             ProfileActionHandler profileActionHandler,
             IUserManager userManager,
@@ -50,7 +51,7 @@ namespace WebAuth.Controllers
             ILog log)
         {
             _registrationClient = registrationClient;
-            _verificationCodesRepository = verificationCodesRepository;
+            _verificationCodesService = verificationCodesService;
             _emailFacadeService = emailFacadeService;
             _profileActionHandler = profileActionHandler;
             _userManager = userManager;
@@ -153,7 +154,7 @@ namespace WebAuth.Controllers
 
             var traffic = Request.Cookies["sbjs_current"];
             
-            var code = await _verificationCodesRepository.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
+            var code = await _verificationCodesService.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
             var url = Url.Action("Signup", "Authentication", new {key = code.Key}, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(model.Email, code.Code, url);
 
@@ -166,7 +167,7 @@ namespace WebAuth.Controllers
             if (!key.IsValidPartitionOrRowKey())
                 return RedirectToAction("Signin");
 
-            var code = await _verificationCodesRepository.GetCodeAsync(key);
+            var code = await _verificationCodesService.GetCodeAsync(key);
 
             if (code == null)
                 return RedirectToAction("Signin");
@@ -185,7 +186,9 @@ namespace WebAuth.Controllers
             if (request == null || !request.Key.IsValidPartitionOrRowKey())
                 return result;
 
-            var existingCode = await _verificationCodesRepository.GetCodeAsync(request.Key);
+            var existingCode = await _verificationCodesService.GetCodeAsync(request.Key);
+
+            result.IsCodeExpired = existingCode == null;
 
             if (existingCode != null && existingCode.Code == request.Code)
             {
@@ -194,7 +197,7 @@ namespace WebAuth.Controllers
                 result.IsEmailTaken = accountExistsModel.IsClientAccountExisting;
 
                 if (result.IsEmailTaken)
-                    await _verificationCodesRepository.DeleteCodesAsync(existingCode.Email);
+                    await _verificationCodesService.DeleteCodeAsync(existingCode.Key);
             }
 
             return result;
@@ -202,24 +205,33 @@ namespace WebAuth.Controllers
 
         [HttpPost("~/signup/resendCode")]  
         [ValidateAntiForgeryToken]
-        public async Task<bool> ResendCode([FromBody] ResendCodeRequest request)
+        public async Task<ResendCodeResult> ResendCode([FromBody] ResendCodeRequest request)
         {
+            var result = new ResendCodeResult();
+            
             if (!request.Key.IsValidPartitionOrRowKey())
-                return false;
+                return result;
 
             if (string.IsNullOrEmpty(request.Captcha) || !await _recaptchaService.Validate(request.Captcha))
-                return false;
+                return result;
 
-            var code = await _verificationCodesRepository.GetCodeAsync(request.Key);
+            var code = await _verificationCodesService.GetCodeAsync(request.Key);
 
-            if (code == null || code.ResendCount > 2) 
-                return false;
+            if (code == null)
+                return ResendCodeResult.Expired;
+
+            if (code.ResendCount > 2) 
+                return result;
             
-            code = await _verificationCodesRepository.UpdateCodeAsync(request.Key);
+            code = await _verificationCodesService.UpdateCodeAsync(request.Key);
+
+            if (code == null)
+                return ResendCodeResult.Expired;
+            
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
-           
-            return true;
+            result.Result = true;
+            return result;
         }
         
         [HttpPost("~/signup/checkPassword")]  
@@ -260,8 +272,6 @@ namespace WebAuth.Controllers
                     }
                 }
                 
-                var code = await _verificationCodesRepository.GetCodeAsync(model.Key);
-                    
                 RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
                 {
                     Email = model.Email,
@@ -271,8 +281,8 @@ namespace WebAuth.Controllers
                     UserAgent = userAgent,
                     Referer = referer,
                     CreatedAt = DateTime.UtcNow,
-                    Cid = code?.Cid,
-                    Traffic = code?.Traffic
+                    Cid = model.Cid,
+                    Traffic = model.Traffic
                 });
 
                 regResult.RegistrationResponse = result;
@@ -288,7 +298,7 @@ namespace WebAuth.Controllers
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
                 await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
-                await _verificationCodesRepository.DeleteCodesAsync(model.Email);
+                await _verificationCodesService.DeleteCodeAsync(model.Key);
             }
             else
             {

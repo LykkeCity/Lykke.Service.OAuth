@@ -15,5 +15,7 @@ namespace WebAuth.Models
         public string FirstName { get; set; }
         [Required(ErrorMessage = "Last name is required")]
         public string LastName { get; set; }
+        public string Cid { get; set; }
+        public string Traffic { get; set; }
     }
 }
