@@ -46,7 +46,7 @@
     <div data-ng-show="vm.data.step == 2">
         <span class="hint_accent">Step 2 of 3</span>
         <h4>Create password</h4>
-        <p class="lead">Enter the password to protect you profile. Use 8 or more characters, uppercase letter (A-Z), lowercase letter (a-z), special character (!@@#$~ etc.) and number.</p>
+        <p class="lead">Enter the password to protect you profile. Use 10 or more characters, uppercase letter (A-Z), lowercase letter (a-z), number (0-9) and not more than 2 identical characters in a row.</p>
         <form class="form form_register" name="vm.step2Form" novalidate autocomplete="off">
             <div class="form-group">
                 <div class="input-group" data-ng-class="{'input-group--error': !vm.step2Form.Password.$valid && vm.step2Form.Password.$touched}">
@@ -56,7 +56,7 @@
                 </div>
                 <div ng-show="vm.step2Form.$submitted || vm.step2Form.Password.$touched">
                     <span class="label_error" data-ng-show="vm.step2Form.Password.$error.required">Password is required</span>
-                    <span class="label_error" data-ng-show="vm.step2Form.Password.$error.strongPassword">The password length should not be less than 8 characters including both an uppercase letter, lowercase, special char and number</span>
+                    <span class="label_error" data-ng-show="vm.step2Form.Password.$error.strongPassword">The password length should not be less than 10 characters including both an uppercase letter, lowercase, number and not more than 2 identical characters in a row.</span>
                 </div>
             </div>
             <div class="form-group">
