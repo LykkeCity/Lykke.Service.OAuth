@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>BusinessService</AssemblyName>
     <PackageId>BusinessService</PackageId>
   </PropertyGroup>
@@ -8,14 +8,14 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Flurl.Http" Version="1.2.0" />
-    <PackageReference Include="Lykke.Common" Version="6.8.2" />
+    <PackageReference Include="Flurl.Http" Version="2.3.1" />
+    <PackageReference Include="Lykke.Common" Version="6.8.4" />
     <PackageReference Include="Lykke.Messages" Version="1.5.0" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.75" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 </Project>

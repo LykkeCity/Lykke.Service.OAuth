@@ -260,7 +260,7 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public bool CheckPassword([FromBody]string passowrd)
         {
-            return passowrd.IsPasswordComplex();
+            return passowrd.IsPasswordComplex(useSpecialChars:false);
         }
 
         [HttpPost("~/signup/complete")]

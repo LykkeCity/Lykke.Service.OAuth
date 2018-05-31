@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>WebAuth.Tests</AssemblyName>
     <PackageId>WebAuth.Tests</PackageId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc2-final" />
-    <PackageReference Include="Lykke.Common" Version="6.8.2" />
+    <PackageReference Include="Lykke.Common" Version="6.8.4" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.75" />
     <PackageReference Include="Lykke.Service.Registration" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.1.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
     <PackageReference Include="NSubstitute" Version="3.1.0" />
     <PackageReference Include="xunit" Version="2.3.1" />
