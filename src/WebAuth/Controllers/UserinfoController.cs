@@ -24,22 +24,21 @@ namespace WebAuth.Controllers
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
         private readonly IClientAccountClient _clientAccountClient;
-        private readonly IPersonalDataService _personalDataService;
+
 
         public UserinfoController(
             ILog log,
             IApplicationRepository applicationRepository,
             IClientSessionsClient clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository,
-            IClientAccountClient clientAccountClient,
-            IPersonalDataService personalDataService)
+            IClientAccountClient clientAccountClient)
+
         {
             _log = log;
             _applicationRepository = applicationRepository;
             _clientSessionsClient = clientSessionsClient;
             _walletCredentialsRepository = walletCredentialsRepository;
             _clientAccountClient = clientAccountClient;
-            _personalDataService = personalDataService;
         }
 
         [HttpGet("~/connect/userinfo")]
