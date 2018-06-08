@@ -113,12 +113,17 @@
             vm.data.model.key = vm.data.key;
             vm.data.loading = true;
             registerService.register(vm.data.model).then(function (result) {
+                vm.data.loading = false;
+                
                 if (result.errors.length) {
                     vm.data.summaryErrors = result.errors;
-                    vm.data.loading = false;
                 }
                 else {
-                    window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
+                    if (!result.isPasswordComplex) {
+                        vm.data.step = 2;
+                    } else{
+                        window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
+                    }
                 }
             });
         }
