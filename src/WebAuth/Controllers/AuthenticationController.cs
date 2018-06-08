@@ -287,7 +287,13 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<RegistrationResultModel> CompleteRegistration([FromBody]SignUpViewModel model)
         {
-            var regResult = new RegistrationResultModel();
+            var regResult = new RegistrationResultModel
+            {
+                IsPasswordComplex = model.Password.IsPasswordComplex()
+            };
+
+            if (!regResult.IsPasswordComplex)
+                return regResult;
 
             if (ModelState.IsValid)
             {
