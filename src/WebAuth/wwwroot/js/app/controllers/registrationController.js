@@ -125,7 +125,6 @@
                         window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
                     }
                 }
-                vm.data.loading = false;
             });
         }
         
