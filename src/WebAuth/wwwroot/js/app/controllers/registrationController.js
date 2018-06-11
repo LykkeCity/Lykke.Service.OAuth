@@ -115,10 +115,12 @@
             registerService.register(vm.data.model).then(function (result) {
                 if (result.errors.length) {
                     vm.data.summaryErrors = result.errors;
+                    vm.data.loading = false;
                 }
                 else {
                     if (!result.isPasswordComplex) {
                         vm.data.step = 2;
+                        vm.data.loading = false;
                     } else{
                         window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
                     }
