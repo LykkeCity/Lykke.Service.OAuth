@@ -113,8 +113,6 @@
             vm.data.model.key = vm.data.key;
             vm.data.loading = true;
             registerService.register(vm.data.model).then(function (result) {
-                vm.data.loading = false;
-                
                 if (result.errors.length) {
                     vm.data.summaryErrors = result.errors;
                 }
@@ -125,6 +123,7 @@
                         window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
                     }
                 }
+                vm.data.loading = false;
             });
         }
         
