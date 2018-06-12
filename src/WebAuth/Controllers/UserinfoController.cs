@@ -25,12 +25,14 @@ namespace WebAuth.Controllers
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
         private readonly IClientAccountClient _clientAccountClient;
 
+
         public UserinfoController(
             ILog log,
             IApplicationRepository applicationRepository,
             IClientSessionsClient clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository,
             IClientAccountClient clientAccountClient)
+
         {
             _log = log;
             _applicationRepository = applicationRepository;
