@@ -14,7 +14,7 @@ namespace WebAuth.ViewComponents
             DefaultUrl = "https://www.lykke.com/";
         }
 
-        public async Task<IViewComponentResult> InvokeAsync(string url)
+        public Task<IViewComponentResult> InvokeAsync(string url)
         {
             var href = String.IsNullOrEmpty(url) ? DefaultUrl : url;
             var model = new LykkeLogoViewModel
@@ -22,7 +22,7 @@ namespace WebAuth.ViewComponents
                 Url = href,
             };
 
-            return View(model);
+            return Task.FromResult<IViewComponentResult>(View(model));
         }
     }
 }
