@@ -99,16 +99,16 @@ namespace WebAuth.Controllers
             }
         }
 
-        private string GetReturnUrl(string platform, string returnUrl)
+        private ViewResult GetAfterLoginViewForPlatform(string platform)
         {
             switch (platform?.ToLower())
             {
                 case "android":
-                    return "AfterLogin.android";
+                    return View("AfterLogin.android");
                 case "ios":
-                    return "AfterLogin.ios";
+                    return View("AfterLogin.ios");
                 default:
-                    return returnUrl;
+                    return null;
             }
         }
 
@@ -125,7 +125,6 @@ namespace WebAuth.Controllers
             model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
 
             var viewName = PlatformToViewName(platform);
-            var returnUrl = GetReturnUrl(platform, model.ReturnUrl);
 
             if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
@@ -163,7 +162,8 @@ namespace WebAuth.Controllers
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-                return RedirectToLocal(returnUrl);
+                var view = GetAfterLoginViewForPlatform(platform);
+                return view ?? RedirectToLocal(model.ReturnUrl);
             }
 
             ModelState.ClearValidationState(nameof(model.Username));
