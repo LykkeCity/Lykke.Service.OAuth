@@ -99,6 +99,19 @@ namespace WebAuth.Controllers
             }
         }
 
+        private ViewResult GetAfterLoginViewForPlatform(string platform)
+        {
+            switch (platform?.ToLower())
+            {
+                case "android":
+                    return View("AfterLogin.android");
+                case "ios":
+                    return View("AfterLogin.ios");
+                default:
+                    return null;
+            }
+        }
+
         [HttpPost("~/signin/{platform?}")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Signin(LoginViewModel model, string platform = null)
@@ -149,7 +162,8 @@ namespace WebAuth.Controllers
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-                return RedirectToLocal(model.ReturnUrl);
+                var view = GetAfterLoginViewForPlatform(platform);
+                return view ?? RedirectToLocal(model.ReturnUrl);
             }
 
             ModelState.ClearValidationState(nameof(model.Username));
