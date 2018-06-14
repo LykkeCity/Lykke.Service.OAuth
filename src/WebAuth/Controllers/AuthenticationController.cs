@@ -20,6 +20,7 @@ using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Routing;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
@@ -99,16 +100,17 @@ namespace WebAuth.Controllers
             }
         }
 
-        private string GetReturnUrl(string platform, string returnUrl)
+        [HttpGet("~/signin/afterlogin/{platform?}")]
+        public ActionResult Afterlogin(string platform = null, string returnUrl = null)
         {
             switch (platform?.ToLower())
             {
                 case "android":
-                    return "AfterLogin.android";
+                    return RedirectToAction("GetLykkewalletTokenMobile", "Userinfo");
                 case "ios":
-                    return "AfterLogin.ios";
+                    return View("AfterLogin.ios");
                 default:
-                    return returnUrl;
+                    return RedirectToLocal(returnUrl);
             }
         }
 
@@ -125,7 +127,6 @@ namespace WebAuth.Controllers
             model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
 
             var viewName = PlatformToViewName(platform);
-            var returnUrl = GetReturnUrl(platform, model.ReturnUrl);
 
             if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
@@ -163,7 +164,12 @@ namespace WebAuth.Controllers
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-                return RedirectToLocal(returnUrl);
+                return RedirectToAction("Afterlogin",
+                    new RouteValueDictionary(new
+                    {
+                        platform = platform,
+                        returnUrl = model.ReturnUrl
+                    }));
             }
 
             ModelState.ClearValidationState(nameof(model.Username));
