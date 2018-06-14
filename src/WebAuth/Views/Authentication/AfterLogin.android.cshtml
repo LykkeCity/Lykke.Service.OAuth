@@ -1,0 +1,15 @@
+﻿@{
+    Layout = "_LoginLayout.Mobile";
+}
+@model WebAuth.Models.LoginViewModel
+@section HeadStyles
+    {
+    <environment names="Development">
+        <link rel="stylesheet" href="~/styles/android.css" asp-append-version="true">
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="~/dist/android.min.css" asp-append-version="true">
+    </environment>
+}
+
+

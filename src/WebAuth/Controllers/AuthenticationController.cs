@@ -99,6 +99,19 @@ namespace WebAuth.Controllers
             }
         }
 
+        private string GetReturnUrl(string platform, string returnUrl)
+        {
+            switch (platform?.ToLower())
+            {
+                case "android":
+                    return "AfterLogin.android";
+                case "ios":
+                    return "AfterLogin.ios";
+                default:
+                    return returnUrl;
+            }
+        }
+
         [HttpPost("~/signin/{platform?}")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Signin(LoginViewModel model, string platform = null)
@@ -112,6 +125,7 @@ namespace WebAuth.Controllers
             model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
 
             var viewName = PlatformToViewName(platform);
+            var returnUrl = GetReturnUrl(platform, model.ReturnUrl);
 
             if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
@@ -149,7 +163,7 @@ namespace WebAuth.Controllers
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-                return RedirectToLocal(model.ReturnUrl);
+                return RedirectToLocal(returnUrl);
             }
 
             ModelState.ClearValidationState(nameof(model.Username));
