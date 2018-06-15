@@ -20,6 +20,7 @@ using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Routing;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
@@ -99,6 +100,20 @@ namespace WebAuth.Controllers
             }
         }
 
+        [HttpGet("~/signin/afterlogin/{platform?}")]
+        public ActionResult Afterlogin(string platform = null, string returnUrl = null)
+        {
+            switch (platform?.ToLower())
+            {
+                case "android":
+                    return RedirectToAction("GetLykkewalletTokenMobile", "Userinfo");
+                case "ios":
+                    return View("AfterLogin.ios");
+                default:
+                    return RedirectToLocal(returnUrl);
+            }
+        }
+
         [HttpPost("~/signin/{platform?}")]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Signin(LoginViewModel model, string platform = null)
@@ -149,7 +164,12 @@ namespace WebAuth.Controllers
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-                return RedirectToLocal(model.ReturnUrl);
+                return RedirectToAction("Afterlogin",
+                    new RouteValueDictionary(new
+                    {
+                        platform = platform,
+                        returnUrl = model.ReturnUrl
+                    }));
             }
 
             ModelState.ClearValidationState(nameof(model.Username));
