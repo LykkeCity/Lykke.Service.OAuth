@@ -99,7 +99,8 @@ namespace WebAuth.Controllers
             }
         }
 
-        private ViewResult GetAfterLoginViewForPlatform(string platform)
+        [HttpGet("~/signin/afterlogin/{platform?}")]
+        public ActionResult Afterlogin(string platform = null)
         {
             switch (platform?.ToLower())
             {
@@ -108,7 +109,7 @@ namespace WebAuth.Controllers
                 case "ios":
                     return View("AfterLogin.ios");
                 default:
-                    return null;
+                    return RedirectToLocal("");
             }
         }
 
@@ -162,8 +163,7 @@ namespace WebAuth.Controllers
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-                var view = GetAfterLoginViewForPlatform(platform);
-                return view ?? RedirectToLocal(model.ReturnUrl);
+                return RedirectToAction("Afterlogin", (object)platform);
             }
 
             ModelState.ClearValidationState(nameof(model.Username));
