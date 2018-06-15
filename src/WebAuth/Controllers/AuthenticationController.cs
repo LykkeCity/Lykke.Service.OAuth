@@ -142,7 +142,7 @@ namespace WebAuth.Controllers
                 AuthResponse authResult = await _registrationClient.AuthorizeAsync(new AuthModel
                 {
                     Email = model.Username,
-                    Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
+                    Password = model.Password,
                     Ip = HttpContext.GetIp(),
                     UserAgent = HttpContext.GetUserAgent()
                 });
