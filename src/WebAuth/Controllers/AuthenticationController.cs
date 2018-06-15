@@ -106,7 +106,7 @@ namespace WebAuth.Controllers
             switch (platform?.ToLower())
             {
                 case "android":
-                    return View("AfterLogin.android");
+                    return RedirectToAction("GetLykkewalletTokenMobile", "Userinfo");
                 case "ios":
                     return View("AfterLogin.ios");
                 default:
