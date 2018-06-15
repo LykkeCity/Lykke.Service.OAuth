@@ -20,6 +20,7 @@ using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Routing;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
@@ -100,7 +101,7 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/signin/afterlogin/{platform?}")]
-        public ActionResult Afterlogin(string platform = null)
+        public ActionResult Afterlogin(string platform = null, string returnUrl = null)
         {
             switch (platform?.ToLower())
             {
@@ -109,7 +110,7 @@ namespace WebAuth.Controllers
                 case "ios":
                     return View("AfterLogin.ios");
                 default:
-                    return RedirectToLocal("");
+                    return RedirectToLocal(returnUrl);
             }
         }
 
@@ -163,7 +164,12 @@ namespace WebAuth.Controllers
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-                return RedirectToAction("Afterlogin", (object)platform);
+                return RedirectToAction("Afterlogin",
+                    new RouteValueDictionary(new
+                    {
+                        platform = platform,
+                        returnUrl = model.ReturnUrl
+                    }));
             }
 
             ModelState.ClearValidationState(nameof(model.Username));
