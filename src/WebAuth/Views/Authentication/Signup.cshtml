@@ -50,7 +50,7 @@
         <form class="form form_register" name="vm.step2Form" novalidate autocomplete="off">
             <div class="form-group">
                 <div class="input-group" data-ng-class="{'input-group--error': !vm.step2Form.Password.$valid && vm.step2Form.Password.$touched}">
-                    <input type="{{(vm.data.step2Form.showPassword ? 'text' : 'password')}}" data-ng-model-options="{ debounce: 300 }" placeholder="Password" class="form-control" name="Password" data-ng-model="vm.data.step2Form.password" required strong-password>
+                    <input type="{{(vm.data.step2Form.showPassword ? 'text' : 'password')}}" data-ng-model-options="{ debounce: 300 }" data-ng-trim="false" placeholder="Password" class="form-control" name="Password" data-ng-model="vm.data.step2Form.password" required strong-password>
                     <i class="icon input-group-addon" data-ng-class="{'icon--show_password' : !vm.data.step2Form.showPassword, 'icon--hide_password' : vm.data.step2Form.showPassword}" 
                        data-ng-click="vm.data.step2Form.showPassword = !vm.data.step2Form.showPassword"></i>
                 </div>
@@ -61,7 +61,7 @@
             </div>
             <div class="form-group">
                 <div class="input-group" data-ng-class="{'input-group--error': (!vm.step2Form.ConfirmPassword.$valid ||vm.data.step2Form.confirmPassword.length && vm.data.step2Form.password !== vm.data.step2Form.confirmPassword) && vm.step2Form.ConfirmPassword.$touched}">
-                    <input type="{{(vm.data.step2Form.showConfirmPassword ? 'text' : 'password')}}" placeholder="Confirm password" class="form-control" name="ConfirmPassword" data-ng-model="vm.data.step2Form.confirmPassword" required>
+                    <input type="{{(vm.data.step2Form.showConfirmPassword ? 'text' : 'password')}}" data-ng-trim="false" placeholder="Confirm password" class="form-control" name="ConfirmPassword" data-ng-model="vm.data.step2Form.confirmPassword" required>
                     <i class="icon input-group-addon" data-ng-class="{'icon--show_password' : !vm.data.step2Form.showConfirmPassword, 'icon--hide_password' : vm.data.step2Form.showConfirmPassword}" data-ng-click="vm.data.step2Form.showConfirmPassword = !vm.data.step2Form.showConfirmPassword"></i>
                 </div>
                 <div ng-show="vm.step2Form.$submitted || vm.step2Form.ConfirmPassword.$touched">
