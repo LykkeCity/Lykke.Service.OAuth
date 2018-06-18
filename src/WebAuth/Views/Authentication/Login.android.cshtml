@@ -17,23 +17,25 @@
         <form novalidate enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin" class="auth_group__form">
             <div class="form-group">
                 <div class="form-group-input">
-                    <input type="email" id="email" required class="form-control" asp-for="Username">
+                    <input type="email" id="email" required class="form-control" asp-for="Username" tabindex="1">
                     <label for="email" class="control-label">Your email</label>
                 </div>
                 <div class="form-group-input">
-                    <input type="password" id="password" required class="form-control" asp-for="Password">
+                    <input type="password" id="password" required class="form-control" asp-for="Password" tabindex="2">
                     <label for="password" class="control-label">Your password</label>
                     <button class="btn btn--icon input-group-addon _toggle_password" type="button"><i class="eye_icon eye_icon--show_password_alt"></i></button>
                 </div>
                 <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
                 <input type="hidden" name="IsLogin" value="true" />
             </div>
-            <div class="error_message" asp-validation-summary="All"></div>
+            <div class="error_message" asp-validation-summary="All">
+                <img src="~/images/lw_login_error_white.svg" alt="error" width="18" height="18" hidden=@Html.ViewData.ModelState.IsValid>
+            </div>
             <div id="recaptcha" class="form-group text-center">
                 <div class="g-recaptcha" data-sitekey="@Model.LoginRecaptchaKey" data-theme="white" data-callback="captchaValid"></div>
             </div>
             <div class="auth_group__indent">
-                <input id="submit" type="submit" class="btn btn-block" disabled value="Sign in" />
+                <button id="submit" type="submit" class="btn btn-block" disabled>Sign in</button>
             </div>
         </form>
     </div>
