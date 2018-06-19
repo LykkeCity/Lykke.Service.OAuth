@@ -118,7 +118,12 @@
                     vm.data.loading = false;
                 }
                 else {
-                    window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
+                    if (!result.isPasswordComplex) {
+                        vm.data.step = 2;
+                        vm.data.loading = false;
+                    } else{
+                        window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
+                    }
                 }
             });
         }

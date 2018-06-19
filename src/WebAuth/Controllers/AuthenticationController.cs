@@ -278,16 +278,22 @@ namespace WebAuth.Controllers
 
         [HttpPost("~/signup/checkPassword")]
         [ValidateAntiForgeryToken]
-        public bool CheckPassword([FromBody]string passowrd)
+        public bool CheckPassword([FromBody]string password)
         {
-            return passowrd.IsPasswordComplex();
+            return IsPasswordComplex(password);
         }
 
         [HttpPost("~/signup/complete")]
         [ValidateAntiForgeryToken]
         public async Task<RegistrationResultModel> CompleteRegistration([FromBody]SignUpViewModel model)
         {
-            var regResult = new RegistrationResultModel();
+            var regResult = new RegistrationResultModel
+            {
+                IsPasswordComplex = IsPasswordComplex(model.Password)
+            };
+
+            if (!regResult.IsPasswordComplex)
+                return regResult;
 
             if (ModelState.IsValid)
             {
@@ -364,6 +370,11 @@ namespace WebAuth.Controllers
             await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
             await HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
             return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
+        }
+
+        private bool IsPasswordComplex(string password)
+        {
+            return password.IsPasswordComplex(useSpecialChars: false);
         }
     }
 }
