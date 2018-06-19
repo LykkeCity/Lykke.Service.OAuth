@@ -247,6 +247,7 @@ a {
     -webkit-transform-origin: 50% 50%;
     transform-origin: 50% 50%;
     margin-left: -27px;
+    height: 78px;
 }
 
     #recaptcha > div, #recaptcha iframe {

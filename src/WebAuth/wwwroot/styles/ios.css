@@ -283,6 +283,7 @@ a {
 #recaptcha {
     display: inline-block;
     position: relative;
+    height: 78px;
 }
 
     #recaptcha > div, #recaptcha iframe {
@@ -491,3 +492,9 @@ input:-webkit-autofill {
     font-size: 14px;
     color: #FF3E2E;
 }
+
+    .error_message ul, .error_message li {
+        list-style: none;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
