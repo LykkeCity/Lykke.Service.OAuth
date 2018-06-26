@@ -66,7 +66,7 @@
                 </div>
                 <div ng-show="vm.step2Form.$submitted || vm.step2Form.ConfirmPassword.$touched">
                     <span class="label_error" data-ng-show="vm.step2Form.ConfirmPassword.$error.required">Confirm password</span>
-                    <span class="label_error" data-ng-show="vm.step2Form.Password.$valid && vm.data.step2Form.confirmPassword.length && vm.data.step2Form.password !== vm.data.step2Form.confirmPassword">Passwords doesn't match</span>
+                    <span class="label_error" data-ng-show="vm.step2Form.Password.$valid && vm.data.step2Form.confirmPassword.length && vm.data.step2Form.password !== vm.data.step2Form.confirmPassword">Passwords do not match</span>
                 </div>
             </div>
             <div class="submit-group">
