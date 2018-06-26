@@ -58,9 +58,9 @@
 
 html {
     font-size: 16px;
-    min-height: 100%;
-    height: auto;
+    height: 100%;
     position: relative;
+    background-color: #fff;
 }
 
 body {
@@ -72,6 +72,7 @@ body {
     color: #333333;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    height: 100%;
 }
 
 a {
@@ -95,8 +96,13 @@ a {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+    -webkit-box-shadow: none !important;
     box-shadow: none !important;
+    -webkit-transition: background .3s ease, color .3s ease, border .3s ease, -webkit-transform .3s ease;
+    transition: background .3s ease, color .3s ease, border .3s ease, -webkit-transform .3s ease;
     transition: background .3s ease, color .3s ease, border .3s ease, transform .3s ease;
+    transition: background .3s ease, color .3s ease, border .3s ease, transform .3s ease, -webkit-transform .3s ease;
+    -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
 }
 
@@ -111,6 +117,7 @@ a {
 
     .btn:not([disabled]):active, .btn:not([disabled]).active {
         background: #039df2;
+        -webkit-transform: translate3d(0, 0, 0) scale(0.98);
         transform: translate3d(0, 0, 0) scale(0.98);
     }
 
@@ -124,10 +131,9 @@ a {
     /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ff9100+0,ff0029+50,ab00ff+100 */
     background: #0DA7FC !important;
     /* Old browsers */
-    background: -moz-linear-gradient(left, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important;
     /* FF3.6-15 */
-    background: -webkit-linear-gradient(left, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important;
     /* Chrome10-25,Safari5.1-6 */
+    background: -webkit-gradient(linear, left top, right top, from(#ff9100), color-stop(50%, #ff0029), to(#ab00ff)) !important;
     background: linear-gradient(to right, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important;
     /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff9100', endColorstr='#ab00ff',GradientType=1 ) !important;
@@ -137,12 +143,20 @@ a {
 .btn--link {
     padding: 0 !important;
     background: transparent !important;
-    color: inherit;
+    color: #0DA7FC;
     font-weight: normal;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 16px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
-    .btn--link:hover, .btn--link:active, .btn--link:focus {
-        color: inherit !important;
+    .btn--link:not([disabled]):hover, .btn--link:not([disabled]):active, .btn--link:not([disabled]):focus {
+        color: #0DA7FC !important;
+        -webkit-transform: none !important;
+        transform: none !important;
     }
 
 .btn--icon {
@@ -190,9 +204,11 @@ a {
     text-align: center;
     width: 375px;
     max-width: 100%;
+    min-height: 100%;
     margin-left: auto;
     margin-right: auto;
     padding: 9vh 0 100px;
+    position: relative;
 }
 
     .auth_group .container {
@@ -277,6 +293,7 @@ a {
 #recaptcha {
     display: inline-block;
     position: relative;
+    height: 78px;
 }
 
     #recaptcha > div, #recaptcha iframe {
@@ -289,22 +306,12 @@ a {
 
 @media screen and (max-height: 575px) {
     #recaptcha {
+        -webkit-transform: scale(0.9);
         transform: scale(0.9);
+        -webkit-transform-origin: 50% 50%;
         transform-origin: 50% 50%;
         margin-left: -11px;
     }
-}
-
-#recaptcha:after {
-    content: "";
-    display: block;
-    position: absolute;
-    z-index: 1;
-    bottom: 3px;
-    right: 5px;
-    width: 100px;
-    height: 70px;
-    background-color: #f9f9f9;
 }
 
 .form-group-input {
@@ -312,7 +319,9 @@ a {
 }
 
 .control-label {
+    -webkit-transition: all .3s ease;
     transition: all .3s ease;
+    -webkit-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
     color: #B2B8BF;
     font-size: 17px;
@@ -330,7 +339,6 @@ a {
     padding: 34px 0 8px;
     font-size: 17px;
     -webkit-box-shadow: none !important;
-    -moz-box-shadow: none !important;
     box-shadow: none !important;
 }
 
@@ -419,6 +427,7 @@ a {
     position: relative;
     margin: 0 auto;
     overflow: hidden;
+    -webkit-animation: spin 1s linear infinite;
     animation: spin 1s linear infinite;
 }
 
@@ -427,6 +436,7 @@ a {
         position: absolute;
         top: 50%;
         left: 50%;
+        -webkit-transform: translate(-50%, -50%);
         transform: translate(-50%, -50%);
         width: 95%;
         height: 95%;
@@ -439,23 +449,37 @@ a {
     height: 50%;
     position: absolute;
     margin-top: 50%;
+    background: -webkit-gradient(linear, left top, right top, from(#532d53), to(#b29fb4));
     background: linear-gradient(90deg, #532d53, #b29fb4);
     background: #0DA7FC !important;
     /* Old browsers */
-    background: -moz-linear-gradient(90deg, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important;
     /* FF3.6-15 */
-    background: -webkit-linear-gradient(90deg, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important;
     /* Chrome10-25,Safari5.1-6 */
+    background: -webkit-gradient(linear, left top, right top, from(#ff9100), color-stop(50%, #ff0029), to(#ab00ff)) !important;
     background: linear-gradient(90deg, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important;
     /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 }
 
-@keyframes spin {
+@-webkit-keyframes spin {
     0% {
+        -webkit-transform: rotate(0deg);
         transform: rotate(0deg);
     }
 
     100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+
+    100% {
+        -webkit-transform: rotate(360deg);
         transform: rotate(360deg);
     }
 }
@@ -469,6 +493,7 @@ input:-webkit-autofill {
     input:-webkit-autofill:hover,
     input:-webkit-autofill:focus,
     input:-webkit-autofill:active {
+        -webkit-transition: background-color 5000s ease-in-out 0s;
         transition: background-color 5000s ease-in-out 0s;
     }
 
@@ -476,4 +501,26 @@ input:-webkit-autofill {
     text-align: left;
     font-size: 14px;
     color: #FF3E2E;
+}
+
+    .error_message ul, .error_message li {
+        list-style: none;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+.pull-left {
+    float: left;
+}
+
+.pull-right {
+    float: right;
+}
+
+.footer_buttons {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    right: 20px;
+    padding: 0 5px;
 }
