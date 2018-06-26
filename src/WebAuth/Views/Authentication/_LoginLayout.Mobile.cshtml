@@ -77,15 +77,6 @@
                 $this.find('.eye_icon').toggleClass('eye_icon--show_password_alt');
                 $this.find('.eye_icon').toggleClass('eye_icon--hide_password_alt');
             });
-        $('.form-control').each(function() {
-            if ($(this).val() !== '') {
-                $(this).addClass('not-empty');
-            }
-        }).keyup(function(){ //new
-            $(this).toggleClass('not-empty', $(this).val() !== '');
-        }).change(function(){
-            $(this).toggleClass('not-empty', $(this).val() !== '');
-        });
 
         (function () {
             const submit = $("#submit");
@@ -133,6 +124,16 @@
 
                 return valid;
             }
+
+            $('.form-control').each(function() {
+                if ($(this).val() !== '') {
+                    $(this).addClass('not-empty');
+                }
+            }).keyup(function(){ //new
+                $(this).toggleClass('not-empty', $(this).val() !== '');
+            }).change(function(){
+                $(this).toggleClass('not-empty', $(this).val() !== '');
+            });
         })();
     </script>
 </body>
