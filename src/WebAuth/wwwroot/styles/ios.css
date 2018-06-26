@@ -165,8 +165,9 @@ a {
     border-radius: 0;
 }
 
-    .btn--icon:hover {
+    .btn--icon:not([disabled]):hover, .btn--icon:not([disabled]):active, .btn--icon:not([disabled]):focus {
         color: #3f4d60 !important;
+        background-color: transparent !important;
     }
 
 .btn--flat {
@@ -326,6 +327,7 @@ a {
     color: #B2B8BF;
     font-size: 17px;
     margin-bottom: 0;
+    white-space: nowrap;
 }
 
 .form-control {
@@ -523,7 +525,4 @@ input:-webkit-autofill {
     left: 20px;
     right: 20px;
     padding: 0 5px;
-}
-.control-label {
-    white-space: nowrap;
 }
