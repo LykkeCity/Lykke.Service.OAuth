@@ -58,8 +58,7 @@
 
 html {
     font-size: 16px;
-    min-height: 100%;
-    height: auto;
+    height: 100%;
     position: relative;
     background-color: #fff;
 }
@@ -73,6 +72,7 @@ body {
     color: #333333;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    height: 100%;
 }
 
 a {
@@ -143,12 +143,20 @@ a {
 .btn--link {
     padding: 0 !important;
     background: transparent !important;
-    color: inherit;
+    color: #0DA7FC;
     font-weight: normal;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 16px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
-    .btn--link:hover, .btn--link:active, .btn--link:focus {
-        color: inherit !important;
+    .btn--link:not([disabled]):hover, .btn--link:not([disabled]):active, .btn--link:not([disabled]):focus {
+        color: #0DA7FC !important;
+        -webkit-transform: none !important;
+        transform: none !important;
     }
 
 .btn--icon {
@@ -196,9 +204,11 @@ a {
     text-align: center;
     width: 375px;
     max-width: 100%;
+    min-height: 100%;
     margin-left: auto;
     margin-right: auto;
     padding: 9vh 0 100px;
+    position: relative;
 }
 
     .auth_group .container {
@@ -498,3 +508,19 @@ input:-webkit-autofill {
         padding: 0 !important;
         margin: 0 !important;
     }
+
+.pull-left {
+    float: left;
+}
+
+.pull-right {
+    float: right;
+}
+
+.footer_buttons {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    right: 20px;
+    padding: 0 5px;
+}

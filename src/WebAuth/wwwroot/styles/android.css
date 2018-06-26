@@ -136,12 +136,21 @@ a {
 .btn--link {
     padding: 0 !important;
     background: transparent !important;
-    color: inherit;
+    color: #b3ffffff;
     font-weight: normal;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 14px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
-    .btn--link:hover, .btn--link:active, .btn--link:focus {
-        color: inherit !important;
+    .btn--link:not([disabled]):hover, .btn--link:not([disabled]):active, .btn--link:not([disabled]):focus {
+        color: #b3ffffff !important;
+        background: transparent !important;
+        -webkit-transform: none !important;
+        transform: none !important;
     }
 
 .btn--flat {
@@ -555,4 +564,17 @@ input {
 
 .not-empty ~ .input-group-addon {
     display: block;
+}
+
+.pull-left {
+    float: left;
+}
+
+.pull-right {
+    float: right;
+}
+
+.footer_buttons {
+    padding: 0 5px;
+    margin-top: 28px;
 }
