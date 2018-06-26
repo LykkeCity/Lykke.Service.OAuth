@@ -136,7 +136,7 @@ a {
 .btn--link {
     padding: 0 !important;
     background: transparent !important;
-    color: #b3ffffff;
+    color: rgba(255,255,255, .6);
     font-weight: normal;
     text-transform: none;
     letter-spacing: 0;
@@ -147,7 +147,7 @@ a {
 }
 
     .btn--link:not([disabled]):hover, .btn--link:not([disabled]):active, .btn--link:not([disabled]):focus {
-        color: #b3ffffff !important;
+        color: rgba(255,255,255, .6) !important;
         background: transparent !important;
         -webkit-transform: none !important;
         transform: none !important;
