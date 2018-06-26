@@ -524,3 +524,6 @@ input:-webkit-autofill {
     right: 20px;
     padding: 0 5px;
 }
+.control-label {
+    white-space: nowrap;
+}
