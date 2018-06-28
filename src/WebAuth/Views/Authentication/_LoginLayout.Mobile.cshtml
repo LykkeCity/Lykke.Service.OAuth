@@ -67,6 +67,13 @@
             const validEmail = filter.test(email);
             const enable = !(email === "" || password === "") && validEmail && grecaptcha.getResponse() !== "";
             enableSubmit(submit, enable);
+
+            if (email !== "") {
+                $('.footer_buttons .btn').removeAttr('disabled');
+            }
+            else {
+                $('.footer_buttons .btn').attr('disabled', 'disabled');
+            }
         }
 
         $('._toggle_password').on('click',

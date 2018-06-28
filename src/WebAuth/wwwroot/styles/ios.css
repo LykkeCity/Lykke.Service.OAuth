@@ -151,12 +151,17 @@ a {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+    border-radius: 0;
 }
 
     .btn--link:not([disabled]):hover, .btn--link:not([disabled]):active, .btn--link:not([disabled]):focus {
         color: #0DA7FC !important;
         -webkit-transform: none !important;
         transform: none !important;
+    }
+
+    .btn--link[disabled] {
+        background-color: transparent !important;
     }
 
 .btn--icon {
@@ -262,6 +267,23 @@ a {
             width: 76px;
             height: 76px;
             margin-bottom: 28px;
+        }
+}
+
+@media all and (max-height: 543px) and (max-width: 543px) {
+    .auth_group--form {
+        padding-top: 20px;
+        padding-bottom: 50px;
+    }
+
+        .auth_group--form .auth_group__logo {
+            margin-bottom: 5px;
+            width: 60px;
+            height: 60px;
+        }
+
+        .auth_group--form .footer_buttons {
+            bottom: 15px;
         }
 }
 
