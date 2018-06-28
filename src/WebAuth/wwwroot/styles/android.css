@@ -137,7 +137,7 @@ a {
 .btn--link {
     padding: 0 !important;
     background: transparent !important;
-    color: rgba(255, 255, 255, 0.6) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
     font-weight: normal;
     text-transform: none;
     letter-spacing: 0;
@@ -148,8 +148,13 @@ a {
     font-family: Roboto, "Droid Sans", "Helvetica Neue", Arial, sans-serif;
 }
 
+    .btn--link[disabled] {
+        background-color: transparent !important;
+        color: rgba(255, 255, 255, 0.3) !important;
+    }
+
     .btn--link:not([disabled]):hover, .btn--link:not([disabled]):active, .btn--link:not([disabled]):focus {
-        color: rgba(255, 255, 255, 0.6) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
         background: transparent !important;
         -webkit-transform: none !important;
         transform: none !important;
@@ -213,15 +218,33 @@ a {
 }
 
 @media all and (max-width: 543px) {
-    .auth_group--form {
+    .auth_group {
         padding-top: 40px;
+        padding-bottom: 40px;
     }
 
-        .auth_group--form .auth_group__logo {
-            width: 76px;
-            height: 76px;
-            margin-bottom: 28px;
-        }
+    .auth_group__logo {
+        width: 76px;
+        height: 76px;
+        margin-bottom: 28px;
+    }
+}
+
+@media all and (max-height: 543px) and (max-width: 543px) {
+    .auth_group {
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    .auth_group__logo {
+        margin-bottom: 5px;
+        width: 60px;
+        height: 60px;
+    }
+
+    .auth_group .footer_buttons {
+        margin-top: 15px;
+    }
 }
 
 .separator {
