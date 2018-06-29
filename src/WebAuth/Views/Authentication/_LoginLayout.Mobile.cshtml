@@ -68,7 +68,7 @@
             const enable = !(email === "" || password === "") && validEmail && grecaptcha.getResponse() !== "";
             enableSubmit(submit, enable);
 
-            if (email !== "") {
+            if (validEmail) {
                 $('.footer_buttons .btn').removeAttr('disabled');
             }
             else {
