@@ -24,11 +24,11 @@
             <div class="form-group">
                 <div class="form-group-input">
                     <input type="email" id="email" required class="form-control" asp-for="Username">
-                    <label for="email" class="control-label">Your email</label>
+                    <label for="email" class="control-label">Email</label>
                 </div>
                 <div class="form-group-input">
                     <input type="password" id="password" required class="form-control" asp-for="Password">
-                    <label for="password" class="control-label">Your password</label>
+                    <label for="password" class="control-label">Password</label>
                     <button class="btn btn--icon input-group-addon _toggle_password" type="button"><i class="eye_icon eye_icon--show_password_alt"></i></button>
                 </div>
                 <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
@@ -39,7 +39,16 @@
                 <div class="g-recaptcha" data-sitekey="@Model.LoginRecaptchaKey" data-theme="white" data-callback="captchaValid"></div>
             </div>
             <div class="auth_group__indent">
-                <input id="submit" type="submit" class="btn btn--gradient btn-block" disabled value="Sign in" />
+                <button id="submit" type="submit" class="btn btn--gradient btn-block" disabled>Sign in</button>
+            </div>
+            
+            <div class="footer_buttons clearfix">
+                <div class="pull-left">
+                    <button class="btn btn--link" type="button" id="hint" disabled>Send me hint</button>
+                </div>
+                <div class="pull-right">
+                    <button class="btn btn--link" type="button" id="request" disabled>I forgot my password</button>
+                </div>
             </div>
         </form>
 
@@ -51,7 +60,4 @@
         <div class="spinner__inside"></div>
     </div>
 </div>
-
-
-
 
