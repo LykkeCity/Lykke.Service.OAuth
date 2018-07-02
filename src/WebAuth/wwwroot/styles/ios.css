@@ -542,6 +542,7 @@ input:-webkit-autofill {
     text-align: left;
     font-size: 14px;
     color: #FF3E2E;
+    margin-bottom: 15px;
 }
 
     .error_message ul, .error_message li {
