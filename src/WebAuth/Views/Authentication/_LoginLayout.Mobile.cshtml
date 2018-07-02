@@ -59,16 +59,24 @@
             validateInput();
         }
 
+        function isValidEmail() {
+            const email = $("#email").val();
+            const filter = /^(?!.*[\\#%+/?\u0000-\u001F\u007F-\u009F\s]).+@@(.+\..+)+$/;
+            const isValidEmail = filter.test(email);
+            return isValidEmail;
+        }
+
         function validateInput() {
             const submit = $("#submit");
-            const email = $("#email").val();
             const password = $("#password").val();
-            const filter = /^(?!.*[\\#%+/?\u0000-\u001F\u007F-\u009F\s]).+@@(.+\..+)+$/;
-            const validEmail = filter.test(email);
-            const enable = !(email === "" || password === "") && validEmail && grecaptcha.getResponse() !== "";
-            enableSubmit(submit, enable);
 
-            if (validEmail) {
+            const enable = password !== "" && isValidEmail() && grecaptcha.getResponse() !== "";
+            enableSubmit(submit, enable);
+            resetButtonsState();
+        }
+
+        function resetButtonsState() {
+            if (isValidEmail()) {
                 $('.footer_buttons .btn').removeAttr('disabled');
             }
             else {
@@ -131,6 +139,8 @@
 
                 return valid;
             }
+
+            resetButtonsState();
 
             $('.form-control').each(function() {
                 if ($(this).val() !== '') {

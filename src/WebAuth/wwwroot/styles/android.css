@@ -572,6 +572,7 @@ input {
     color: #fff;
     list-style: none;
     margin-top: 12px;
+    margin-bottom: 15px;
 }
 
     .error_message ul, .error_message li {
