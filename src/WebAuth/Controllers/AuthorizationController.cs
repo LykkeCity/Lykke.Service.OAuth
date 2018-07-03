@@ -172,7 +172,7 @@ namespace WebAuth.Controllers
                 OpenIdConnectConstants.Scopes.Email,
                 OpenIdConnectConstants.Scopes.Profile,
                 OpenIdConnectConstants.Scopes.OfflineAccess
-            }.Intersect(request.GetScopes()));
+            }.Union(request.GetScopes()));
 
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
