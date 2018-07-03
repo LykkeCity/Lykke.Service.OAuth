@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
-    <AssemblyName>WebAuth</AssemblyName>
+    <AssemblyName>Lykke.Service.OAuth</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>WebAuth</PackageId>
     <Version>1.0.0</Version>
