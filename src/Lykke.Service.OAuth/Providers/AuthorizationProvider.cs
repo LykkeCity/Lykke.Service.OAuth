@@ -183,15 +183,15 @@ namespace WebAuth.Providers
             context.Validate();
         }
 
-        public override Task HandleUserinfoRequest(HandleUserinfoRequestContext context)
-        {
-            // Note: by default, the OpenID Connect server middleware automatically handles
-            // userinfo requests and directly writes the JSON response to the response stream.
-            // Calling context.SkipToNextMiddleware() bypasses the default request processing
-            // and delegates it to a custom ASP.NET Core MVC controller (UserinfoController).
-            context.SkipHandler();
-
-            return Task.FromResult(0);
-        }
+//        public override Task HandleUserinfoRequest(HandleUserinfoRequestContext context)
+//        {
+//            // Note: by default, the OpenID Connect server middleware automatically handles
+//            // userinfo requests and directly writes the JSON response to the response stream.
+//            // Calling context.SkipToNextMiddleware() bypasses the default request processing
+//            // and delegates it to a custom ASP.NET Core MVC controller (UserinfoController).
+//            context.SkipHandler();
+//
+//            return Task.FromResult(0);
+//        }
     }
 }

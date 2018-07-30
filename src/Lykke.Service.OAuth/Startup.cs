@@ -74,6 +74,8 @@ namespace WebAuth
                     options.UserinfoEndpointPath = "/connect/userinfo";
                     options.ApplicationCanDisplayErrors = true;
                     options.AllowInsecureHttp = Environment.IsDevelopment();
+                    options.SigningCredentials.AddEphemeralKey();
+                    options.AccessTokenLifetime = TimeSpan.FromSeconds(115);
                 });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -159,7 +161,7 @@ namespace WebAuth
                 });
 
                 app.UseCors("Lykke");
-                
+
                 app.UseAuthentication();
 
                 app.UseSession();
@@ -300,7 +302,7 @@ namespace WebAuth
             azureStorageLogger.Start();
 
             aggregateLogger.AddLog(azureStorageLogger);
-            
+
             var logToSlack = LykkeLogToSlack.Create(slackService, "oauth", LogLevel.Error | LogLevel.FatalError | LogLevel.Warning);
             aggregateLogger.AddLog(logToSlack);
 
