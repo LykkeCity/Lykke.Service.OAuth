@@ -192,8 +192,9 @@ namespace WebAuth
                     }));
 
                 app.UseXContentTypeOptions();
-
-                app.UseXfo(options => options.Deny());
+//
+//                app.UseXfo(options =>
+//                    options.Deny());
 
                 app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
