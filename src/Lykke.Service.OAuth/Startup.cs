@@ -63,6 +63,8 @@ namespace WebAuth
                     options.ExpireTimeSpan = TimeSpan.FromHours(24);
                     options.LoginPath = new PathString("/signin");
                     options.LogoutPath = new PathString("/signout");
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = SameSiteMode.None;
                 })
                 .AddOAuthValidation()
                 .AddOpenIdConnectServer(options =>
