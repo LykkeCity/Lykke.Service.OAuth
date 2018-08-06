@@ -19,5 +19,6 @@ namespace WebAuth.Models
         public string RegisterRecaptchaKey { get; set; }
         public bool? IsLogin { get; set; }
         public string Cid { get; set; }
+        public string PartnerId { get; set; }
     }
 }
