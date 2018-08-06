@@ -64,12 +64,10 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
-        public async Task<ActionResult> Login(string returnUrl = null, string platform = null)
+        public async Task<ActionResult> Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
         {
             try
             {
-                var partnerId = HttpContext?.Request?.Query["partnerId"].ToString();
-
                 var model = new LoginViewModel
                 {
                     ReturnUrl = returnUrl,
