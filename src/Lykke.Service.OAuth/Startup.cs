@@ -78,6 +78,7 @@ namespace WebAuth
                     options.AllowInsecureHttp = Environment.IsDevelopment();
                     options.SigningCredentials.AddEphemeralKey();
                     options.AccessTokenLifetime = TimeSpan.FromSeconds(115);
+                    options.IntrospectionEndpointPath = "/connect/introspection";
                 });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
