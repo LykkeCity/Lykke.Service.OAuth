@@ -21,7 +21,7 @@
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
     <PackageReference Include="Lykke.Common" Version="7.0.3" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.7.4" />
-    <PackageReference Include="Lykke.Logs" Version="4.3.4" />
+    <PackageReference Include="Lykke.Logs" Version="5.2.0" />
     <PackageReference Include="Lykke.Messages" Version="1.9.0" />
     <PackageReference Include="Lykke.Service.ClientAccount.Client" Version="1.4.6" />
     <PackageReference Include="Lykke.Service.GoogleAnalyticsWrapper.Client" Version="2.2.0" />
