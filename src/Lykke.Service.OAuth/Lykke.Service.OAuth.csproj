@@ -13,9 +13,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="2.0.0-rc3-final" />
-    <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="2.0.0-rc3-final" />
-    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc3-final" />
+    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="2.0.0-rc2-final" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="2.0.0-rc2-final" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc2-final" />
     <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="4.0.1" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
