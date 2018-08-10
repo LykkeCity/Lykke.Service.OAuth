@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.PlatformAbstractions;
 using WebAuth.EventFilter;
 using WebAuth.Providers;
 using WebAuth.Modules;
@@ -101,7 +102,13 @@ namespace WebAuth
 
                 var builder = new ContainerBuilder();
                 var settings = Configuration.LoadSettings<AppSettings>();
+
+
                 _settings = settings.CurrentValue;
+
+                Configuration.CheckDependenciesAsync(settings,_settings.SlackNotifications.AzureQueue.ConnectionString,_settings.SlackNotifications.AzureQueue.QueueName,
+                    $"{PlatformServices.Default.Application.ApplicationName} {PlatformServices.Default.Application.ApplicationVersion}");
+
 
                 Log = CreateLogWithSlack(services, settings);
 
