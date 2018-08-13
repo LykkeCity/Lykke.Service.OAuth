@@ -63,8 +63,6 @@ namespace WebAuth
                     options.ExpireTimeSpan = TimeSpan.FromHours(24);
                     options.LoginPath = new PathString("/signin");
                     options.LogoutPath = new PathString("/signout");
-                    options.Cookie.HttpOnly = true;
-                    options.Cookie.SameSite = SameSiteMode.None;
                 })
                 .AddOAuthValidation()
                 .AddOpenIdConnectServer(options =>
@@ -76,9 +74,6 @@ namespace WebAuth
                     options.UserinfoEndpointPath = "/connect/userinfo";
                     options.ApplicationCanDisplayErrors = true;
                     options.AllowInsecureHttp = Environment.IsDevelopment();
-                    options.SigningCredentials.AddEphemeralKey();
-                    options.AccessTokenLifetime = TimeSpan.FromSeconds(115);
-                    options.IntrospectionEndpointPath = "/connect/introspection";
                 });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -164,7 +159,7 @@ namespace WebAuth
                 });
 
                 app.UseCors("Lykke");
-
+                
                 app.UseAuthentication();
 
                 app.UseSession();
@@ -195,9 +190,8 @@ namespace WebAuth
                     }));
 
                 app.UseXContentTypeOptions();
-//
-//                app.UseXfo(options =>
-//                    options.Deny());
+
+                app.UseXfo(options => options.Deny());
 
                 app.UseXXssProtection(options => options.EnabledWithBlockMode());
 
@@ -306,7 +300,7 @@ namespace WebAuth
             azureStorageLogger.Start();
 
             aggregateLogger.AddLog(azureStorageLogger);
-
+            
             var logToSlack = LykkeLogToSlack.Create(slackService, "oauth", LogLevel.Error | LogLevel.FatalError | LogLevel.Warning);
             aggregateLogger.AddLog(logToSlack);
 

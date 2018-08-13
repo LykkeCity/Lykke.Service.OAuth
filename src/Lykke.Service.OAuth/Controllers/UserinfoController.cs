@@ -40,19 +40,19 @@ namespace WebAuth.Controllers
             _walletCredentialsRepository = walletCredentialsRepository;
             _clientAccountClient = clientAccountClient;
         }
-//
-//        [HttpGet("~/connect/userinfo")]
-//        [Authorize(AuthenticationSchemes = OAuthValidationConstants.Schemes.Bearer)]
-//        public IActionResult GetUserInfo()
-//        {
-//            var userInfo = new UserInfoViewModel
-//            {
-//                Email = User.GetClaim(OpenIdConnectConstants.Claims.Email),
-//                FirstName = User.GetClaim(OpenIdConnectConstants.Claims.GivenName),
-//                LastName = User.GetClaim(OpenIdConnectConstants.Claims.FamilyName)
-//            };
-//            return Json(userInfo);
-//        }
+
+        [HttpGet("~/connect/userinfo")]
+        [Authorize(AuthenticationSchemes = OAuthValidationConstants.Schemes.Bearer)]
+        public IActionResult GetUserInfo()
+        {
+            var userInfo = new UserInfoViewModel
+            {
+                Email = User.GetClaim(OpenIdConnectConstants.Claims.Email),
+                FirstName = User.GetClaim(OpenIdConnectConstants.Claims.GivenName),
+                LastName = User.GetClaim(OpenIdConnectConstants.Claims.FamilyName)
+            };
+            return Json(userInfo);
+        }
 
         [HttpGet("~/getlykkewallettoken")]
         [Authorize(AuthenticationSchemes = OAuthValidationConstants.Schemes.Bearer)]

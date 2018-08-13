@@ -7,7 +7,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Common;
 using Lykke.SettingsReader.ReloadingManager;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.PlatformAbstractions;
 
 namespace WebAuth
@@ -17,11 +16,11 @@ namespace WebAuth
         public static void Main(string[] args)
         {
             Console.WriteLine($"{PlatformServices.Default.Application.ApplicationName} version {PlatformServices.Default.Application.ApplicationVersion}");
-            //#$if DEBUG
+//#$if DEBUG
             Console.WriteLine("Is DEBUG");
-            //#$else
+//#$else
             //$#$//Console.WriteLine("Is RELEASE");
-            //#$endif           
+//#$endif           
             var sertConnString = Environment.GetEnvironmentVariable("CertConnectionString");
 
             try
@@ -34,12 +33,6 @@ namespace WebAuth
                         .UseApplicationInsights()
                         .UseUrls("http://*:5000/")
                         .UseStartup<Startup>()
-                        .ConfigureLogging((hostingContext, logging) =>
-                        {
-                            logging.AddConsole();
-                            logging.AddFilter("AspNet", LogLevel.Trace);
-                            logging.SetMinimumLevel(LogLevel.Error);
-                        })
                         .Build();
 
                     host.Run();

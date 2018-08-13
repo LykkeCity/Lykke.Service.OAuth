@@ -115,56 +115,6 @@ namespace WebAuth.Providers
             context.Validate(redirectUrl);
         }
 
-        public override async Task ValidateIntrospectionRequest(ValidateIntrospectionRequestContext context)
-        {
-            
-            // Note: client authentication is not mandatory for non-confidential client applications like mobile apps
-            // (except when using the client credentials grant type) but this authorization server uses a safer policy
-            // that makes client authentication mandatory and returns an error if client_id or client_secret is missing.
-            // You may consider relaxing it to support the resource owner password credentials grant type
-            // with JavaScript or desktop applications, where client credentials cannot be safely stored.
-            // In this case, call context.Skip() to inform the server middleware the client is not trusted.
-            if (string.IsNullOrEmpty(context.ClientId) || string.IsNullOrEmpty(context.ClientSecret))
-            {
-                context.Reject(
-                    OpenIdConnectConstants.Errors.InvalidRequest,
-                    "Missing credentials: ensure that your credentials were correctly " +
-                    "flowed in the request body or in the authorization header");
-
-                return;
-            }
-
-            // Retrieve the application details corresponding to the requested client_id.
-            var application = await _applicationRepository.GetByIdAsync(context.ClientId);
-
-            if (application == null)
-            {
-                context.Reject(
-                    OpenIdConnectConstants.Errors.InvalidClient,
-                    "Application not found in the database: ensure that your client_id is correct");
-
-                return;
-            }
-
-            // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
-            // a key derivation function like PBKDF2 to slow down the secret validation process.
-            // You SHOULD also consider using a time-constant comparer to prevent timing attacks.
-            // For that, you can use the CryptoHelper library developed by @henkmollema:
-            // https://github.com/henkmollema/CryptoHelper. If you don't need .NET Core support,
-            // SecurityDriven.NET/inferno is a rock-solid alternative: http://securitydriven.net/inferno/
-            if (!string.Equals(context.ClientSecret, application.Secret, StringComparison.Ordinal))
-            {
-                context.Reject(
-                    OpenIdConnectConstants.Errors.InvalidClient,
-                    "Invalid credentials: ensure that you specified a correct client_secret");
-
-                return;
-            }
-
-            context.Validate();
-        }
-
-
         public override Task ValidateLogoutRequest(ValidateLogoutRequestContext context)
         {
             // Don't validate logout url, as we don't have it
@@ -233,15 +183,15 @@ namespace WebAuth.Providers
             context.Validate();
         }
 
-//        public override Task HandleUserinfoRequest(HandleUserinfoRequestContext context)
-//        {
-//            // Note: by default, the OpenID Connect server middleware automatically handles
-//            // userinfo requests and directly writes the JSON response to the response stream.
-//            // Calling context.SkipToNextMiddleware() bypasses the default request processing
-//            // and delegates it to a custom ASP.NET Core MVC controller (UserinfoController).
-//            context.SkipHandler();
-//
-//            return Task.FromResult(0);
-//        }
+        public override Task HandleUserinfoRequest(HandleUserinfoRequestContext context)
+        {
+            // Note: by default, the OpenID Connect server middleware automatically handles
+            // userinfo requests and directly writes the JSON response to the response stream.
+            // Calling context.SkipToNextMiddleware() bypasses the default request processing
+            // and delegates it to a custom ASP.NET Core MVC controller (UserinfoController).
+            context.SkipHandler();
+
+            return Task.FromResult(0);
+        }
     }
 }
