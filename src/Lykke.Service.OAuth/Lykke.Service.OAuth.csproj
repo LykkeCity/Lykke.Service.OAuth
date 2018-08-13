@@ -13,9 +13,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="2.0.0-rc2-final" />
-    <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="2.0.0-rc2-final" />
-    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc2-final" />
+    <PackageReference Include="AspNet.Security.OAuth.Validation" Version="2.0.0-rc3-final" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="2.0.0-rc3-final" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc3-final" />
     <PackageReference Include="AutoMapper" Version="7.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
@@ -35,6 +35,7 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.1" />
@@ -60,6 +61,11 @@
   <ItemGroup>
     <Folder Include="wwwroot\dist\" />
     <Folder Include="wwwroot\js\vendor\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings.dev.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Target Name="AddGeneratedContentItems" BeforeTargets="AssignTargetPaths" DependsOnTargets="PrepareForPublish">
     <ItemGroup>
