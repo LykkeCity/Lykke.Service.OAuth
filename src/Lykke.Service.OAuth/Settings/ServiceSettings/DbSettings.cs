@@ -8,5 +8,7 @@ namespace WebAuth.Settings.ServiceSettings
         public string ClientPersonalInfoConnString { get; set; }
         [AzureTableCheck]
         public string LogsConnString { get; set; }
+        [AzureBlobCheck]
+        public string DataProtectionConnString { get; set; }
     }
 }
