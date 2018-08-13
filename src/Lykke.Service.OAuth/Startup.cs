@@ -21,10 +21,16 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.PlatformAbstractions;
 using WebAuth.EventFilter;
 using WebAuth.Providers;
 using WebAuth.Modules;
 using WebAuth.Settings;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using LogLevel = Lykke.Logs.LogLevel;
 
 namespace WebAuth
 {
@@ -38,6 +44,7 @@ namespace WebAuth
         private const string BlobSource = "blob:";
         private const string DataSource = "data:";
         private const string AnySource = "*";
+        private const string DataProtectionContainerName = "data-protection-container-name";
 
         public Startup(IHostingEnvironment env)
         {
@@ -103,6 +110,14 @@ namespace WebAuth
                 var settings = Configuration.LoadSettings<AppSettings>();
                 _settings = settings.CurrentValue;
 
+                Configuration.CheckDependenciesAsync(settings, _settings.SlackNotifications.AzureQueue.ConnectionString, _settings.SlackNotifications.AzureQueue.QueueName,
+                    $"{PlatformServices.Default.Application.ApplicationName} {PlatformServices.Default.Application.ApplicationVersion}");
+
+                services.AddDataProtection()
+                    // Do not change this value. Otherwise the key will be invalid.
+                    .SetApplicationName("Lykke.Service.OAuth")
+                    .PersistKeysToAzureBlobStorage(SetupDataProtectionStorage(_settings.OAuth.Db.DataProtectionConnString), $"{DataProtectionContainerName}/cookie-keys/keys.xml");
+
                 Log = CreateLogWithSlack(services, settings);
 
                 builder.RegisterInstance(Log).As<ILog>().SingleInstance();
@@ -159,7 +174,7 @@ namespace WebAuth
                 });
 
                 app.UseCors("Lykke");
-                
+
                 app.UseAuthentication();
 
                 app.UseSession();
@@ -259,6 +274,19 @@ namespace WebAuth
             }
         }
 
+
+        private static CloudStorageAccount SetupDataProtectionStorage(string dbDataProtectionConnString)
+        {
+
+            var storageAccount = CloudStorageAccount.Parse(dbDataProtectionConnString);
+            var client = storageAccount.CreateCloudBlobClient();
+            var container = client.GetContainerReference(DataProtectionContainerName);
+
+            container.CreateIfNotExistsAsync(new BlobRequestOptions { RetryPolicy = new ExponentialRetry() }, new OperationContext()).GetAwaiter().GetResult();
+
+            return storageAccount;
+        }
+
         private static ILog CreateLogWithSlack(IServiceCollection services, IReloadingManager<AppSettings> settings)
         {
             var consoleLogger = new LogToConsole();
@@ -300,7 +328,7 @@ namespace WebAuth
             azureStorageLogger.Start();
 
             aggregateLogger.AddLog(azureStorageLogger);
-            
+
             var logToSlack = LykkeLogToSlack.Create(slackService, "oauth", LogLevel.Error | LogLevel.FatalError | LogLevel.Warning);
             aggregateLogger.AddLog(logToSlack);
 
