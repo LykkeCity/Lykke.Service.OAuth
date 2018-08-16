@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -159,8 +160,6 @@ namespace WebAuth
                 };
 
                 app.UseForwardedHeaders(forwardedHeaderOptions);
-
-
                 var supportedCultures = new[]
                 {
                     new CultureInfo("en-US"),
