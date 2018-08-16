@@ -25,7 +25,7 @@ namespace WebAuth
 
             try
             {
-                if (string.IsNullOrWhiteSpace(sertConnString) || sertConnString.Length < 10)
+          //      if (string.IsNullOrWhiteSpace(sertConnString) || sertConnString.Length < 10)
                 {
                     var host = new WebHostBuilder()
                         .UseKestrel()
@@ -37,31 +37,31 @@ namespace WebAuth
 
                     host.Run();
                 }
-                else
-                {
-                    var sertContainer = Environment.GetEnvironmentVariable("CertContainer");
-                    var sertFilename = Environment.GetEnvironmentVariable("CertFileName");
-                    var sertPassword = Environment.GetEnvironmentVariable("CertPassword");
-
-                    var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(sertConnString));
-                    var cert = certBlob.GetAsync(sertContainer, sertFilename).Result.ToBytes();
-
-                    X509Certificate2 xcert = new X509Certificate2(cert, sertPassword);
-
-                    var host = new WebHostBuilder()
-                        .UseKestrel(x =>
-                        {
-                            x.Listen(IPAddress.Any, 443, listenOptions => listenOptions.UseHttps(xcert));
-                            x.AddServerHeader = false;
-                        })
-                        .UseContentRoot(Directory.GetCurrentDirectory())
-                        .UseApplicationInsights()
-                        .UseUrls("https://*:443/")
-                        .UseStartup<Startup>()
-                        .Build();
-
-                    host.Run();
-                }
+//                else
+//                {
+//                    var sertContainer = Environment.GetEnvironmentVariable("CertContainer");
+//                    var sertFilename = Environment.GetEnvironmentVariable("CertFileName");
+//                    var sertPassword = Environment.GetEnvironmentVariable("CertPassword");
+//
+//                    var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(sertConnString));
+//                    var cert = certBlob.GetAsync(sertContainer, sertFilename).Result.ToBytes();
+//
+//                    X509Certificate2 xcert = new X509Certificate2(cert, sertPassword);
+//
+//                    var host = new WebHostBuilder()
+//                        .UseKestrel(x =>
+//                        {
+//                            x.Listen(IPAddress.Any, 443, listenOptions => listenOptions.UseHttps(xcert));
+//                            x.AddServerHeader = false;
+//                        })
+//                        .UseContentRoot(Directory.GetCurrentDirectory())
+//                        .UseApplicationInsights()
+//                        .UseUrls("https://*:443/")
+//                        .UseStartup<Startup>()
+//                        .Build();
+//
+//                    host.Run();
+//                }
             }
             catch (Exception ex)
             {

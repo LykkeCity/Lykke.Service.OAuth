@@ -27,6 +27,7 @@ using WebAuth.Providers;
 using WebAuth.Modules;
 using WebAuth.Settings;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -152,7 +153,15 @@ namespace WebAuth
                     app.UseExceptionHandler("/Home/Error");
                 }
 
-                app.UseForwardedHeaders();
+                var forwardedHeaderOptions = new ForwardedHeadersOptions
+                {
+                    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+                };
+                forwardedHeaderOptions.KnownNetworks.Clear();
+                forwardedHeaderOptions.KnownProxies.Clear();
+
+                app.UseForwardedHeaders(forwardedHeaderOptions);
+
 
                 var supportedCultures = new[]
                 {
