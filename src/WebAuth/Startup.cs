@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
+using AzureStorage.Blob;
 using AzureStorage.Tables;
+using Common;
 using Common.Log;
 using Core.Extensions;
 using Lykke.AzureQueueIntegration;
 using Lykke.Logs;
 using Lykke.Logs.Slack;
 using Lykke.SettingsReader;
+using Lykke.SettingsReader.ReloadingManager;
 using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -53,6 +57,15 @@ namespace WebAuth
         {
             try
             {
+                var settings = Configuration.LoadSettings<AppSettings>();
+                _settings = settings.CurrentValue;
+
+                var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
+ 
+                var cert = certBlob.GetAsync(sertContainer, sertFilename).Result.ToBytes();
+
+                X509Certificate2 xcert = new X509Certificate2(cert, sertPassword);
+
                 services.AddAuthentication(options =>
                 {
                     options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
@@ -100,8 +113,10 @@ namespace WebAuth
                 services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(30); });
 
                 var builder = new ContainerBuilder();
-                var settings = Configuration.LoadSettings<AppSettings>();
-                _settings = settings.CurrentValue;
+
+
+                Configuration.CheckDependenciesAsync(settings, _settings.SlackNotifications.AzureQueue.ConnectionString, _settings.SlackNotifications.AzureQueue.QueueName,
+                    $"{PlatformServices.Default.Application.ApplicationName} {PlatformServices.Default.Application.ApplicationVersion}");
 
                 Log = CreateLogWithSlack(services, settings);
 
