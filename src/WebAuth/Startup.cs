@@ -29,6 +29,7 @@ using WebAuth.EventFilter;
 using WebAuth.Providers;
 using WebAuth.Modules;
 using WebAuth.Settings;
+using WebAuth.Settings.ServiceSettings;
 
 namespace WebAuth
 {
@@ -62,9 +63,9 @@ namespace WebAuth
 
                 var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
  
-                var cert = certBlob.GetAsync(sertContainer, sertFilename).Result.ToBytes();
+                var cert = certBlob.GetAsync(Certificates.ContainerName, _settings.OAuth.Certificates.OpenIdConnectCertName).Result.ToBytes();
 
-                X509Certificate2 xcert = new X509Certificate2(cert, sertPassword);
+                var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
                 services.AddAuthentication(options =>
                 {
@@ -76,6 +77,8 @@ namespace WebAuth
                     options.ExpireTimeSpan = TimeSpan.FromHours(24);
                     options.LoginPath = new PathString("/signin");
                     options.LogoutPath = new PathString("/signout");
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                 })
                 .AddOAuthValidation()
                 .AddOpenIdConnectServer(options =>
@@ -84,9 +87,10 @@ namespace WebAuth
                     options.AuthorizationEndpointPath = "/connect/authorize";
                     options.LogoutEndpointPath = "/connect/logout";
                     options.TokenEndpointPath = "/connect/token";
-                    options.UserinfoEndpointPath = "/connect/userinfo";
+                    options.UserinfoEndpointPath = "/connect/default_userinfo";
                     options.ApplicationCanDisplayErrors = true;
                     options.AllowInsecureHttp = Environment.IsDevelopment();
+                    options.SigningCredentials.AddCertificate(xcert);
                 });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -114,9 +118,6 @@ namespace WebAuth
 
                 var builder = new ContainerBuilder();
 
-
-                Configuration.CheckDependenciesAsync(settings, _settings.SlackNotifications.AzureQueue.ConnectionString, _settings.SlackNotifications.AzureQueue.QueueName,
-                    $"{PlatformServices.Default.Application.ApplicationName} {PlatformServices.Default.Application.ApplicationVersion}");
 
                 Log = CreateLogWithSlack(services, settings);
 
