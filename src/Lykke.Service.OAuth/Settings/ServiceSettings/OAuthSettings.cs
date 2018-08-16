@@ -1,7 +1,9 @@
-﻿using Lykke.SettingsReader.Attributes;
+﻿using JetBrains.Annotations;
+using Lykke.SettingsReader.Attributes;
 
 namespace WebAuth.Settings.ServiceSettings
 {
+    [UsedImplicitly]
     public class OAuthSettings
     {
         [HttpCheck("/api/isalive")]
@@ -14,5 +16,7 @@ namespace WebAuth.Settings.ServiceSettings
         public CspSettings Csp { get; set; } = new CspSettings();
         public SecuritySettings Security { get; set; }
         public CacheSettings Cache { get; set; }
+        public Certificates Certificates { get; set; }
+        public CookieSettings CookieSettings { get; set; }
     }
 }
