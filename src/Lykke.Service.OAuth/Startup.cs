@@ -155,10 +155,8 @@ namespace WebAuth
 
                 var forwardedHeaderOptions = new ForwardedHeadersOptions
                 {
-                    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+                    ForwardedHeaders = ForwardedHeaders.XForwardedProto
                 };
-                forwardedHeaderOptions.KnownNetworks.Clear();
-                forwardedHeaderOptions.KnownProxies.Clear();
 
                 app.UseForwardedHeaders(forwardedHeaderOptions);
 
