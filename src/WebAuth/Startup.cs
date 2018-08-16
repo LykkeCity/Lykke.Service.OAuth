@@ -53,6 +53,9 @@ namespace WebAuth
         {
             try
             {
+                var settings = Configuration.LoadSettings<AppSettings>();
+                _settings = settings.CurrentValue;
+
                 services.AddAuthentication(options =>
                 {
                     options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
@@ -100,8 +103,7 @@ namespace WebAuth
                 services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(30); });
 
                 var builder = new ContainerBuilder();
-                var settings = Configuration.LoadSettings<AppSettings>();
-                _settings = settings.CurrentValue;
+
 
                 Log = CreateLogWithSlack(services, settings);
 
