@@ -64,7 +64,7 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
-        public async Task<ActionResult> Login(string returnUrl = null, string platform = null)
+        public async Task<ActionResult> Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
         {
             try
             {
@@ -73,7 +73,8 @@ namespace WebAuth.Controllers
                     ReturnUrl = returnUrl,
                     Referer = HttpContext.GetReferer() ?? Request.GetUri().ToString(),
                     LoginRecaptchaKey = _securitySettings.RecaptchaKey,
-                    RegisterRecaptchaKey = _securitySettings.RecaptchaKey
+                    RegisterRecaptchaKey = _securitySettings.RecaptchaKey,
+                    PartnerId = partnerId
                 };
 
                 var viewName = PlatformToViewName(platform);
@@ -144,7 +145,8 @@ namespace WebAuth.Controllers
                     Email = model.Username,
                     Password = model.Password,
                     Ip = HttpContext.GetIp(),
-                    UserAgent = HttpContext.GetUserAgent()
+                    UserAgent = HttpContext.GetUserAgent(),
+                    PartnerId = model.PartnerId
                 });
 
                 if (authResult == null)
