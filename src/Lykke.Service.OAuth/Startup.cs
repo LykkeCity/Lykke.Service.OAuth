@@ -100,6 +100,7 @@ namespace WebAuth
                     options.ApplicationCanDisplayErrors = true;
                     options.AllowInsecureHttp = Environment.IsDevelopment();
                     options.SigningCredentials.AddCertificate(xcert);
+                    options.AccessTokenLifetime = TimeSpan.FromSeconds(315);
                 });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -123,6 +124,7 @@ namespace WebAuth
 
                 services.AddAutoMapper();
 
+                //Sessions are used to support user registration. Do not delete.
                 services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(30); });
 
                 var builder = new ContainerBuilder();
