@@ -57,9 +57,21 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/getlykkewallettoken")]
-        [HttpGet("~/getlykkewallettokenmobile")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme + "," + OpenIdConnectConstantsExt.Auth.DefaultScheme)]
+        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetLykkewalletToken()
+        {
+            return await GetToken();
+        }
+
+        // Do not delete or merge it with getlykkewallettoken. It will break mobiles
+        [HttpGet("~/getlykkewallettokenmobile")]
+        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.DefaultScheme)]
+        public async Task<IActionResult> GetLykkeWalletTokenMobile()
+        {
+            return await GetToken();
+        }
+
+        private async Task<IActionResult> GetToken()
         {
             var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
 
@@ -70,8 +82,8 @@ namespace WebAuth.Controllers
             }
 
             var session = await _clientSessionsClient.GetAsync(sessionId);
-            
-            return Json(new { Token = sessionId, session.AuthId });
+
+            return Json(new {Token = sessionId, session.AuthId});
         }
 
 
