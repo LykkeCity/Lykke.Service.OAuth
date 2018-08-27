@@ -92,7 +92,7 @@ namespace WebAuth
                          var config = settings.Nested(n => n.OAuth.ResourceServerSettings).CurrentValue;
                          options.Authority = config.Authority;
                          options.ApiName = config.ClientId;
-                         options.ApiSecret = config.AppSecret;
+                         options.ApiSecret = config.ClientSecret;
                      })
                 .AddOpenIdConnectServer(options =>
                 {
