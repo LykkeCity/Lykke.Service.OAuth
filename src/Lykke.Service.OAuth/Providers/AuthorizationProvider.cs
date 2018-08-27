@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Application;
+using Core.Extensions;
+using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 
@@ -13,10 +16,13 @@ namespace WebAuth.Providers
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider
     {
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IClientSessionsClient _clientSessionsClient;
 
-        public AuthorizationProvider(IApplicationRepository applicationRepository)
+
+        public AuthorizationProvider(IApplicationRepository applicationRepository, IClientSessionsClient clientSessionsClient)
         {
             _applicationRepository = applicationRepository;
+            _clientSessionsClient = clientSessionsClient;
         }
 
         public override Task MatchEndpoint(MatchEndpointContext context)
@@ -32,7 +38,7 @@ namespace WebAuth.Providers
 
             return Task.CompletedTask;
         }
-        
+
         public override Task ExtractAuthorizationRequest(ExtractAuthorizationRequestContext context)
         {
             // If a request_id parameter can be found in the authorization request,
@@ -102,7 +108,7 @@ namespace WebAuth.Providers
             }
 
             var redirectUrl = application.Urls.FirstOrDefault(item => item.Equals(context.RedirectUri, StringComparison.Ordinal));
-            
+
             if (!string.IsNullOrEmpty(context.RedirectUri) && redirectUrl == null)
             {
                 context.Reject(
@@ -153,6 +159,16 @@ namespace WebAuth.Providers
                 return;
             }
 
+            if (!await ValidateClient(context))
+            {
+                return;
+            }
+
+            context.Validate();
+        }
+
+        private async Task<bool> ValidateClient(BaseValidatingClientContext context)
+        {
             // Retrieve the application details corresponding to the requested client_id.
             var application = await _applicationRepository.GetByIdAsync(context.ClientId);
 
@@ -162,7 +178,7 @@ namespace WebAuth.Providers
                     OpenIdConnectConstants.Errors.InvalidClient,
                     "Application not found in the database: ensure that your client_id is correct");
 
-                return;
+                return false;
             }
 
             // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
@@ -177,9 +193,34 @@ namespace WebAuth.Providers
                     OpenIdConnectConstants.Errors.InvalidClient,
                     "Invalid credentials: ensure that you specified a correct client_secret");
 
-                return;
+                return false;
             }
 
+            return true;
+        }
+
+        public override async Task ValidateIntrospectionRequest(ValidateIntrospectionRequestContext context)
+        {
+            if (!await ValidateClient(context))
+            {
+                return;
+            }
+            context.Validate();
+        }
+
+        public override async Task HandleIntrospectionRequest(HandleIntrospectionRequestContext context)
+        {
+            if (!context.Claims.TryGetValue(OpenIdConnectConstantsExt.Claims.SessionId, out var sessionId))
+            {
+                context.Reject("No session", "Session id is not provided in claims");
+            }
+
+            var session = await _clientSessionsClient.GetAsync(sessionId.Value.ToString());
+            if (session == null)
+            {
+                context.Reject("Unknown session", "Unable to find a session. Probably it expired");
+
+            }
             context.Validate();
         }
     }

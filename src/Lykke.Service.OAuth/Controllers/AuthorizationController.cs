@@ -10,6 +10,7 @@ using AspNet.Security.OpenIdConnect.Server;
 using Common;
 using Core.Application;
 using Core.Extensions;
+using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,14 +26,15 @@ namespace WebAuth.Controllers
     {
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserManager _userManager;
+        private readonly IClientSessionsClient _clientSessionsClient;
 
         public AuthorizationController(
-            IApplicationRepository applicationRepository, 
-            IUserManager userManager
-            )
+            IApplicationRepository applicationRepository,
+            IUserManager userManager, IClientSessionsClient clientSessionsClient)
         {
             _applicationRepository = applicationRepository;
             _userManager = userManager;
+            _clientSessionsClient = clientSessionsClient;
         }
 
         [HttpGet("~/connect/authorize")]
@@ -59,10 +61,10 @@ namespace WebAuth.Controllers
                     ErrorDescription = "An internal error has occurred"
                 });
             }
-            
+
             Dictionary<string, string> parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
             string redirectUrl;
-            
+
             // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
             // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
             // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
@@ -135,7 +137,7 @@ namespace WebAuth.Controllers
             var scopes = request.GetScopes().ToList();
             var claims = HttpContext.User.Claims;
 
-            var identity = _userManager.CreateIdentity(scopes, claims);
+            var identity = _userManager.CreateIdentity(scopes, claims.Where(c => c.Type != OpenIdConnectConstantsExt.Claims.SessionId));
 
             var application = await _applicationRepository.GetByIdAsync(request.ClientId);
             if (application == null)
@@ -148,6 +150,17 @@ namespace WebAuth.Controllers
                 });
             }
 
+            var sessionId = HttpContext.User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+            if (sessionId == null)
+            {
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = "Empty SessionId",
+                    ErrorDescription = "Unable to find session id in the calling context"
+                });
+            }
+
+
             identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
 
             identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationId);
@@ -155,6 +168,8 @@ namespace WebAuth.Controllers
             identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName,
                 OpenIdConnectConstants.Destinations.AccessToken,
                 OpenIdConnectConstants.Destinations.IdentityToken);
+
+            identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, sessionId, OpenIdConnectConstants.Destinations.AccessToken);
 
             // Create a new authentication ticket holding the user identity.
             var ticket = new AuthenticationTicket(
@@ -233,8 +248,13 @@ namespace WebAuth.Controllers
         }
 
         [HttpPost("~/connect/logout")]
-        public ActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+            if (sessionId != null)
+            {
+                await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
+            }
             return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
         }
     }

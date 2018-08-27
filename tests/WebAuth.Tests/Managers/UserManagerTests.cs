@@ -47,7 +47,7 @@ namespace WebAuth.Tests.Managers
             //assert
             await
                 Assert.ThrowsAsync<ArgumentNullException>(
-                    async () => await userManager.CreateUserIdentityAsync("test", null, null));
+                    async () => await userManager.CreateUserIdentityAsync("test", null, null, null));
         }
 
         [Fact]
@@ -219,7 +219,7 @@ namespace WebAuth.Tests.Managers
             personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(personalData);
 
             var userManager = CreateUserManager(personalDataService);
-            var result = await userManager.CreateUserIdentityAsync("test", "test@test.com", "test");
+            var result = await userManager.CreateUserIdentityAsync("test", "test@test.com", "fdfd", "test");
 
             //assert
             Assert.Equal(personalData.FirstName, result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
