@@ -11,6 +11,7 @@ using AzureStorage.Tables;
 using Common;
 using Common.Log;
 using Core.Extensions;
+using IdentityServer4.AccessTokenValidation;
 using Lykke.AzureQueueIntegration;
 using Lykke.Logs;
 using Lykke.Logs.Slack;
@@ -71,31 +72,35 @@ namespace WebAuth
                 _settings = settings.CurrentValue;
 
                 var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
- 
+
                 var cert = certBlob.GetAsync(Certificates.ContainerName, _settings.OAuth.Certificates.OpenIdConnectCertName).Result.ToBytes();
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
-                services.AddAuthentication(options =>
-                {
-                    options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
-                })
-                .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
-                {
-                    options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + OpenIdConnectConstantsExt.Auth.DefaultScheme;
-                    options.ExpireTimeSpan = TimeSpan.FromHours(24);
-                    options.LoginPath = new PathString("/signin");
-                    options.LogoutPath = new PathString("/signout");
-                    options.Cookie.HttpOnly = true;
-                    options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
-                })
-                .AddOAuthValidation()
+
+                services.AddAuthentication(options => { options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme; })
+                    .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
+                    {
+                        options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                        options.LoginPath = new PathString("/signin");
+                        options.LogoutPath = new PathString("/signout");
+                        options.Cookie.HttpOnly = true;
+                        options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
+                        options.EventsType = typeof(CustomCookieAuthenticationEvents);
+                    }).AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme, options =>
+                     {
+                         var config = settings.Nested(n => n.OAuth.ResourceServerSettings).CurrentValue;
+                         options.Authority = config.Authority;
+                         options.ApiName = config.ClientId;
+                         options.ApiSecret = config.AppSecret;
+                     })
                 .AddOpenIdConnectServer(options =>
                 {
                     options.ProviderType = typeof(AuthorizationProvider);
                     options.AuthorizationEndpointPath = "/connect/authorize";
                     options.LogoutEndpointPath = "/connect/logout";
                     options.TokenEndpointPath = "/connect/token";
+                    options.IntrospectionEndpointPath = "/connect/introspection";
                     options.UserinfoEndpointPath = "/connect/default_userinfo";
                     options.ApplicationCanDisplayErrors = true;
                     options.AllowInsecureHttp = Environment.IsDevelopment();

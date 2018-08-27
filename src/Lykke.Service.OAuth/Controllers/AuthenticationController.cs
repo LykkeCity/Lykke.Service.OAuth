@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -14,13 +15,16 @@ using Core.VerificationCodes;
 using Lykke.Common.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
+using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
+using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.WebUtilities;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
@@ -38,6 +42,7 @@ namespace WebAuth.Controllers
         private readonly IClientAccountClient _clientAccountClient;
         private readonly IRecaptchaService _recaptchaService;
         private readonly SecuritySettings _securitySettings;
+        private readonly IClientSessionsClient _clientSessionsClient;
         private readonly ILog _log;
 
         public AuthenticationController(
@@ -49,7 +54,7 @@ namespace WebAuth.Controllers
             IClientAccountClient clientAccountClient,
             IRecaptchaService recaptchaService,
             SecuritySettings securitySettings,
-            ILog log)
+            ILog log, IClientSessionsClient clientSessionsClient)
         {
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -60,12 +65,23 @@ namespace WebAuth.Controllers
             _recaptchaService = recaptchaService;
             _securitySettings = securitySettings;
             _log = log;
+            _clientSessionsClient = clientSessionsClient;
         }
 
         [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
         public async Task<ActionResult> Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
         {
+            if (User.Identities.Any(identity => identity.IsAuthenticated))
+            {
+                var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+                if (sessionId != null)
+                {
+                    return RedirectToAction("Afterlogin", new { returnUrl, platform });
+                }
+            }
+
+
             try
             {
                 var model = new LoginViewModel
@@ -76,7 +92,7 @@ namespace WebAuth.Controllers
                     RegisterRecaptchaKey = _securitySettings.RecaptchaKey,
                     PartnerId = partnerId
                 };
-                
+
                 var viewName = PlatformToViewName(platform);
 
                 return View(viewName, model);
@@ -107,7 +123,7 @@ namespace WebAuth.Controllers
             switch (platform?.ToLower())
             {
                 case "android":
-                    return RedirectToAction("GetLykkewalletTokenMobile", "Userinfo");
+                    return RedirectToAction("GetLykkewalletToken", "Userinfo");
                 case "ios":
                     return View("AfterLogin.ios");
                 default:
@@ -126,16 +142,16 @@ namespace WebAuth.Controllers
 
             model.LoginRecaptchaKey = _securitySettings.RecaptchaKey;
             model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
-            
+
             var viewName = PlatformToViewName(platform);
 
             if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
                 if (!model.Username.IsValidEmailAndRowKey())
                     ModelState.AddModelError(nameof(model.Username), "Please enter a valid email address");
-                
+
                 if (!await _recaptchaService.Validate())
-                    ModelState.AddModelError(nameof(model.LoginRecaptchaKey), "Captcha validation failed"); 
+                    ModelState.AddModelError(nameof(model.LoginRecaptchaKey), "Captcha validation failed");
 
                 if (!ModelState.IsValid)
                     return View(viewName, model);
@@ -160,9 +176,7 @@ namespace WebAuth.Controllers
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
                     return View(viewName, model);
                 }
-
-                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id,
-                    authResult.Account.Email, model.Username, false);
+                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, model.Username, authResult.Token, false);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
@@ -180,7 +194,7 @@ namespace WebAuth.Controllers
             if (string.IsNullOrEmpty(model.Email))
             {
                 ModelState.AddModelError(nameof(model.Email), $"{nameof(model.Email)} is required and can't be empty");
-                
+
                 return View(viewName, model);
             }
 
@@ -197,12 +211,12 @@ namespace WebAuth.Controllers
             }
 
             var traffic = Request.Cookies["sbjs_current"];
-            
+
             var code = await _verificationCodesService.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
-            var url = Url.Action("Signup", "Authentication", new {key = code.Key}, Request.Scheme);
+            var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(model.Email, code.Code, url);
 
-            return RedirectToAction("Signup", new {key = code.Key});
+            return RedirectToAction("Signup", new { key = code.Key });
         }
 
         [HttpGet("~/signup/{key}")]
@@ -221,7 +235,7 @@ namespace WebAuth.Controllers
             return View(code);
         }
 
-        [HttpPost("~/signup/verifyEmail")]  
+        [HttpPost("~/signup/verifyEmail")]
         [ValidateAntiForgeryToken]
         public async Task<VerificationCodeResult> VerifyEmail([FromBody] VerificationCodeRequest request)
         {
@@ -247,12 +261,12 @@ namespace WebAuth.Controllers
             return result;
         }
 
-        [HttpPost("~/signup/resendCode")]  
+        [HttpPost("~/signup/resendCode")]
         [ValidateAntiForgeryToken]
         public async Task<ResendCodeResult> ResendCode([FromBody] ResendCodeRequest request)
         {
             var result = new ResendCodeResult();
-            
+
             if (!request.Key.IsValidPartitionOrRowKey())
                 return result;
 
@@ -264,20 +278,20 @@ namespace WebAuth.Controllers
             if (code == null)
                 return ResendCodeResult.Expired;
 
-            if (code.ResendCount > 2) 
+            if (code.ResendCount > 2)
                 return result;
-            
+
             code = await _verificationCodesService.UpdateCodeAsync(request.Key);
 
             if (code == null)
                 return ResendCodeResult.Expired;
-            
+
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
             result.Result = true;
             return result;
         }
-        
+
         [HttpPost("~/signup/checkPassword")]
         [ValidateAntiForgeryToken]
         public bool CheckPassword([FromBody]string password)
@@ -321,8 +335,8 @@ namespace WebAuth.Controllers
                         return regResult;
                     }
                 }
-                
-                RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
+
+                var result = await _registrationClient.RegisterAsync(new RegistrationModel
                 {
                     Email = model.Email,
                     Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
@@ -343,11 +357,12 @@ namespace WebAuth.Controllers
                     return regResult;
                 }
 
-                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, true);
-
-                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
-
                 await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
+
+                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, result.Token, true);
+
+                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity), new AuthenticationProperties());
+
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
             }
             else
@@ -367,14 +382,17 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signout")]
         [HttpPost("~/signout")]
-        public async Task<ActionResult> SignOut()
+        public async Task<IActionResult> SignOut()
         {
-            await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
-            await HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
-            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
+            var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+            if (sessionId != null)
+            {
+                await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
+            }
+            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme);
         }
 
-        private bool IsPasswordComplex(string password)
+        private static bool IsPasswordComplex(string password)
         {
             return password.IsPasswordComplex(useSpecialChars: false);
         }
