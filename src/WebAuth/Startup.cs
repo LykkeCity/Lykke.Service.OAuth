@@ -9,6 +9,7 @@ using AzureStorage.Tables;
 using Common.Log;
 using Core.Extensions;
 using Lykke.AzureQueueIntegration;
+using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Logs;
 using Lykke.Logs.Slack;
 using Lykke.SettingsReader;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -137,8 +139,8 @@ namespace WebAuth
                     app.UseExceptionHandler("/Home/Error");
                 }
 
-                app.UseForwardedHeaders();
 
+                app.UseLykkeForwardedHeaders();
                 var supportedCultures = new[]
                 {
                     new CultureInfo("en-US"),
