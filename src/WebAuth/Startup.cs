@@ -9,6 +9,7 @@ using AzureStorage.Tables;
 using Common.Log;
 using Core.Extensions;
 using Lykke.AzureQueueIntegration;
+using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Logs;
 using Lykke.Logs.Slack;
 using Lykke.SettingsReader;
@@ -138,12 +139,8 @@ namespace WebAuth
                     app.UseExceptionHandler("/Home/Error");
                 }
 
-                var forwardedHeaderOptions = new ForwardedHeadersOptions
-                {
-                    ForwardedHeaders = ForwardedHeaders.XForwardedProto
-                };
 
-                app.UseForwardedHeaders(forwardedHeaderOptions);
+                app.UseLykkeForwardedHeaders();
                 var supportedCultures = new[]
                 {
                     new CultureInfo("en-US"),
