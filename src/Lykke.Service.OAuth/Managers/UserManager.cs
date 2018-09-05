@@ -83,7 +83,7 @@ namespace WebAuth.Managers
             return identity;
         }
 
-        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, string sessionId, string partnerId, bool? register = null)
+        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, string partnerId, string sessionId, bool? register = null)
         {
             var personalData = await _personalDataService.GetAsync(clientId);
 
