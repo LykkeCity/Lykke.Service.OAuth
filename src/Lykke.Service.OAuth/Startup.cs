@@ -13,6 +13,7 @@ using Common.Log;
 using Core.Extensions;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.AzureQueueIntegration;
+using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Logs;
 using Lykke.Logs.Slack;
 using Lykke.SettingsReader;
@@ -68,17 +69,24 @@ namespace WebAuth
         {
             try
             {
-                var settings = Configuration.LoadSettings<AppSettings>();
+                var settings = Configuration.LoadSettings<AppSettings>(options =>
+                {
+                    options.SetConnString(x => x.SlackNotifications.AzureQueue.ConnectionString);
+                    options.SetQueueName(x => x.SlackNotifications.AzureQueue.QueueName);
+                    options.SenderName = "Sender name";
+                });
                 _settings = settings.CurrentValue;
 
                 var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
-
+ 
                 var cert = certBlob.GetAsync(Certificates.ContainerName, _settings.OAuth.Certificates.OpenIdConnectCertName).Result.ToBytes();
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
-
-                services.AddAuthentication(options => { options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme; })
+                services.AddAuthentication(options =>
+                {
+                    options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                })
                     .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
                     {
                         options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + OpenIdConnectConstantsExt.Auth.DefaultScheme;
@@ -134,9 +142,6 @@ namespace WebAuth
 
                 var builder = new ContainerBuilder();
 
-                Configuration.CheckDependenciesAsync(settings, _settings.SlackNotifications.AzureQueue.ConnectionString, _settings.SlackNotifications.AzureQueue.QueueName,
-                    $"{PlatformServices.Default.Application.ApplicationName} {PlatformServices.Default.Application.ApplicationVersion}");
-
                 services.AddDataProtection()
                     // Do not change this value. Otherwise the key will be invalid.
                     .SetApplicationName("Lykke.Service.OAuth")
@@ -176,12 +181,8 @@ namespace WebAuth
                     app.UseExceptionHandler("/Home/Error");
                 }
 
-                var forwardedHeaderOptions = new ForwardedHeadersOptions
-                {
-                    ForwardedHeaders = ForwardedHeaders.XForwardedProto
-                };
 
-                app.UseForwardedHeaders(forwardedHeaderOptions);
+                app.UseLykkeForwardedHeaders();
                 var supportedCultures = new[]
                 {
                     new CultureInfo("en-US"),

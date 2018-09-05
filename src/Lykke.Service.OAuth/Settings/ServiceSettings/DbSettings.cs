@@ -11,7 +11,7 @@ namespace WebAuth.Settings.ServiceSettings
         [AzureTableCheck]
         public string LogsConnString { get; set; }
         [AzureBlobCheck]
-        public string DataProtectionConnString { get; set; }
+        public string DataProtectionConnString { get; set; }  
         [AzureBlobCheck]
         public string CertStorageConnectionString { get; set; }
     }

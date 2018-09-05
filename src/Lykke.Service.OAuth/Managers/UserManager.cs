@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -9,8 +8,6 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Common.Log;
 using Core.Extensions;
-using Lykke.Service.Kyc.Abstractions.Domain.Profile;
-using Lykke.Service.Kyc.Abstractions.Services;
 using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
 
@@ -20,18 +17,15 @@ namespace WebAuth.Managers
     {
         private readonly IPersonalDataService _personalDataService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IKycProfileServiceV2 _kycProfileService;
         private readonly ILog _log;
 
         public UserManager(IPersonalDataService personalDataService,
             IHttpContextAccessor httpContextAccessor,
-            IKycProfileServiceV2 kycProfileService,
             ILog log
             )
         {
             _personalDataService = personalDataService;
             _httpContextAccessor = httpContextAccessor;
-            _kycProfileService = kycProfileService;
             _log = log.CreateComponentScope(nameof(UserManager));
         }
 
@@ -77,12 +71,6 @@ namespace WebAuth.Managers
                                 AddClaim(claim, identity);
                             break;
                         }
-                    case OpenIdConnectConstantsExt.Claims.Documents:
-                        {
-                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
-                                AddClaim(claim, identity);
-                            break;
-                        }
                     case OpenIdConnectConstantsExt.Claims.SignType:
                         {
                             AddClaim(claim, identity);
@@ -119,11 +107,6 @@ namespace WebAuth.Managers
             if (!string.IsNullOrEmpty(personalData.Country))
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Country, personalData.Country));
 
-            var documents = (await GetDocumentListAsync(clientId)).ToList();
-
-            if (documents.Any())
-                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Documents, string.Join(",", documents)));
-
             if (register.HasValue)
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register" : "Login"));
 
@@ -133,24 +116,6 @@ namespace WebAuth.Managers
         public string GetCurrentUserId()
         {
             return _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        }
-
-        private async Task<List<string>> GetDocumentListAsync(string clientId)
-        {
-            var uploadedDocumentTypes = new List<string>();
-
-            try
-            {
-                var documents = await _kycProfileService.GetDocumentsAsync(clientId, KycProfile.Default);
-
-                uploadedDocumentTypes = documents?.Select(d => d.Value.Type.Name).ToList();
-            }
-            catch (Exception)
-            {
-                _log.WriteWarning(nameof(GetDocumentListAsync), clientId, "Error getting documents");
-            }
-
-            return uploadedDocumentTypes;
         }
 
         private static void AddClaim(Claim claim, ClaimsIdentity identity)
