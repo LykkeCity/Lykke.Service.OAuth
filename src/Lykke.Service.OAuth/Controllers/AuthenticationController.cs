@@ -162,7 +162,7 @@ namespace WebAuth.Controllers
                 }
 
                 var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id,
-                    authResult.Account.Email, model.Username, false);
+                    authResult.Account.Email, model.Username, authResult.Account.PartnerId, false);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
@@ -252,7 +252,7 @@ namespace WebAuth.Controllers
         public async Task<ResendCodeResult> ResendCode([FromBody] ResendCodeRequest request)
         {
             var result = new ResendCodeResult();
-            
+
             if (!request.Key.IsValidPartitionOrRowKey())
                 return result;
 
@@ -264,14 +264,14 @@ namespace WebAuth.Controllers
             if (code == null)
                 return ResendCodeResult.Expired;
 
-            if (code.ResendCount > 2) 
+            if (code.ResendCount > 2)
                 return result;
-            
+
             code = await _verificationCodesService.UpdateCodeAsync(request.Key);
 
             if (code == null)
                 return ResendCodeResult.Expired;
-            
+
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
             result.Result = true;
@@ -299,55 +299,55 @@ namespace WebAuth.Controllers
 
             if (ModelState.IsValid)
             {
-            if (!model.Email.IsValidEmailAndRowKey())
-            {
-                regResult.Errors.Add("Invalid email address");
-                return regResult;
-            }
-
-            string userIp = HttpContext.GetIp();
-            string referer = null;
-            string userAgent = HttpContext.GetUserAgent();
-
-            if (!string.IsNullOrEmpty(model.Referer))
-            {
-                try
+                if (!model.Email.IsValidEmailAndRowKey())
                 {
-                    referer = new Uri(model.Referer).Host;
-                }
-                catch
-                {
-                    regResult.Errors.Add("Invalid referer url");
+                    regResult.Errors.Add("Invalid email address");
                     return regResult;
                 }
-            }
 
-            RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
-            {
-                Email = model.Email,
-                Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
-                Ip = userIp,
-                Changer = RecordChanger.Client,
-                UserAgent = userAgent,
-                Referer = referer,
-                CreatedAt = DateTime.UtcNow,
+                string userIp = HttpContext.GetIp();
+                string referer = null;
+                string userAgent = HttpContext.GetUserAgent();
+
+                if (!string.IsNullOrEmpty(model.Referer))
+                {
+                    try
+                    {
+                        referer = new Uri(model.Referer).Host;
+                    }
+                    catch
+                    {
+                        regResult.Errors.Add("Invalid referer url");
+                        return regResult;
+                    }
+                }
+
+                RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
+                {
+                    Email = model.Email,
+                    Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
+                    Ip = userIp,
+                    Changer = RecordChanger.Client,
+                    UserAgent = userAgent,
+                    Referer = referer,
+                    CreatedAt = DateTime.UtcNow,
                     Cid = model.Cid,
                     Traffic = model.Traffic
-            });
+                });
 
-            regResult.RegistrationResponse = result;
+                regResult.RegistrationResponse = result;
 
-            if (regResult.RegistrationResponse == null)
-            {
-                regResult.Errors.Add("Technical problems during registration.");
-                return regResult;
-            }
+                if (regResult.RegistrationResponse == null)
+                {
+                    regResult.Errors.Add("Technical problems during registration.");
+                    return regResult;
+                }
 
-            var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, true);
+                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, result.Account.PartnerId, true);
 
-            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-            await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
+                await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
             }
             else

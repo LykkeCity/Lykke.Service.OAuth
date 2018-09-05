@@ -60,7 +60,7 @@ namespace WebAuth.ActionHandlers
 
             await _httpContextAccessor.HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
 
-            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientEmail, clientEmail, true);
+            var identity = await _userManager.CreateUserIdentityAsync(clientAccount.Id, clientEmail, clientEmail, clientAccount.PartnerId, true);
 
             await _httpContextAccessor.HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
                     new ClaimsPrincipal(identity),

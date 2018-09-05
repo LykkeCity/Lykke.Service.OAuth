@@ -43,57 +43,58 @@ namespace WebAuth.Managers
                 switch (claim.Type)
                 {
                     case ClaimTypes.NameIdentifier:
-                    {
-                        identity.AddClaim(claim);
-                        identity.AddClaim(OpenIdConnectConstants.Claims.Subject, claim.Value);
-                        break;
-                    }
+                        {
+                            identity.AddClaim(claim);
+                            identity.AddClaim(OpenIdConnectConstants.Claims.Subject, claim.Value);
+                            break;
+                        }
                     case ClaimTypes.Name:
-                    {
-                        AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstants.Claims.Email:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Email))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Email))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstants.Claims.GivenName:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstants.Claims.FamilyName:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstantsExt.Claims.Country:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Address))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Address))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstantsExt.Claims.Documents:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstantsExt.Claims.SignType:
-                    {
-                        AddClaim(claim, identity);
-                        break;
-                    }
+                    case OpenIdConnectConstantsExt.Claims.PartnerId:
+                        {
+                            AddClaim(claim, identity);
+                            break;
+                        }
                 }
 
             return identity;
         }
 
-        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, bool? register = null)
+        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, string partnerId, bool? register = null)
         {
             var personalData = await _personalDataService.GetAsync(clientId);
 
@@ -113,13 +114,18 @@ namespace WebAuth.Managers
             if (!string.IsNullOrEmpty(personalData.Country))
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Country, personalData.Country));
 
+            if (!string.IsNullOrEmpty(partnerId))
+            {
+                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.PartnerId, partnerId));
+            }
+
             var documents = (await GetDocumentListAsync(clientId)).ToList();
 
             if (documents.Any())
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Documents, string.Join(",", documents)));
 
             if (register.HasValue)
-                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register": "Login"));
+                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register" : "Login"));
 
             return new ClaimsIdentity(new GenericIdentity(userName, "Token"), claims);
         }
@@ -132,7 +138,7 @@ namespace WebAuth.Managers
         private async Task<List<string>> GetDocumentListAsync(string clientId)
         {
             var uploadedDocumentTypes = new List<string>();
-            
+
             try
             {
                 var documents = await _kycProfileService.GetDocumentsAsync(clientId, KycProfile.Default);
@@ -143,7 +149,7 @@ namespace WebAuth.Managers
             {
                 _log.WriteWarning(nameof(GetDocumentListAsync), clientId, "Error getting documents");
             }
-            
+
             return uploadedDocumentTypes;
         }
 
