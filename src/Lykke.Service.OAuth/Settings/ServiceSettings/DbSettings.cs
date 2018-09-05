@@ -1,7 +1,9 @@
-﻿using Lykke.SettingsReader.Attributes;
+﻿using JetBrains.Annotations;
+using Lykke.SettingsReader.Attributes;
 
 namespace WebAuth.Settings.ServiceSettings
 {
+    [UsedImplicitly]
     public class DbSettings
     {
         [AzureTableCheck]
@@ -9,6 +11,8 @@ namespace WebAuth.Settings.ServiceSettings
         [AzureTableCheck]
         public string LogsConnString { get; set; }
         [AzureBlobCheck]
-        public string DataProtectionConnString { get; set; }
+        public string DataProtectionConnString { get; set; }  
+        [AzureBlobCheck]
+        public string CertStorageConnectionString { get; set; }
     }
 }

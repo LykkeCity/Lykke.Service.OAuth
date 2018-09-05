@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
+using AzureStorage.Blob;
 using AzureStorage.Tables;
+using Common;
 using Common.Log;
 using Core.Extensions;
 using Lykke.AzureQueueIntegration;
@@ -13,6 +16,7 @@ using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Logs;
 using Lykke.Logs.Slack;
 using Lykke.SettingsReader;
+using Lykke.SettingsReader.ReloadingManager;
 using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -32,6 +36,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using WebAuth.Settings.ServiceSettings;
 using LogLevel = Lykke.Logs.LogLevel;
 
 namespace WebAuth
@@ -62,6 +67,20 @@ namespace WebAuth
         {
             try
             {
+                var settings = Configuration.LoadSettings<AppSettings>(options =>
+                {
+                    options.SetConnString(x => x.SlackNotifications.AzureQueue.ConnectionString);
+                    options.SetQueueName(x => x.SlackNotifications.AzureQueue.QueueName);
+                    options.SenderName = "Sender name";
+                });
+                _settings = settings.CurrentValue;
+
+                var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
+ 
+                var cert = certBlob.GetAsync(Certificates.ContainerName, _settings.OAuth.Certificates.OpenIdConnectCertName).Result.ToBytes();
+
+                var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
+
                 services.AddAuthentication(options =>
                 {
                     options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
@@ -72,6 +91,8 @@ namespace WebAuth
                     options.ExpireTimeSpan = TimeSpan.FromHours(24);
                     options.LoginPath = new PathString("/signin");
                     options.LogoutPath = new PathString("/signout");
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                 })
                 .AddOAuthValidation()
                 .AddOpenIdConnectServer(options =>
@@ -80,9 +101,10 @@ namespace WebAuth
                     options.AuthorizationEndpointPath = "/connect/authorize";
                     options.LogoutEndpointPath = "/connect/logout";
                     options.TokenEndpointPath = "/connect/token";
-                    options.UserinfoEndpointPath = "/connect/userinfo";
+                    options.UserinfoEndpointPath = "/connect/default_userinfo";
                     options.ApplicationCanDisplayErrors = true;
                     options.AllowInsecureHttp = Environment.IsDevelopment();
+                    options.SigningCredentials.AddCertificate(xcert);
                 });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -109,11 +131,6 @@ namespace WebAuth
                 services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(30); });
 
                 var builder = new ContainerBuilder();
-                var settings = Configuration.LoadSettings<AppSettings>();
-                _settings = settings.CurrentValue;
-
-                Configuration.CheckDependenciesAsync(settings, _settings.SlackNotifications.AzureQueue.ConnectionString, _settings.SlackNotifications.AzureQueue.QueueName,
-                    $"{PlatformServices.Default.Application.ApplicationName} {PlatformServices.Default.Application.ApplicationVersion}");
 
                 services.AddDataProtection()
                     // Do not change this value. Otherwise the key will be invalid.

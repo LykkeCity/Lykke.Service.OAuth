@@ -15,15 +15,15 @@ namespace WebAuth
             try
             {
 
-                var host = new WebHostBuilder()
-                    .UseKestrel()
-                    .UseContentRoot(Directory.GetCurrentDirectory())
-                    .UseApplicationInsights()
-                    .UseUrls("http://*:5000/")
-                    .UseStartup<Startup>()
-                    .Build();
+                    var host = new WebHostBuilder()
+                        .UseKestrel()
+                        .UseContentRoot(Directory.GetCurrentDirectory())
+                        .UseApplicationInsights()
+                        .UseUrls("http://*:5000/")
+                        .UseStartup<Startup>()
+                        .Build();
 
-                host.Run();
+                    host.Run();
 
             }
             catch (Exception ex)
