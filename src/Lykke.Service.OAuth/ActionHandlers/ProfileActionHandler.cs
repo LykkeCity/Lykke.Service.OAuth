@@ -24,6 +24,6 @@ namespace WebAuth.ActionHandlers
                 LastName = lastName,
                 FullName = fullname
             });
+                }
         }
     }
-}
