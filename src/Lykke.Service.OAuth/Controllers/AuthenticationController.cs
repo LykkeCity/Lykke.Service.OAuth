@@ -176,7 +176,7 @@ namespace WebAuth.Controllers
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
                     return View(viewName, model);
                 }
-                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, model.Username, authResult.Token, false);
+                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, model.Username, authResult.Account.PartnerId, authResult.Token, false);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
@@ -358,8 +358,8 @@ namespace WebAuth.Controllers
                 }
 
                 await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
-
-                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, result.Token, true);
+                
+				var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email,result.Account.PartnerId, result.Token, true);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity), new AuthenticationProperties());
 

@@ -7,6 +7,7 @@
             public const string Country = "country";
             public const string SignType = "SignType";
             public const string SessionId = "http://lykke.com/oauth/sessionid";
+            public const string PartnerId = "http://lykke.com/oauth/partner_id";
         }
 
         public static class Auth
