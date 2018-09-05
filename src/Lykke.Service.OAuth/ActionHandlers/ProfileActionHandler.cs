@@ -32,6 +32,7 @@ namespace WebAuth.ActionHandlers
 
             await _personalDataService.UpdateAsync(new PersonalDataModel
             {
+                Id = clientId,
                 FirstName = firstName,
                 LastName = lastName,
                 FullName = fullname
