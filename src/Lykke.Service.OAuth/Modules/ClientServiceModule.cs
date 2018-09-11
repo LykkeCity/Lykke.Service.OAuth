@@ -8,7 +8,6 @@ using Lykke.Service.Kyc.Client;
 using Lykke.Service.PersonalData.Client;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
-using Lykke.Service.Session;
 using Lykke.Service.Session.Client;
 using Lykke.SettingsReader;
 using WebAuth.Settings;

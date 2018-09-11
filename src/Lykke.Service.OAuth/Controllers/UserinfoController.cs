@@ -13,7 +13,6 @@ using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using WebAuth.Extensions;
 using WebAuth.Models;
 

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Server;
 using Common;
 using Common.Log;
 using Common.PasswordTools;
@@ -15,7 +13,6 @@ using Core.VerificationCodes;
 using Lykke.Common.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
-using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
 using Lykke.Service.Session.Client;
@@ -24,7 +21,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.WebUtilities;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
@@ -361,7 +357,7 @@ namespace WebAuth.Controllers
 
                 var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, result.Token, true);
 
-                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity), new AuthenticationProperties());
+                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
             }
