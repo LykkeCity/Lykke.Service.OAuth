@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -10,6 +11,7 @@ using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace WebAuth.Providers
 {
@@ -18,13 +20,20 @@ namespace WebAuth.Providers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IClientAccountClient _accountClient;
+        private static IDatabase _redisDatabase;
 
 
-        public AuthorizationProvider(IApplicationRepository applicationRepository, IClientSessionsClient clientSessionsClient, IClientAccountClient accountClient)
+        public AuthorizationProvider(
+            IApplicationRepository applicationRepository,
+            IClientSessionsClient clientSessionsClient,
+            IClientAccountClient accountClient,
+            IConnectionMultiplexer connectionMultiplexer
+            )
         {
             _applicationRepository = applicationRepository;
             _clientSessionsClient = clientSessionsClient;
             _accountClient = accountClient;
+            _redisDatabase = connectionMultiplexer.GetDatabase();
         }
 
         public override Task MatchEndpoint(MatchEndpointContext context)
@@ -237,6 +246,139 @@ namespace WebAuth.Providers
             }
 
             context.Validate();
+        }
+
+        public override async Task HandleTokenRequest(HandleTokenRequestContext context)
+        {
+            if (!await ValidateRefreshTokenGrantTypeAsync(context))
+                return;
+
+            await base.HandleTokenRequest(context);
+        }
+
+        public override async Task ApplyTokenResponse(ApplyTokenResponseContext context)
+        {
+            if (!await ApplyRefreshTokenGrantTypeAsync(context)) 
+                return;
+
+            await base.ApplyTokenResponse(context);
+        }
+
+        private async Task<bool> ValidateRefreshTokenGrantTypeAsync(BaseValidatingTicketContext context)
+        {
+            if (context.Error != null)
+                return false;
+
+            // Only proccess refresh token grant type.
+            if (!context.Request.IsRefreshTokenGrantType())
+                return true;
+
+            var sessionIdClaim = context.Ticket.Principal.Claims.FirstOrDefault(claim =>
+                string.Equals(claim.Type, OpenIdConnectConstantsExt.Claims.SessionId, StringComparison.Ordinal));
+
+            if (sessionIdClaim == null)
+            {
+                context.Reject(OpenIdConnectConstantsExt.Errors.ClaimNotProvided, "Session id is not provided in claims.");
+                return false;
+            }
+
+            if (context.Request.RefreshToken == null)
+            {
+                context.Reject(OpenIdConnectConstants.Errors.InvalidRequest, "refresh_token not present in request.");
+                return false;
+            }
+
+            var session = await _clientSessionsClient.GetAsync(sessionIdClaim.Value);
+            var oldRefreshToken = GenerateRefreshTokenRedisKey(context.Request.RefreshToken);
+            if (session == null)
+            {
+                // If session was revoked we should revoke refresh_token too.
+                await _redisDatabase.KeyDeleteAsync(oldRefreshToken);
+                context.Reject(
+                    OpenIdConnectConstants.Errors.InvalidRequest,
+                    "Invalid request: refresh token was revoked.");
+                return false;
+            }
+            
+            var token = await _redisDatabase.StringGetAsync(oldRefreshToken);
+
+            if (!token.HasValue || !(token == true))
+            {
+                context.Reject(
+                    OpenIdConnectConstants.Errors.InvalidRequest,
+                    "Invalid request: refresh token was revoked.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<bool> ApplyRefreshTokenGrantTypeAsync(ApplyTokenResponseContext context)
+        {
+            if (context.Error != null)
+                return false;
+
+            // Only proccess flows that support refresh tokens
+            if (!(context.Request.IsRefreshTokenGrantType() ||
+                  context.Request.IsAuthorizationCodeGrantType()))
+                return true;
+
+            // Only for cases when we requested refresh token.
+            // Add newly generated refresh token to Redis to mark as valid.
+            if (context.Response.RefreshToken != null)
+            {
+                var newRefreshToken = GenerateRefreshTokenRedisKey(context.Response.RefreshToken);
+
+                // If token is generated upon authentication save it to redis.
+                if (context.Request.RefreshToken == null)
+                {
+                    await _redisDatabase.StringSetAsync(newRefreshToken, true, TimeSpan.FromDays(30));
+                    return true;
+                }
+
+                // If we successfully exchanged refresh token,
+                // then remove it from Redis only if we saved a new one.
+                if (context.Request.IsRefreshTokenGrantType() && 
+                    context.Request.RefreshToken != null)
+                {
+                    var transaction = _redisDatabase.CreateTransaction();
+                    var oldRefreshToken = GenerateRefreshTokenRedisKey(context.Request.RefreshToken);
+#pragma warning disable 4014
+                    transaction.KeyDeleteAsync(oldRefreshToken);
+                    transaction.StringSetAsync(newRefreshToken, true, TimeSpan.FromDays(30));
+#pragma warning restore 4014
+                    var isSuccess = await transaction.ExecuteAsync();
+                    if (isSuccess) return true;
+
+                    context.Response.Error = OpenIdConnectConstants.Errors.ServerError;
+                    // TODO:@gafansiev Log redis transction fail?
+                    context.Response.ErrorDescription = "Internal server error.";
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static string GenerateRefreshTokenRedisKey(string refreshToken)
+        {
+            return "RefreshToken:Whitelist:" + CreateMd5(refreshToken);
+        }
+
+        private static string CreateMd5(string input)
+        {
+            using (var md5 = MD5.Create())
+            {
+                var inputBytes = Encoding.ASCII.GetBytes(input);
+                var hashBytes = md5.ComputeHash(inputBytes);
+
+                var sb = new StringBuilder();
+                foreach (var t in hashBytes)
+                {
+                    sb.Append(t.ToString("X2"));
+                }
+                return sb.ToString();
+            }
         }
     }
 }

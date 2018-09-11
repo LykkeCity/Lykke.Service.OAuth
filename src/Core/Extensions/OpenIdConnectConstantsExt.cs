@@ -20,6 +20,7 @@
             public const string UnknownSession = "lykke_unknown_session";
             public const string ClaimNotFound = "lykke_claim_not_found";
             public const string ClientBanned = "lykke_client_banned";
+            public const string ClaimNotProvided = "lykke_claim_not_provided";
         }
     }
 }
