@@ -1,5 +1,6 @@
 ﻿using JetBrains.Annotations;
 using Lykke.SettingsReader.Attributes;
+using StackExchange.Redis;
 
 namespace WebAuth.Settings.ServiceSettings
 {
@@ -18,5 +19,11 @@ namespace WebAuth.Settings.ServiceSettings
         public CacheSettings Cache { get; set; }
         public Certificates Certificates { get; set; }
         public CookieSettings CookieSettings { get; set; }
+        public RedisSettings RedisSettings { get; set; }
+    }
+
+    public class RedisSettings
+    {
+        public string RedisConfiguration { get; set; }
     }
 }

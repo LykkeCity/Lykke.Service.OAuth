@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Server;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
@@ -22,17 +24,16 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.PlatformAbstractions;
 using WebAuth.EventFilter;
 using WebAuth.Providers;
 using WebAuth.Modules;
 using WebAuth.Settings;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -75,37 +76,45 @@ namespace WebAuth
                 });
                 _settings = settings.CurrentValue;
 
-                var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
- 
-                var cert = certBlob.GetAsync(Certificates.ContainerName, _settings.OAuth.Certificates.OpenIdConnectCertName).Result.ToBytes();
+                var certBlob =
+                    AzureBlobStorage.Create(
+                        ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
+
+                var cert = certBlob
+                    .GetAsync(Certificates.ContainerName, _settings.OAuth.Certificates.OpenIdConnectCertName).Result
+                    .ToBytes();
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
                 services.AddAuthentication(options =>
-                {
-                    options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
-                })
-                .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
-                {
-                    options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + OpenIdConnectConstantsExt.Auth.DefaultScheme;
-                    options.ExpireTimeSpan = TimeSpan.FromHours(24);
-                    options.LoginPath = new PathString("/signin");
-                    options.LogoutPath = new PathString("/signout");
-                    options.Cookie.HttpOnly = true;
-                    options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
-                })
-                .AddOAuthValidation()
-                .AddOpenIdConnectServer(options =>
-                {
-                    options.ProviderType = typeof(AuthorizationProvider);
-                    options.AuthorizationEndpointPath = "/connect/authorize";
-                    options.LogoutEndpointPath = "/connect/logout";
-                    options.TokenEndpointPath = "/connect/token";
-                    options.UserinfoEndpointPath = "/connect/default_userinfo";
-                    options.ApplicationCanDisplayErrors = true;
-                    options.AllowInsecureHttp = Environment.IsDevelopment();
-                    options.SigningCredentials.AddCertificate(xcert);
-                });
+                    {
+                        options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                    })
+                    .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
+                    {
+                        options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix +
+                                              OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+                        options.LoginPath = new PathString("/signin");
+                        options.LogoutPath = new PathString("/signout");
+                        options.Cookie.HttpOnly = true;
+                        options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
+                    })
+                    .AddOAuthValidation()
+                    .AddOpenIdConnectServer(options =>
+                    {
+                        options.ProviderType = typeof(AuthorizationProvider);
+                        options.AuthorizationEndpointPath = "/connect/authorize";
+                        options.LogoutEndpointPath = "/connect/logout";
+                        options.TokenEndpointPath = "/connect/token";
+                        options.UserinfoEndpointPath = "/connect/default_userinfo";
+                        options.ApplicationCanDisplayErrors = true;
+                        options.AllowInsecureHttp = Environment.IsDevelopment();
+                        options.SigningCredentials.AddCertificate(xcert);
+                        options.AccessTokenLifetime = TimeSpan.FromMinutes(10);
+                        options.RefreshTokenLifetime = TimeSpan.FromDays(30);
+                        options.UseSlidingExpiration = true;
+                    });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
 
@@ -135,7 +144,9 @@ namespace WebAuth
                 services.AddDataProtection()
                     // Do not change this value. Otherwise the key will be invalid.
                     .SetApplicationName("Lykke.Service.OAuth")
-                    .PersistKeysToAzureBlobStorage(SetupDataProtectionStorage(_settings.OAuth.Db.DataProtectionConnString), $"{DataProtectionContainerName}/cookie-keys/keys.xml");
+                    .PersistKeysToAzureBlobStorage(
+                        SetupDataProtectionStorage(_settings.OAuth.Db.DataProtectionConnString),
+                        $"{DataProtectionContainerName}/cookie-keys/keys.xml");
 
                 Log = CreateLogWithSlack(services, settings);
 
@@ -158,7 +169,8 @@ namespace WebAuth
             }
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime appLifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory,
+            IApplicationLifetime appLifetime)
         {
             try
             {
@@ -170,7 +182,6 @@ namespace WebAuth
                 {
                     app.UseExceptionHandler("/Home/Error");
                 }
-
 
                 app.UseLykkeForwardedHeaders();
                 var supportedCultures = new[]
@@ -198,7 +209,8 @@ namespace WebAuth
 
                 app.UseSession();
 
-                app.UseCsp(options => options.DefaultSources(directive => directive.Self().CustomSources(BlobSource, "www.google.com"))
+                app.UseCsp(options => options
+                    .DefaultSources(directive => directive.Self().CustomSources(BlobSource, "www.google.com"))
                     .ImageSources(directive => directive.Self()
                         .CustomSources(AnySource, DataSource, BlobSource))
                     .ScriptSources(directive =>
@@ -271,6 +283,7 @@ namespace WebAuth
                 {
                     await Log.WriteFatalErrorAsync(nameof(Startup), nameof(StopApplication), "", ex);
                 }
+
                 throw;
             }
         }
@@ -289,6 +302,7 @@ namespace WebAuth
                     await Log.WriteFatalErrorAsync(nameof(Startup), nameof(CleanUp), "", ex);
                     (Log as IDisposable)?.Dispose();
                 }
+
                 throw;
             }
         }
@@ -296,12 +310,12 @@ namespace WebAuth
 
         private static CloudStorageAccount SetupDataProtectionStorage(string dbDataProtectionConnString)
         {
-
             var storageAccount = CloudStorageAccount.Parse(dbDataProtectionConnString);
             var client = storageAccount.CreateCloudBlobClient();
             var container = client.GetContainerReference(DataProtectionContainerName);
 
-            container.CreateIfNotExistsAsync(new BlobRequestOptions { RetryPolicy = new ExponentialRetry() }, new OperationContext()).GetAwaiter().GetResult();
+            container.CreateIfNotExistsAsync(new BlobRequestOptions {RetryPolicy = new ExponentialRetry()},
+                new OperationContext()).GetAwaiter().GetResult();
 
             return storageAccount;
         }
@@ -318,12 +332,15 @@ namespace WebAuth
 
             if (string.IsNullOrEmpty(dbLogConnectionString))
             {
-                consoleLogger.WriteWarningAsync(nameof(Startup), nameof(CreateLogWithSlack), "Table loggger is not inited").Wait();
+                consoleLogger
+                    .WriteWarningAsync(nameof(Startup), nameof(CreateLogWithSlack), "Table loggger is not inited")
+                    .Wait();
                 return aggregateLogger;
             }
 
             if (dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}"))
-                throw new InvalidOperationException($"LogsConnString {dbLogConnectionString} is not filled in settings");
+                throw new InvalidOperationException(
+                    $"LogsConnString {dbLogConnectionString} is not filled in settings");
 
             var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
                 AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "OauthLog", consoleLogger),
@@ -348,7 +365,8 @@ namespace WebAuth
 
             aggregateLogger.AddLog(azureStorageLogger);
 
-            var logToSlack = LykkeLogToSlack.Create(slackService, "oauth", LogLevel.Error | LogLevel.FatalError | LogLevel.Warning);
+            var logToSlack = LykkeLogToSlack.Create(slackService, "oauth",
+                LogLevel.Error | LogLevel.FatalError | LogLevel.Warning);
             aggregateLogger.AddLog(logToSlack);
 
             return aggregateLogger;

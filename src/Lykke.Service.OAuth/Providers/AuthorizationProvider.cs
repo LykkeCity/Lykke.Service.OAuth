@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -7,16 +9,22 @@ using AspNet.Security.OpenIdConnect.Server;
 using Core.Application;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace WebAuth.Providers
 {
     public sealed class AuthorizationProvider : OpenIdConnectServerProvider
     {
         private readonly IApplicationRepository _applicationRepository;
+        private static IDatabase _redisDatabase;
 
-        public AuthorizationProvider(IApplicationRepository applicationRepository)
+        public AuthorizationProvider(
+            IApplicationRepository applicationRepository, 
+            IConnectionMultiplexer connectionMultiplexer
+            )
         {
             _applicationRepository = applicationRepository;
+            _redisDatabase = connectionMultiplexer.GetDatabase();
         }
 
         public override Task MatchEndpoint(MatchEndpointContext context)
@@ -181,6 +189,35 @@ namespace WebAuth.Providers
             }
 
             context.Validate();
+        }
+
+        public override async Task DeserializeRefreshToken(DeserializeRefreshTokenContext context)
+        {
+            var redisKey = "RefreshToken:Whitelist:" + CreateMD5(context.RefreshToken);
+
+            var token = _redisDatabase.StringGet(redisKey);
+            if (token.HasValue && token == true)
+            {
+                await _redisDatabase.StringSetAsync(redisKey, true, TimeSpan.FromDays(30));
+            }
+
+            throw new AuthenticationException("Refresh token was not found.");
+        }
+
+        public static string CreateMD5(string input)
+        {
+            using (var md5 = MD5.Create())
+            {
+                var inputBytes = Encoding.ASCII.GetBytes(input);
+                var hashBytes = md5.ComputeHash(inputBytes);
+
+                var sb = new StringBuilder();
+                foreach (var t in hashBytes)
+                {
+                    sb.Append(t.ToString("X2"));
+                }
+                return sb.ToString();
+            }
         }
     }
 }
