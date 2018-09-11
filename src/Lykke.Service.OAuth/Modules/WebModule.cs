@@ -18,7 +18,7 @@ namespace WebAuth.Modules
         {
             _settings = settings;
         }
-        
+
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<UserManager>().As<IUserManager>().SingleInstance();
@@ -27,6 +27,7 @@ namespace WebAuth.Modules
             builder.RegisterType<UrlHelperFactory>().As<IUrlHelperFactory>().SingleInstance();
             builder.RegisterType<ProfileActionHandler>().AsSelf().SingleInstance();
             builder.RegisterType<AuthorizationProvider>().AsSelf().SingleInstance();
+            builder.RegisterType<CustomCookieAuthenticationEvents>().SingleInstance();
             builder.RegisterInstance(_settings.CurrentValue.OAuth.Security);
         }
     }

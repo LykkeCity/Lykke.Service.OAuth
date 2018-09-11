@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Server;
 using Common;
 using Common.Log;
 using Common.PasswordTools;
@@ -16,6 +15,7 @@ using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
+using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +38,7 @@ namespace WebAuth.Controllers
         private readonly IClientAccountClient _clientAccountClient;
         private readonly IRecaptchaService _recaptchaService;
         private readonly SecuritySettings _securitySettings;
+        private readonly IClientSessionsClient _clientSessionsClient;
         private readonly ILog _log;
 
         public AuthenticationController(
@@ -49,7 +50,7 @@ namespace WebAuth.Controllers
             IClientAccountClient clientAccountClient,
             IRecaptchaService recaptchaService,
             SecuritySettings securitySettings,
-            ILog log)
+            ILog log, IClientSessionsClient clientSessionsClient)
         {
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -60,12 +61,23 @@ namespace WebAuth.Controllers
             _recaptchaService = recaptchaService;
             _securitySettings = securitySettings;
             _log = log;
+            _clientSessionsClient = clientSessionsClient;
         }
 
         [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
         public async Task<ActionResult> Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
         {
+            if (User.Identities.Any(identity => identity.IsAuthenticated))
+            {
+                var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+                if (sessionId != null)
+                {
+                    return RedirectToAction("Afterlogin", new { returnUrl, platform });
+                }
+            }
+
+
             try
             {
                 var model = new LoginViewModel
@@ -107,7 +119,7 @@ namespace WebAuth.Controllers
             switch (platform?.ToLower())
             {
                 case "android":
-                    return RedirectToAction("GetLykkewalletTokenMobile", "Userinfo");
+                    return RedirectToAction("GetLykkeWalletTokenMobile", "Userinfo");
                 case "ios":
                     return View("AfterLogin.ios");
                 default:
@@ -160,9 +172,7 @@ namespace WebAuth.Controllers
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
                     return View(viewName, model);
                 }
-
-                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id,
-                    authResult.Account.Email, model.Username, false);
+                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, model.Username, authResult.Token, false);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
@@ -322,7 +332,7 @@ namespace WebAuth.Controllers
                 }
             }
 
-            RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
+                var result = await _registrationClient.RegisterAsync(new RegistrationModel
             {
                 Email = model.Email,
                 Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
@@ -343,11 +353,12 @@ namespace WebAuth.Controllers
                 return regResult;
             }
 
-            var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, true);
+                await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
 
-            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, result.Token, true);
 
-            await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
+                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
             }
             else
@@ -367,14 +378,17 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signout")]
         [HttpPost("~/signout")]
-        public async Task<ActionResult> SignOut()
+        public async Task<IActionResult> SignOut()
         {
-            await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
-            await HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
-            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
+            var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+            if (sessionId != null)
+            {
+                await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
+        }
+            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme);
         }
 
-        private bool IsPasswordComplex(string password)
+        private static bool IsPasswordComplex(string password)
         {
             return password.IsPasswordComplex(useSpecialChars: false);
         }

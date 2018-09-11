@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AspNet.Security.OAuth.Validation;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Common;
 using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
+using Core.Extensions;
+using IdentityServer4.AccessTokenValidation;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Session.Client;
@@ -42,7 +43,7 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/connect/userinfo")]
-        [Authorize(AuthenticationSchemes = OAuthValidationConstants.Schemes.Bearer)]
+        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
         public IActionResult GetUserInfo()
         {
             var userInfo = new UserInfoViewModel
@@ -55,58 +56,38 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/getlykkewallettoken")]
-        [Authorize(AuthenticationSchemes = OAuthValidationConstants.Schemes.Bearer)]
+        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetLykkewalletToken()
         {
-            var applicationId = HttpContext.GetApplicationId();
-
-            if (!applicationId.IsValidPartitionOrRowKey())
-                return BadRequest("Invalid applicationId");
-
-            var app = await _applicationRepository.GetByIdAsync(applicationId);
-
-            if (app == null)
-                return BadRequest("Application Id Incorrect!");
-
-
-            return await GetToken(app.Type);
+            return await GetToken();
         }
 
+        // Do not delete or merge it with getlykkewallettoken. It will break mobiles
         [HttpGet("~/getlykkewallettokenmobile")]
-        [Authorize]
-        public Task<IActionResult> GetLykkewalletTokenMobile()
+        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.DefaultScheme)]
+        public async Task<IActionResult> GetLykkeWalletTokenMobile()
         {
-            // Mobile client process authentication on AuthenticationController and get correct cookies.
-            // That should be enough to pass authorization validation here.
-            return GetToken(null);
+            return await GetToken();
         }
 
-        private async Task<IActionResult> GetToken(string appType)
+        private async Task<IActionResult> GetToken()
         {
-            var clientId = User.Identity.GetClientId();
+            var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
 
-            if (clientId == null)
-                return NotFound("Can't get clientId from claims");
-
-            ClientModel clientAccount = await GetClientByIdAsync(clientId);
-
-            if (clientAccount == null)
-                return NotFound("Client not found");
-
-            try
+            // We are 100% sure that here we have a session id because the request was validated in the retrospection. But...
+            if (sessionId == null)
             {
-                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", application: appType);
-                return Json(new { Token = authResult.SessionToken, authResult.AuthId });
+                return BadRequest("Session id is empty");
             }
-            catch (Exception ex)
-            {
-                await _log.WriteErrorAsync(nameof(UserinfoController), nameof(GetLykkewalletToken), $"clientId = {clientAccount.Id}", ex);
-                return StatusCode(500, new { Message = "auth error" });
-            }
+
+            var session = await _clientSessionsClient.GetAsync(sessionId);
+
+            return Json(new {Token = sessionId, session.AuthId});
         }
+
 
         [HttpGet("~/getprivatekey")]
-        [Authorize(AuthenticationSchemes = OAuthValidationConstants.Schemes.Bearer)]
+        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetPrivateKey()
         {
             var applicationId = HttpContext.GetApplicationId();
