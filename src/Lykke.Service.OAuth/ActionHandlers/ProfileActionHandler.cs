@@ -1,28 +1,15 @@
-﻿using System.Security.Claims;
-using System.Threading.Tasks;
-using Core.Extensions;
+﻿using System.Threading.Tasks;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
-using WebAuth.Managers;
 
 namespace WebAuth.ActionHandlers
 {
     public class ProfileActionHandler
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IUserManager _userManager;
         private readonly IPersonalDataService _personalDataService;
 
-        public ProfileActionHandler(
-            IHttpContextAccessor httpContextAccessor,
-            IUserManager userManager,
-            IPersonalDataService personalDataService
-            )
+        public ProfileActionHandler(IPersonalDataService personalDataService)
         {
-            _httpContextAccessor = httpContextAccessor;
-            _userManager = userManager;
             _personalDataService = personalDataService;
         }
 
