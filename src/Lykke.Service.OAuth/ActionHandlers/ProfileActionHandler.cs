@@ -38,7 +38,7 @@ namespace WebAuth.ActionHandlers
             _personalDataService = personalDataService;
         }
 
-        public async Task UpdatePersonalInformation(string clientId, string firstName, string lastName)
+        public async Task UpdatePersonalInformation(string clientId, string firstName, string lastName, string phone)
         {
             string fullname = $"{firstName} {lastName}";
 
@@ -49,7 +49,8 @@ namespace WebAuth.ActionHandlers
                 {
                     {nameof(IPersonalData.FirstName), firstName},
                     {nameof(IPersonalData.LastName), lastName},
-                    {nameof(IPersonalData.FullName), fullname}
+                    {nameof(IPersonalData.FullName), fullname},
+                    {nameof(IPersonalData.ContactPhone), phone}
                 }
             };
 

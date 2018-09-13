@@ -1,9 +1,11 @@
-﻿using Lykke.Service.GoogleAnalyticsWrapper.Client;
+﻿using Lykke.Service.ConfirmationCodes.Client;
+using Lykke.Service.GoogleAnalyticsWrapper.Client;
 using Lykke.Service.Kyc.Client;
 using Lykke.Service.PersonalData.Settings;
 using WebAuth.Settings.ClientSettings;
 using WebAuth.Settings.ServiceSettings;
 using WebAuth.Settings.SlackNotifications;
+using Lykke.Service.OAuth.Settings;
 
 namespace WebAuth.Settings
 {
@@ -15,5 +17,7 @@ namespace WebAuth.Settings
         public ClientAccountSettings ClientAccountServiceClient { get; set; }
         public KycServiceClientSettings KycServiceClient { get; set; }
         public GoogleAnalyticsWrapperServiceClientSettings GaWrapperServiceClient { get; set; }
+        public ConfirmationCodesServiceClientSettings ConfirmationCodesServiceClient { get; set; }
+        public IpGeoLocationServiceClientSettings IpGeoLocationServiceClient { get; set; }
     }
 }

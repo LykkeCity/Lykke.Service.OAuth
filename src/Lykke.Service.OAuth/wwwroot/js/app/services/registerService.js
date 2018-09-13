@@ -15,7 +15,25 @@
                     return data.data;
                 });
         }
-
+        function sendPhoneCode(key, phone, prefix) {
+            return $http.post('/signup/sendPhoneCode', { key: key, code: phone, selectedPrefix: prefix })
+                .then(function (data) {
+                    debugger;
+                    return data.data;
+                });
+        }
+        function verifyPhone(key, code, phone, prefix) {
+            return $http.post('/signup/verifyPhone', { key: key, code: code, phone: phone, selectedPrefix: prefix })
+                .then(function (data) {
+                    return data.data;
+                });
+        }
+        function getCountries() {
+            return $http.post('/signup/countrieslist')
+                .then(function (data) {
+                    return data.data;
+                });
+        }
         function resendCode(key, captcha) {
             return $http.post('/signup/resendCode', {key: key,  captcha: captcha})
                 .then(function (data) {
@@ -41,7 +59,10 @@
             verifyEmail: verifyEmail,
             checkPassword: checkPassword,
             resendCode: resendCode,
-            register: register
+            register: register,
+            sendPhoneCode: sendPhoneCode,
+            verifyPhone: verifyPhone,
+            getCountries: getCountries
         }
     }
 })();

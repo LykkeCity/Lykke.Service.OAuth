@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -14,6 +15,11 @@ using Core.VerificationCodes;
 using Lykke.Common.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
+using Lykke.Service.ConfirmationCodes.Client;
+using Lykke.Service.ConfirmationCodes.Client.Models.Request;
+using Lykke.Service.IpGeoLocation;
+using Lykke.Service.OAuth.Extensions;
+using Lykke.Service.OAuth.Models;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
@@ -31,6 +37,7 @@ namespace WebAuth.Controllers
     public class AuthenticationController : BaseController
     {
         private readonly ILykkeRegistrationClient _registrationClient;
+        private readonly IConfirmationCodesClient _confirmationCodesClient;
         private readonly IVerificationCodesService _verificationCodesService;
         private readonly IEmailFacadeService _emailFacadeService;
         private readonly ProfileActionHandler _profileActionHandler;
@@ -39,6 +46,7 @@ namespace WebAuth.Controllers
         private readonly IRecaptchaService _recaptchaService;
         private readonly SecuritySettings _securitySettings;
         private readonly ILog _log;
+        private readonly IIpGeoLocationClient _geoLocationClient;
 
         public AuthenticationController(
             ILykkeRegistrationClient registrationClient,
@@ -49,6 +57,8 @@ namespace WebAuth.Controllers
             IClientAccountClient clientAccountClient,
             IRecaptchaService recaptchaService,
             SecuritySettings securitySettings,
+            IConfirmationCodesClient confirmationCodesClient,
+            IIpGeoLocationClient geoLocationClient,
             ILog log)
         {
             _registrationClient = registrationClient;
@@ -59,6 +69,8 @@ namespace WebAuth.Controllers
             _clientAccountClient = clientAccountClient;
             _recaptchaService = recaptchaService;
             _securitySettings = securitySettings;
+            _confirmationCodesClient = confirmationCodesClient;
+            _geoLocationClient = geoLocationClient;
             _log = log;
         }
 
@@ -252,7 +264,7 @@ namespace WebAuth.Controllers
         public async Task<ResendCodeResult> ResendCode([FromBody] ResendCodeRequest request)
         {
             var result = new ResendCodeResult();
-            
+
             if (!request.Key.IsValidPartitionOrRowKey())
                 return result;
 
@@ -264,20 +276,56 @@ namespace WebAuth.Controllers
             if (code == null)
                 return ResendCodeResult.Expired;
 
-            if (code.ResendCount > 2) 
+            if (code.ResendCount > 2)
                 return result;
-            
+
             code = await _verificationCodesService.UpdateCodeAsync(request.Key);
 
             if (code == null)
                 return ResendCodeResult.Expired;
-            
+
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
             result.Result = true;
             return result;
         }
+        [HttpPost("~/signup/countrieslist")]
+        [ValidateAntiForgeryToken]
+        public async Task<CountryModel> CountriesList()
+        {
+            var localityData = await _geoLocationClient.GetLocalityDataAsync(HttpContext.GetIp());
+            var model = new CountryModel();
+            List<ItemViewModel> countries = CountryPhoneCodes.GetCountries()
+                    .Select(o => new ItemViewModel
+                    {
+                        Id = o.Id,
+                        Title = o.Name,
+                        Prefix = o.Prefix,
+                        Selected = localityData.Country != null ? localityData.Country == o.Name : o.Id == "RUS"
+                    })
+                    .ToList();
+            model.Data = countries;
+            return model;
+        }
+        [HttpPost("~/signup/sendPhoneCode")]
+        [ValidateAntiForgeryToken]
+        public async Task SendPhoneCode([FromBody] VerificationCodeRequest request)
+        {
+            await _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest() { Phone = request.Code });
+        }
+        [HttpPost("~/signup/verifyPhone")]
+        [ValidateAntiForgeryToken]
+        public async Task<VerificationCodeResult> VerifyPhone([FromBody] VerificationCodeRequest request)
+        {
+            var result = new VerificationCodeResult();
 
+            if (request == null || !request.Key.IsValidPartitionOrRowKey())
+                return result;
+
+            var resCode = await _confirmationCodesClient.VerifySmsCodeAsync(new VerifySmsConfirmationRequest() { Code = request.Code, Phone = request.Phone });
+            result.IsValid = resCode.IsValid;
+            return result;
+        }
         [HttpPost("~/signup/checkPassword")]
         [ValidateAntiForgeryToken]
         public bool CheckPassword([FromBody]string password)
@@ -299,55 +347,56 @@ namespace WebAuth.Controllers
 
             if (ModelState.IsValid)
             {
-            if (!model.Email.IsValidEmailAndRowKey())
-            {
-                regResult.Errors.Add("Invalid email address");
-                return regResult;
-            }
-
-            string userIp = HttpContext.GetIp();
-            string referer = null;
-            string userAgent = HttpContext.GetUserAgent();
-
-            if (!string.IsNullOrEmpty(model.Referer))
-            {
-                try
+                if (!model.Email.IsValidEmailAndRowKey())
                 {
-                    referer = new Uri(model.Referer).Host;
-                }
-                catch
-                {
-                    regResult.Errors.Add("Invalid referer url");
+                    regResult.Errors.Add("Invalid email address");
                     return regResult;
                 }
-            }
 
-            RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
-            {
-                Email = model.Email,
-                Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
-                Ip = userIp,
-                Changer = RecordChanger.Client,
-                UserAgent = userAgent,
-                Referer = referer,
-                CreatedAt = DateTime.UtcNow,
+                string userIp = HttpContext.GetIp();
+                string referer = null;
+                string userAgent = HttpContext.GetUserAgent();
+
+                if (!string.IsNullOrEmpty(model.Referer))
+                {
+                    try
+                    {
+                        referer = new Uri(model.Referer).Host;
+                    }
+                    catch
+                    {
+                        regResult.Errors.Add("Invalid referer url");
+                        return regResult;
+                    }
+                }
+
+                RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
+                {
+                    Email = model.Email,
+                    Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
+                    Hint = model.Hint,
+                    Ip = userIp,
+                    Changer = RecordChanger.Client,
+                    UserAgent = userAgent,
+                    Referer = referer,
+                    CreatedAt = DateTime.UtcNow,
                     Cid = model.Cid,
                     Traffic = model.Traffic
-            });
+                });
 
-            regResult.RegistrationResponse = result;
+                regResult.RegistrationResponse = result;
 
-            if (regResult.RegistrationResponse == null)
-            {
-                regResult.Errors.Add("Technical problems during registration.");
-                return regResult;
-            }
+                if (regResult.RegistrationResponse == null)
+                {
+                    regResult.Errors.Add("Technical problems during registration.");
+                    return regResult;
+                }
 
-            var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, true);
+                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, true);
 
-            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
-            await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
+                await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName, model.Phone);
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
             }
             else

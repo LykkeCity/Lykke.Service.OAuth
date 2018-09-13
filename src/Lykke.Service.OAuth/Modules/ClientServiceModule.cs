@@ -12,6 +12,8 @@ using Lykke.Service.Session;
 using Lykke.Service.Session.Client;
 using Lykke.SettingsReader;
 using WebAuth.Settings;
+using Lykke.Service.ConfirmationCodes.Client;
+using Lykke.Service.IpGeoLocation;
 
 namespace WebAuth.Modules
 {
@@ -43,7 +45,10 @@ namespace WebAuth.Modules
             builder.RegisterInstance<IKycProfileService>(
                 new KycProfileServiceClient(_settings.CurrentValue.KycServiceClient, _log)
             ).SingleInstance();
-            
+
+            builder.RegisterIpGeoLocationClient(_settings.CurrentValue.IpGeoLocationServiceClient.ServiceUrl, _log);
+
+            builder.RegisterConfirmationCodesClient(_settings.CurrentValue.ConfirmationCodesServiceClient);
             builder.RegisterGoogleAnalyticsWrapperClient(_settings.CurrentValue.GaWrapperServiceClient.ServiceUrl);
         }
     }
