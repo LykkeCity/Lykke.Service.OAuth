@@ -20,13 +20,16 @@ using Lykke.Service.ConfirmationCodes.Client;
 using Lykke.Service.ConfirmationCodes.Client.Models.Request;
 using Lykke.Service.IpGeoLocation;
 using Lykke.Service.OAuth.Models;
+using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
+using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.WebUtilities;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
@@ -45,6 +48,7 @@ namespace WebAuth.Controllers
         private readonly IClientAccountClient _clientAccountClient;
         private readonly IRecaptchaService _recaptchaService;
         private readonly SecuritySettings _securitySettings;
+        private readonly IClientSessionsClient _clientSessionsClient;
         private readonly ILog _log;
         private readonly IIpGeoLocationClient _geoLocationClient;
         private readonly IEnumerable<CountryItem> _countries;
@@ -60,7 +64,7 @@ namespace WebAuth.Controllers
             SecuritySettings securitySettings,
             IConfirmationCodesClient confirmationCodesClient,
             IIpGeoLocationClient geoLocationClient,
-            ILog log)
+            ILog log, IClientSessionsClient clientSessionsClient)
         {
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -73,7 +77,7 @@ namespace WebAuth.Controllers
             _confirmationCodesClient = confirmationCodesClient;
             _geoLocationClient = geoLocationClient;
             _log = log;
-
+            _clientSessionsClient = clientSessionsClient;
             var codes = new CountryPhoneCodes();
             _countries = codes.GetCountries();
         }
@@ -82,6 +86,16 @@ namespace WebAuth.Controllers
         [HttpGet("~/register")]
         public async Task<ActionResult> Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
         {
+            if (User.Identities.Any(identity => identity.IsAuthenticated))
+            {
+                var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+                if (sessionId != null)
+                {
+                    return RedirectToAction("Afterlogin", new { returnUrl, platform });
+                }
+            }
+
+
             try
             {
                 var model = new LoginViewModel
@@ -123,7 +137,7 @@ namespace WebAuth.Controllers
             switch (platform?.ToLower())
             {
                 case "android":
-                    return RedirectToAction("GetLykkewalletTokenMobile", "Userinfo");
+                    return RedirectToAction("GetLykkeWalletTokenMobile", "Userinfo");
                 case "ios":
                     return View("AfterLogin.ios");
                 default:
@@ -176,9 +190,7 @@ namespace WebAuth.Controllers
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
                     return View(viewName, model);
                 }
-
-                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id,
-                    authResult.Account.Email, model.Username, false);
+                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, model.Username, authResult.Account.PartnerId, authResult.Token, false);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
@@ -374,7 +386,7 @@ namespace WebAuth.Controllers
                     }
                 }
 
-                RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
+                var result = await _registrationClient.RegisterAsync(new RegistrationModel
                 {
                     Email = model.Email,
                     Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
@@ -396,11 +408,12 @@ namespace WebAuth.Controllers
                     return regResult;
                 }
 
-                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, result.Account.Email, model.Email, true);
-
-                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
-
                 await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName, model.Phone);
+                
+        				var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email,result.Account.PartnerId, result.Token, true);
+
+                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity), new AuthenticationProperties());
+
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
             }
             else
@@ -420,14 +433,17 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signout")]
         [HttpPost("~/signout")]
-        public async Task<ActionResult> SignOut()
+        public async Task<IActionResult> SignOut()
         {
-            await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
-            await HttpContext.SignOutAsync(OpenIdConnectServerDefaults.AuthenticationScheme);
-            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
+            var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+            if (sessionId != null)
+            {
+                await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
+            }
+            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme);
         }
 
-        private bool IsPasswordComplex(string password)
+        private static bool IsPasswordComplex(string password)
         {
             return password.IsPasswordComplex(useSpecialChars: false);
         }

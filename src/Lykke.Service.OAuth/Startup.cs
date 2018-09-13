@@ -11,6 +11,7 @@ using AzureStorage.Tables;
 using Common;
 using Common.Log;
 using Core.Extensions;
+using IdentityServer4.AccessTokenValidation;
 using Lykke.AzureQueueIntegration;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Logs;
@@ -22,17 +23,16 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.PlatformAbstractions;
 using WebAuth.EventFilter;
 using WebAuth.Providers;
 using WebAuth.Modules;
 using WebAuth.Settings;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -85,26 +85,33 @@ namespace WebAuth
                 {
                     options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
                 })
-                .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
-                {
-                    options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + OpenIdConnectConstantsExt.Auth.DefaultScheme;
-                    options.ExpireTimeSpan = TimeSpan.FromHours(24);
-                    options.LoginPath = new PathString("/signin");
-                    options.LogoutPath = new PathString("/signout");
-                    options.Cookie.HttpOnly = true;
-                    options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
-                })
-                .AddOAuthValidation()
+                    .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
+                    {
+                        options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                        options.LoginPath = new PathString("/signin");
+                        options.LogoutPath = new PathString("/signout");
+                        options.Cookie.HttpOnly = true;
+                        options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
+                        options.EventsType = typeof(CustomCookieAuthenticationEvents);
+                    }).AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme, options =>
+                     {
+                         var config = settings.Nested(n => n.OAuth.ResourceServerSettings).CurrentValue;
+                         options.Authority = config.Authority;
+                         options.ApiName = config.ClientId;
+                         options.ApiSecret = config.ClientSecret;
+                     })
                 .AddOpenIdConnectServer(options =>
                 {
                     options.ProviderType = typeof(AuthorizationProvider);
                     options.AuthorizationEndpointPath = "/connect/authorize";
                     options.LogoutEndpointPath = "/connect/logout";
                     options.TokenEndpointPath = "/connect/token";
+                    options.IntrospectionEndpointPath = "/connect/introspection";
                     options.UserinfoEndpointPath = "/connect/default_userinfo";
                     options.ApplicationCanDisplayErrors = true;
                     options.AllowInsecureHttp = Environment.IsDevelopment();
                     options.SigningCredentials.AddCertificate(xcert);
+                    options.AccessTokenLifetime = TimeSpan.FromSeconds(315);
                 });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -128,6 +135,7 @@ namespace WebAuth
 
                 services.AddAutoMapper();
 
+                //Sessions are used to support user registration. Do not delete.
                 services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(30); });
 
                 var builder = new ContainerBuilder();

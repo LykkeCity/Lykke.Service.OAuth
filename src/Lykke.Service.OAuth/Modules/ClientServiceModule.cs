@@ -3,12 +3,9 @@ using Common.Log;
 using Lykke.Messages.Email;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.GoogleAnalyticsWrapper.Client;
-using Lykke.Service.Kyc.Abstractions.Services;
-using Lykke.Service.Kyc.Client;
 using Lykke.Service.PersonalData.Client;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
-using Lykke.Service.Session;
 using Lykke.Service.Session.Client;
 using Lykke.SettingsReader;
 using WebAuth.Settings;
@@ -38,14 +35,6 @@ namespace WebAuth.Modules
 
             builder.RegisterEmailSenderViaAzureQueueMessageProducer(_settings.ConnectionString(x => x.OAuth.Db.ClientPersonalInfoConnString));
             builder.RegisterLykkeServiceClient(_settings.CurrentValue.ClientAccountServiceClient.ServiceUrl);
-            builder.RegisterInstance<IKycProfileServiceV2>(
-                new KycProfileServiceV2Client(_settings.CurrentValue.KycServiceClient, _log)
-            ).SingleInstance();
-            
-            builder.RegisterInstance<IKycProfileService>(
-                new KycProfileServiceClient(_settings.CurrentValue.KycServiceClient, _log)
-            ).SingleInstance();
-
             builder.RegisterIpGeoLocationClient(_settings.CurrentValue.IpGeoLocationServiceClient.ServiceUrl, _log);
 
             builder.RegisterConfirmationCodesClient(_settings.CurrentValue.ConfirmationCodesServiceClient);

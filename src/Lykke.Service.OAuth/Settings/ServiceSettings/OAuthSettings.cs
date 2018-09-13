@@ -18,5 +18,6 @@ namespace WebAuth.Settings.ServiceSettings
         public CacheSettings Cache { get; set; }
         public Certificates Certificates { get; set; }
         public CookieSettings CookieSettings { get; set; }
+        public ResourceServerSettings ResourceServerSettings { get; set; }
     }
 }

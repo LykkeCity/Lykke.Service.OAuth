@@ -7,7 +7,6 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Common.Log;
 using Core.Extensions;
-using Lykke.Service.Kyc.Abstractions.Services;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
@@ -26,10 +25,9 @@ namespace WebAuth.Tests.Managers
                 personalDataService = Substitute.For<IPersonalDataService>();
             }
 
-            var kycProfileService = Substitute.For<IKycProfileServiceV2>();
             var httpAccessor = Substitute.For<IHttpContextAccessor>();
             var log = Substitute.For<ILog>();
-            var userManager = new UserManager(personalDataService, httpAccessor, kycProfileService, log);
+            var userManager = new UserManager(personalDataService, httpAccessor, log);
             return userManager;
         }
 
@@ -47,7 +45,7 @@ namespace WebAuth.Tests.Managers
             //assert
             await
                 Assert.ThrowsAsync<ArgumentNullException>(
-                    async () => await userManager.CreateUserIdentityAsync("test", null, null));
+                    async () => await userManager.CreateUserIdentityAsync("test", null, null, null, null));
         }
 
         [Fact]
@@ -97,28 +95,7 @@ namespace WebAuth.Tests.Managers
             Assert.Equal("Smith", result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
         }
 
-        [Fact]
-        public void Identity_ShouldContainDocuments_IfScopeIsProfile()
-        {
-            //arrange
-            var scopes = new List<string>
-            {
-                OpenIdConnectConstants.Scopes.Profile
-            };
 
-            var documents = "proofOfAddress,idCard";
-            var claims = new List<Claim>
-            {
-                new Claim(OpenIdConnectConstantsExt.Claims.Documents, documents)
-            };
-
-            //act
-            var userManager = CreateUserManager();
-            var result = userManager.CreateIdentity(scopes, claims);
-
-            //assert
-            Assert.Equal(documents, result.GetClaim(OpenIdConnectConstantsExt.Claims.Documents));
-        }
 
         [Fact]
         public void Identity_ShouldNotContainEmail_IfScopeContainsProfileOnly()
@@ -219,7 +196,7 @@ namespace WebAuth.Tests.Managers
             personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(personalData);
 
             var userManager = CreateUserManager(personalDataService);
-            var result = await userManager.CreateUserIdentityAsync("test", "test@test.com", "test");
+            var result = await userManager.CreateUserIdentityAsync("test", "test@test.com", "test", "test", "test");
 
             //assert
             Assert.Equal(personalData.FirstName, result.GetClaim(OpenIdConnectConstants.Claims.GivenName));
