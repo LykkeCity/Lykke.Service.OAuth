@@ -12,13 +12,13 @@ using Core.Email;
 using Core.Extensions;
 using Core.Recaptcha;
 using Core.VerificationCodes;
+using Lykke.Common;
 using Lykke.Common.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.ConfirmationCodes.Client;
 using Lykke.Service.ConfirmationCodes.Client.Models.Request;
 using Lykke.Service.IpGeoLocation;
-using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Models;
@@ -47,6 +47,7 @@ namespace WebAuth.Controllers
         private readonly SecuritySettings _securitySettings;
         private readonly ILog _log;
         private readonly IIpGeoLocationClient _geoLocationClient;
+        private readonly IEnumerable<CountryItem> _countries;
 
         public AuthenticationController(
             ILykkeRegistrationClient registrationClient,
@@ -72,6 +73,9 @@ namespace WebAuth.Controllers
             _confirmationCodesClient = confirmationCodesClient;
             _geoLocationClient = geoLocationClient;
             _log = log;
+
+            var codes = new CountryPhoneCodes();
+            _countries = codes.GetCountries();
         }
 
         [HttpGet("~/signin/{platform?}")]
@@ -295,7 +299,7 @@ namespace WebAuth.Controllers
         {
             var localityData = await _geoLocationClient.GetLocalityDataAsync(HttpContext.GetIp());
             var model = new CountryModel();
-            List<ItemViewModel> countries = CountryPhoneCodes.GetCountries()
+            List<ItemViewModel> countries = _countries
                     .Select(o => new ItemViewModel
                     {
                         Id = o.Id,
