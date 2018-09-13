@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureDataAccess", "src\Azur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusinessService", "src\BusinessService\BusinessService.csproj", "{586E5F89-4B36-4185-870D-A033D426BA22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Service.OAuth.Services", "src\Lykke.Service.OAuth.Services\Lykke.Service.OAuth.Services.csproj", "{CE199D15-AD61-4ADF-9CEF-0B7558420258}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{586E5F89-4B36-4185-870D-A033D426BA22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{586E5F89-4B36-4185-870D-A033D426BA22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{586E5F89-4B36-4185-870D-A033D426BA22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE199D15-AD61-4ADF-9CEF-0B7558420258}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE199D15-AD61-4ADF-9CEF-0B7558420258}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE199D15-AD61-4ADF-9CEF-0B7558420258}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE199D15-AD61-4ADF-9CEF-0B7558420258}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +68,7 @@ Global
 		{BF9EE40D-E1CB-4695-A37B-8D8F8DAD2604} = {0B8740C2-6FED-40FB-99E0-400D66A4B557}
 		{C2299A59-47C3-48D4-8319-417A935F28BB} = {5B923F2D-F1F0-449B-BBA1-FB5EBCC57E5D}
 		{586E5F89-4B36-4185-870D-A033D426BA22} = {0B8740C2-6FED-40FB-99E0-400D66A4B557}
+		{CE199D15-AD61-4ADF-9CEF-0B7558420258} = {0B8740C2-6FED-40FB-99E0-400D66A4B557}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B9D83083-8BE3-465D-82C9-F577721EE3D7}

@@ -8,10 +8,10 @@ using AspNet.Security.OpenIdConnect.Server;
 using Core.Application;
 using Core.Extensions;
 using Lykke.Service.ClientAccount.Client;
+using Core.Services;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
-using StackExchange.Redis;
 
 namespace WebAuth.Providers
 {
@@ -20,20 +20,22 @@ namespace WebAuth.Providers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IClientAccountClient _accountClient;
-        private static IDatabase _redisDatabase;
+        private readonly ITokenService _tokenService;
+        private readonly IValidationService _validationService;
 
 
         public AuthorizationProvider(
             IApplicationRepository applicationRepository,
             IClientSessionsClient clientSessionsClient,
             IClientAccountClient accountClient,
-            IConnectionMultiplexer connectionMultiplexer
-            )
+            ITokenService tokenService, 
+            IValidationService validationService)
         {
             _applicationRepository = applicationRepository;
             _clientSessionsClient = clientSessionsClient;
+            _tokenService = tokenService;
+            _validationService = validationService;
             _accountClient = accountClient;
-            _redisDatabase = connectionMultiplexer.GetDatabase();
         }
 
         public override Task MatchEndpoint(MatchEndpointContext context)
@@ -194,11 +196,10 @@ namespace WebAuth.Providers
 
             // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
             // a key derivation function like PBKDF2 to slow down the secret validation process.
-            // You SHOULD also consider using a time-constant comparer to prevent timing attacks.
-            // For that, you can use the CryptoHelper library developed by @henkmollema:
-            // https://github.com/henkmollema/CryptoHelper. If you don't need .NET Core support,
-            // SecurityDriven.NET/inferno is a rock-solid alternative: http://securitydriven.net/inferno/
-            if (!string.Equals(context.ClientSecret, application.Secret, StringComparison.Ordinal))
+            // Added fixed time comparison to prevent timing attacks.
+            var clientSecretBytes = Encoding.UTF8.GetBytes(context.ClientSecret);
+            var applicationSecretBytes = Encoding.UTF8.GetBytes(application.Secret);
+            if (!CryptographicOperations.FixedTimeEquals(clientSecretBytes, applicationSecretBytes))
             {
                 context.Reject(
                     OpenIdConnectConstants.Errors.InvalidClient,
@@ -278,39 +279,32 @@ namespace WebAuth.Providers
 
             if (sessionIdClaim == null)
             {
-                context.Reject(OpenIdConnectConstantsExt.Errors.ClaimNotProvided, "Session id is not provided in claims.");
+                context.Reject
+                    (OpenIdConnectConstantsExt.Errors.ClaimNotProvided, 
+                    "Session id is not provided in claims.");
                 return false;
             }
 
-            if (context.Request.RefreshToken == null)
-            {
-                context.Reject(OpenIdConnectConstants.Errors.InvalidRequest, "refresh_token not present in request.");
-                return false;
-            }
+            var oldRefreshToken = context.Request.RefreshToken;
 
-            var session = await _clientSessionsClient.GetAsync(sessionIdClaim.Value);
-            var oldRefreshToken = GenerateRefreshTokenRedisKey(context.Request.RefreshToken);
-            if (session == null)
+            if (string.IsNullOrWhiteSpace(oldRefreshToken))
             {
-                // If session was revoked we should revoke refresh_token too.
-                await _redisDatabase.KeyDeleteAsync(oldRefreshToken);
                 context.Reject(
                     OpenIdConnectConstants.Errors.InvalidRequest,
-                    "Invalid request: refresh token was revoked.");
+                    "refresh_token not present in request.");
                 return false;
             }
+
+            var sessionId = sessionIdClaim.Value;
+            var isRefreshTokenValid = await _validationService.IsRefreshTokenValidAsync(oldRefreshToken, sessionId);
+
+            if (isRefreshTokenValid) return true;
             
-            var token = await _redisDatabase.StringGetAsync(oldRefreshToken);
+            context.Reject(
+                OpenIdConnectConstants.Errors.InvalidRequest,
+                "Invalid request: refresh token was revoked.");
 
-            if (!token.HasValue || !(token == true))
-            {
-                context.Reject(
-                    OpenIdConnectConstants.Errors.InvalidRequest,
-                    "Invalid request: refresh token was revoked.");
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
         private async Task<bool> ApplyRefreshTokenGrantTypeAsync(ApplyTokenResponseContext context)
@@ -323,62 +317,21 @@ namespace WebAuth.Providers
                   context.Request.IsAuthorizationCodeGrantType()))
                 return true;
 
-            // Only for cases when we requested refresh token.
-            // Add newly generated refresh token to Redis to mark as valid.
-            if (context.Response.RefreshToken != null)
+            var isRefreshTokenUpdated =
+                await _tokenService.UpdateRefreshTokenInWhitelistAsync(
+                    context.Request.RefreshToken,
+                    context.Response.RefreshToken);
+            
+            if (!isRefreshTokenUpdated)
             {
-                var newRefreshToken = GenerateRefreshTokenRedisKey(context.Response.RefreshToken);
-
-                // If token is generated upon authentication save it to redis.
-                if (context.Request.RefreshToken == null)
-                {
-                    await _redisDatabase.StringSetAsync(newRefreshToken, true, TimeSpan.FromDays(30));
-                    return true;
-                }
-
-                // If we successfully exchanged refresh token,
-                // then remove it from Redis only if we saved a new one.
-                if (context.Request.IsRefreshTokenGrantType() && 
-                    context.Request.RefreshToken != null)
-                {
-                    var transaction = _redisDatabase.CreateTransaction();
-                    var oldRefreshToken = GenerateRefreshTokenRedisKey(context.Request.RefreshToken);
-#pragma warning disable 4014
-                    transaction.KeyDeleteAsync(oldRefreshToken);
-                    transaction.StringSetAsync(newRefreshToken, true, TimeSpan.FromDays(30));
-#pragma warning restore 4014
-                    var isSuccess = await transaction.ExecuteAsync();
-                    if (isSuccess) return true;
-
-                    context.Response.Error = OpenIdConnectConstants.Errors.ServerError;
-                    // TODO:@gafansiev Log redis transction fail?
-                    context.Response.ErrorDescription = "Internal server error.";
-                    return false;
-                }
+                context.Response.Error = OpenIdConnectConstants.Errors.ServerError;
+                context.Response.ErrorDescription = "Internal server error.";
+                context.HandleResponse();
+            
+                return false;
             }
 
             return true;
-        }
-
-        private static string GenerateRefreshTokenRedisKey(string refreshToken)
-        {
-            return "RefreshToken:Whitelist:" + CreateMd5(refreshToken);
-        }
-
-        private static string CreateMd5(string input)
-        {
-            using (var md5 = MD5.Create())
-            {
-                var inputBytes = Encoding.ASCII.GetBytes(input);
-                var hashBytes = md5.ComputeHash(inputBytes);
-
-                var sb = new StringBuilder();
-                foreach (var t in hashBytes)
-                {
-                    sb.Append(t.ToString("X2"));
-                }
-                return sb.ToString();
-            }
         }
     }
 }
