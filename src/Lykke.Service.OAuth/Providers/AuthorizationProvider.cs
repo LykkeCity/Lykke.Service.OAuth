@@ -251,28 +251,20 @@ namespace WebAuth.Providers
 
         public override async Task HandleTokenRequest(HandleTokenRequestContext context)
         {
-            if (!await ValidateRefreshTokenGrantTypeAsync(context))
-                return;
-
-            await base.HandleTokenRequest(context);
+            await ValidateRefreshTokenGrantTypeAsync(context);
         }
 
         public override async Task ApplyTokenResponse(ApplyTokenResponseContext context)
         {
-            if (!await ApplyRefreshTokenGrantTypeAsync(context)) 
-                return;
-
-            await base.ApplyTokenResponse(context);
+            await UpdateRefreshToken(context);
         }
 
-        private async Task<bool> ValidateRefreshTokenGrantTypeAsync(BaseValidatingTicketContext context)
+        private async Task ValidateRefreshTokenGrantTypeAsync(BaseValidatingTicketContext context)
         {
-            if (context.Error != null)
-                return false;
-
             // Only proccess refresh token grant type.
-            if (!context.Request.IsRefreshTokenGrantType())
-                return true;
+            if (!string.IsNullOrWhiteSpace(context.Error) ||
+                !context.Request.IsRefreshTokenGrantType())
+                return;
 
             var sessionIdClaim = context.Ticket.Principal.Claims.FirstOrDefault(claim =>
                 string.Equals(claim.Type, OpenIdConnectConstantsExt.Claims.SessionId, StringComparison.Ordinal));
@@ -282,7 +274,7 @@ namespace WebAuth.Providers
                 context.Reject
                     (OpenIdConnectConstantsExt.Errors.ClaimNotProvided, 
                     "Session id is not provided in claims.");
-                return false;
+                return;
             }
 
             var oldRefreshToken = context.Request.RefreshToken;
@@ -292,46 +284,33 @@ namespace WebAuth.Providers
                 context.Reject(
                     OpenIdConnectConstants.Errors.InvalidRequest,
                     "refresh_token not present in request.");
-                return false;
+                return;
             }
 
             var sessionId = sessionIdClaim.Value;
+
             var isRefreshTokenValid = await _validationService.IsRefreshTokenValidAsync(oldRefreshToken, sessionId);
 
-            if (isRefreshTokenValid) return true;
+            if (isRefreshTokenValid) 
+                return;
             
             context.Reject(
                 OpenIdConnectConstants.Errors.InvalidRequest,
                 "Invalid request: refresh token was revoked.");
-
-            return false;
         }
 
-        private async Task<bool> ApplyRefreshTokenGrantTypeAsync(ApplyTokenResponseContext context)
+        private async Task UpdateRefreshToken(ApplyTokenResponseContext context)
         {
-            if (context.Error != null)
-                return false;
 
             // Only proccess flows that support refresh tokens
-            if (!(context.Request.IsRefreshTokenGrantType() ||
+            if (!string.IsNullOrWhiteSpace(context.Error) ||
+                !(context.Request.IsRefreshTokenGrantType() ||
                   context.Request.IsAuthorizationCodeGrantType()))
-                return true;
+                return;
 
-            var isRefreshTokenUpdated =
-                await _tokenService.UpdateRefreshTokenInWhitelistAsync(
+            await _tokenService.UpdateRefreshTokenInWhitelistAsync(
                     context.Request.RefreshToken,
                     context.Response.RefreshToken);
-            
-            if (!isRefreshTokenUpdated)
-            {
-                context.Response.Error = OpenIdConnectConstants.Errors.ServerError;
-                context.Response.ErrorDescription = "Internal server error.";
-                context.HandleResponse();
-            
-                return false;
-            }
-
-            return true;
         }
     }
 }

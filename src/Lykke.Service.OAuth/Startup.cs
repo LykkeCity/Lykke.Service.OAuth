@@ -100,7 +100,8 @@ namespace WebAuth
                     {
                         options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix +
                                               OpenIdConnectConstantsExt.Auth.DefaultScheme;
-                        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+                        // Lifetime of AuthenticationTicket for silent refresh. 
+                        options.ExpireTimeSpan = TimeSpan.FromDays(60);
                         options.LoginPath = new PathString("/signin");
                         options.LogoutPath = new PathString("/signout");
                         options.Cookie.HttpOnly = true;

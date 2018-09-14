@@ -19,7 +19,7 @@ namespace Lykke.Service.OAuth.Services
             _redisDatabase = connectionMultiplexer.GetDatabase();
         }
 
-        /// <inheritdoc 
+        /// <inheritdoc />
         public Task<bool> RevokeRefreshTokenAsync(string refreshToken)
         {
             var tokenRedisKey = GetRefreshTokenWhitelistRedisKey(refreshToken);
@@ -37,34 +37,33 @@ namespace Lykke.Service.OAuth.Services
         }
 
         /// <inheritdoc />
-        public async Task<bool> UpdateRefreshTokenInWhitelistAsync(string oldRefreshToken, string newRefreshToken)
+        public async Task UpdateRefreshTokenInWhitelistAsync(string oldRefreshToken, string newRefreshToken)
         {
-            if (string.IsNullOrWhiteSpace(newRefreshToken))
-                return false;
+            var isOldTokenPresent = !string.IsNullOrWhiteSpace(oldRefreshToken);
+            var isNewTokenPresent = !string.IsNullOrWhiteSpace(newRefreshToken);
 
+            var oldKey = GetRefreshTokenWhitelistRedisKey(oldRefreshToken);
             var newKey = GetRefreshTokenWhitelistRedisKey(newRefreshToken);
 
-            // If token is generated upon authorization code exchange save it to redis.
-            if (string.IsNullOrWhiteSpace(oldRefreshToken))
+            // Replace or add only if new token is issued.
+            if (isNewTokenPresent)
             {
-                await _redisDatabase.StringSetAsync(newKey, true, TimeSpan.FromDays(30));
-                return true;
+                // If token is generated upon authorization code exchange save it to redis.
+                if (!isOldTokenPresent)
+                {
+                    await _redisDatabase.StringSetAsync(newKey, true, TimeSpan.FromDays(30));
+                }
+                else
+                    // If we successfully exchanged refresh token,
+                    // then remove it from Redis only if we saved a new one.
+                {
+                    var steps = new List<Task>();
+                    var transaction = _redisDatabase.CreateTransaction();
+                    steps.Add(transaction.KeyDeleteAsync(oldKey));
+                    steps.Add(transaction.StringSetAsync(newKey, true, TimeSpan.FromDays(30)));
+                    if (await transaction.ExecuteAsync()) await Task.WhenAll(steps);
+                }
             }
-
-            // If we successfully exchanged refresh token,
-            // then remove it from Redis only if we saved a new one.
-            var oldKey = GetRefreshTokenWhitelistRedisKey(oldRefreshToken);
-            var steps = new List<Task>();
-            var transaction = _redisDatabase.CreateTransaction();
-            steps.Add(transaction.KeyDeleteAsync(oldKey));
-            steps.Add(transaction.StringSetAsync(newKey, true, TimeSpan.FromDays(30)));
-            if (await transaction.ExecuteAsync())
-            {
-                await Task.WhenAll(steps);
-                return true;
-            }
-
-            return false;
         }
 
         private static string GetRefreshTokenWhitelistRedisKey(string refreshToken)

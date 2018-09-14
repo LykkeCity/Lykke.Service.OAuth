@@ -28,6 +28,6 @@ namespace Core.Services
         /// <param name="oldRefreshToken">Old refresh token. If old token is null, only new refresh token is inserted.</param>
         /// <param name="newRefreshToken">New refresh token.</param>
         /// <returns>True if token was replaced.</returns>
-        Task<bool> UpdateRefreshTokenInWhitelistAsync([CanBeNull]string oldRefreshToken, string newRefreshToken);
+        Task UpdateRefreshTokenInWhitelistAsync([CanBeNull]string oldRefreshToken, string newRefreshToken);
     }
 }
