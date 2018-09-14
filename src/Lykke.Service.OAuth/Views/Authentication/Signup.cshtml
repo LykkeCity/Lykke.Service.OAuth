@@ -82,6 +82,9 @@
                         <option ng-repeat="item in vm.data.countries" value="{{item.id}}" ng-selected="{{item.selected}}" prefix="{{item.prefix}}">{{item.title}}</option>
                     </select>
                 </div>
+                <div ng-show="vm.step2Form.$submitted || vm.step2Form.Phone.$touched">
+                    <span class="label_error" data-ng-show="vm.data.selectedPrefix == null">Select country, please</span>
+                </div>
             </div>
             <div class="form-group">
                 <div class="input-group" data-ng-class="{'input-group--error': !vm.step2Form.phone.$valid && vm.step2Form.phone.$touched}">

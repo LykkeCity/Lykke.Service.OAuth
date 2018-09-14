@@ -88,9 +88,11 @@
                             var result = vm.data.countries.filter(obj => {
                                 return obj.selected == true
                             });
-                            vm.data.uimask = result[0].prefix + vm.data.defaultMask;
-                            vm.data.selectedPrefix = result[0].prefix;
-                            vm.data.selectedCountryName = result[0].title;
+                            if (result.length !== 0) {
+                                vm.data.uimask = result[0].prefix + vm.data.defaultMask;
+                                vm.data.selectedPrefix = result[0].prefix;
+                                vm.data.selectedCountryName = result[0].title;
+                            }
                             vm.data.step = 2;
                         });
 
@@ -137,6 +139,8 @@
             vm.data.isAutoSelect = false;
         }
         function confirmPhone() {
+            if (vm.data.selectedPrefix === null)
+                return;
             if (vm.data.isAutoSelect)
                 $("#modal_message").modal('show');
             else setPhone();

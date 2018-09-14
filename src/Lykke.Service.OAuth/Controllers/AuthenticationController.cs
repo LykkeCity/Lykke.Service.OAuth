@@ -317,7 +317,7 @@ namespace WebAuth.Controllers
                         Id = o.Id,
                         Title = o.Name,
                         Prefix = o.Prefix,
-                        Selected = localityData.Country != null ? localityData.Country == o.Name : o.Id == "RUS"
+                        Selected = localityData.Country != null ? localityData.Country == o.Name : false
                     })
                     .ToList();
             model.Data = countries;
