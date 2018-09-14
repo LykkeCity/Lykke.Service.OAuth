@@ -17,7 +17,7 @@ namespace WebAuth.Settings
         public SlackNotificationsSettings SlackNotifications { get; set; }
         public ClientAccountSettings ClientAccountServiceClient { get; set; }
         public GoogleAnalyticsWrapperServiceClientSettings GaWrapperServiceClient { get; set; }
-        public ConfirmationCodesServiceClientSettings ConfirmationCodesServiceClient { get; set; }
+        public ConfirmationCodesServiceClientSettings ConfirmationCodesClient { get; set; }
         public IpGeoLocationServiceClientSettings IpGeoLocationServiceClient { get; set; }
     }
 }

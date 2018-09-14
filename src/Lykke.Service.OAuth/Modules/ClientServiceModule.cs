@@ -37,7 +37,7 @@ namespace WebAuth.Modules
             builder.RegisterLykkeServiceClient(_settings.CurrentValue.ClientAccountServiceClient.ServiceUrl);
             builder.RegisterIpGeoLocationClient(_settings.CurrentValue.IpGeoLocationServiceClient.ServiceUrl, _log);
 
-            builder.RegisterConfirmationCodesClient(_settings.CurrentValue.ConfirmationCodesServiceClient);
+            builder.RegisterConfirmationCodesClient(_settings.CurrentValue.ConfirmationCodesClient);
             builder.RegisterGoogleAnalyticsWrapperClient(_settings.CurrentValue.GaWrapperServiceClient.ServiceUrl);
         }
     }
