@@ -2,23 +2,19 @@
 using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
 using AzureStorage.Blob;
-using AzureStorage.Tables;
 using Common;
 using Common.Log;
 using Core.Extensions;
 using IdentityServer4.AccessTokenValidation;
-using Lykke.AzureQueueIntegration;
 using Lykke.Common.ApiLibrary.Middleware;
+using Lykke.Common.Log;
 using Lykke.Logs;
-using Lykke.Logs.Slack;
 using Lykke.SettingsReader;
 using Lykke.SettingsReader.ReloadingManager;
-using Lykke.SlackNotification.AzureQueue;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -36,21 +32,21 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using WebAuth.Settings.ServiceSettings;
-using LogLevel = Lykke.Logs.LogLevel;
 
 namespace WebAuth
 {
     public class Startup
     {
-        public IConfigurationRoot Configuration { get; }
-        public IHostingEnvironment Environment { get; }
-        public IContainer ApplicationContainer { get; set; }
-        public ILog Log { get; private set; }
+        private IConfigurationRoot Configuration { get; }
+        private IHostingEnvironment Environment { get; }
+        private IContainer ApplicationContainer { get; set; }
+        private ILog Log { get; set; }
         private AppSettings _settings;
         private const string BlobSource = "blob:";
         private const string DataSource = "data:";
         private const string AnySource = "*";
         private const string DataProtectionContainerName = "data-protection-container-name";
+        private IHealthNotifier HealthNotifier { get; set; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -70,8 +66,15 @@ namespace WebAuth
                 {
                     options.SetConnString(x => x.SlackNotifications.AzureQueue.ConnectionString);
                     options.SetQueueName(x => x.SlackNotifications.AzureQueue.QueueName);
-                    options.SenderName = "Sender name";
+                    options.SenderName = "OAuth service";
                 });
+
+                services.AddLykkeLogging(settings.Nested(x => x.OAuth.Db.LogsConnString),
+                    "OauthLog",
+                    settings.CurrentValue.SlackNotifications.AzureQueue.ConnectionString,
+                    settings.CurrentValue.SlackNotifications.AzureQueue.QueueName
+                );
+
                 _settings = settings.CurrentValue;
 
                 var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
@@ -80,7 +83,7 @@ namespace WebAuth
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
-
+                services.AddMemoryCache();
                 services.AddAuthentication(options => { options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme; })
                     .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
                     {
@@ -140,23 +143,21 @@ namespace WebAuth
                     .SetApplicationName("Lykke.Service.OAuth")
                     .PersistKeysToAzureBlobStorage(SetupDataProtectionStorage(_settings.OAuth.Db.DataProtectionConnString), $"{DataProtectionContainerName}/cookie-keys/keys.xml");
 
-                Log = CreateLogWithSlack(services, settings);
-
-                builder.RegisterInstance(Log).As<ILog>().SingleInstance();
-
                 builder.RegisterModule(new WebModule(settings));
-                builder.RegisterModule(new DbModule(settings, Log));
-                builder.RegisterModule(new BusinessModule(settings, Log));
-                builder.RegisterModule(new ClientServiceModule(settings, Log));
+                builder.RegisterModule(new DbModule(settings));
+                builder.RegisterModule(new BusinessModule(settings));
+                builder.RegisterModule(new ClientServiceModule(settings));
 
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();
 
+                Log = ApplicationContainer.Resolve<ILogFactory>().CreateLog(this);
+                HealthNotifier = ApplicationContainer.Resolve<IHealthNotifier>();
                 return new AutofacServiceProvider(ApplicationContainer);
             }
             catch (Exception ex)
             {
-                Log?.WriteFatalErrorAsync(nameof(Startup), nameof(ConfigureServices), "", ex);
+                Log?.Critical(ex);
                 throw;
             }
         }
@@ -238,60 +239,45 @@ namespace WebAuth
 
                 app.UseMvc();
 
-                appLifetime.ApplicationStarted.Register(() => StartApplication().Wait());
-                appLifetime.ApplicationStopping.Register(() => StopApplication().Wait());
-                appLifetime.ApplicationStopped.Register(() => CleanUp().Wait());
+                appLifetime.ApplicationStarted.Register(StartApplication);
+                appLifetime.ApplicationStopped.Register(CleanUp);
             }
             catch (Exception ex)
             {
-                Log?.WriteFatalErrorAsync(nameof(Startup), nameof(ConfigureServices), "", ex).Wait();
+                Log.Critical(ex);
                 throw;
             }
         }
 
-        private async Task StartApplication()
+        private void StartApplication()
         {
             try
             {
-                // NOTE: Service not yet recieve and process requests here
+
+                HealthNotifier.Notify($"Env: {Program.EnvInfo}", "Started");
             }
             catch (Exception ex)
             {
-                await Log.WriteFatalErrorAsync(nameof(Startup), nameof(StartApplication), "", ex);
+                Log.Critical(ex);
                 throw;
             }
         }
 
-        private async Task StopApplication()
-        {
-            try
-            {
-                // NOTE: Service still can recieve and process requests here, so take care about it if you add logic here.
-            }
-            catch (Exception ex)
-            {
-                if (Log != null)
-                {
-                    await Log.WriteFatalErrorAsync(nameof(Startup), nameof(StopApplication), "", ex);
-                }
-                throw;
-            }
-        }
 
-        private async Task CleanUp()
+
+        private void CleanUp()
         {
             try
             {
-                // NOTE: Service can't recieve and process requests here, so you can destroy all resources
+                // NOTE: Service can't receive and process requests here, so you can destroy all resources
+
+                HealthNotifier?.Notify($"Env: {Program.EnvInfo}", "Terminating");
+
                 ApplicationContainer.Dispose();
             }
             catch (Exception ex)
             {
-                if (Log != null)
-                {
-                    await Log.WriteFatalErrorAsync(nameof(Startup), nameof(CleanUp), "", ex);
-                    (Log as IDisposable)?.Dispose();
-                }
+                Log?.Critical(ex);
                 throw;
             }
         }
@@ -307,54 +293,6 @@ namespace WebAuth
             container.CreateIfNotExistsAsync(new BlobRequestOptions { RetryPolicy = new ExponentialRetry() }, new OperationContext()).GetAwaiter().GetResult();
 
             return storageAccount;
-        }
-
-        private static ILog CreateLogWithSlack(IServiceCollection services, IReloadingManager<AppSettings> settings)
-        {
-            var consoleLogger = new LogToConsole();
-            var aggregateLogger = new AggregateLogger();
-
-            aggregateLogger.AddLog(consoleLogger);
-
-            var dbLogConnectionStringManager = settings.Nested(x => x.OAuth.Db.LogsConnString);
-            var dbLogConnectionString = dbLogConnectionStringManager.CurrentValue;
-
-            if (string.IsNullOrEmpty(dbLogConnectionString))
-            {
-                consoleLogger.WriteWarningAsync(nameof(Startup), nameof(CreateLogWithSlack), "Table loggger is not inited").Wait();
-                return aggregateLogger;
-            }
-
-            if (dbLogConnectionString.StartsWith("${") && dbLogConnectionString.EndsWith("}"))
-                throw new InvalidOperationException($"LogsConnString {dbLogConnectionString} is not filled in settings");
-
-            var persistenceManager = new LykkeLogToAzureStoragePersistenceManager(
-                AzureTableStorage<LogEntity>.Create(dbLogConnectionStringManager, "OauthLog", consoleLogger),
-                consoleLogger);
-
-            // Creating slack notification service, which logs own azure queue processing messages to aggregate log
-            var slackService = services.UseSlackNotificationsSenderViaAzureQueue(new AzureQueueSettings
-            {
-                ConnectionString = settings.CurrentValue.SlackNotifications.AzureQueue.ConnectionString,
-                QueueName = settings.CurrentValue.SlackNotifications.AzureQueue.QueueName
-            }, aggregateLogger);
-
-            var slackNotificationsManager = new LykkeLogToAzureSlackNotificationsManager(slackService, consoleLogger);
-
-            // Creating azure storage logger, which logs own messages to concole log
-            var azureStorageLogger = new LykkeLogToAzureStorage(
-                persistenceManager,
-                slackNotificationsManager,
-                consoleLogger);
-
-            azureStorageLogger.Start();
-
-            aggregateLogger.AddLog(azureStorageLogger);
-
-            var logToSlack = LykkeLogToSlack.Create(slackService, "oauth", LogLevel.Error | LogLevel.FatalError | LogLevel.Warning);
-            aggregateLogger.AddLog(logToSlack);
-
-            return aggregateLogger;
         }
     }
 }

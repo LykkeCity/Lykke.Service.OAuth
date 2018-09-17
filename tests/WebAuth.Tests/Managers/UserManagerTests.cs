@@ -7,6 +7,7 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Common.Log;
 using Core.Extensions;
+using Lykke.Logs;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
@@ -26,8 +27,7 @@ namespace WebAuth.Tests.Managers
             }
 
             var httpAccessor = Substitute.For<IHttpContextAccessor>();
-            var log = Substitute.For<ILog>();
-            var userManager = new UserManager(personalDataService, httpAccessor, log);
+            var userManager = new UserManager(personalDataService, httpAccessor);
             return userManager;
         }
 

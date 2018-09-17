@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using BusinessService;
 using BusinessService.Email;
-using Common.Log;
 using Core.Email;
 using Core.Recaptcha;
 using Core.VerificationCodes;
@@ -13,12 +12,10 @@ namespace WebAuth.Modules
     public class BusinessModule : Module
     {
         private readonly IReloadingManager<AppSettings> _settings;
-        private readonly ILog _log;
         
-        public BusinessModule(IReloadingManager<AppSettings> settings, ILog log)
+        public BusinessModule(IReloadingManager<AppSettings> settings)
         {
             _settings = settings;
-            _log = log;
         }
 
         protected override void Load(ContainerBuilder builder)

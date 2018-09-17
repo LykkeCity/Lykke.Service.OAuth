@@ -1,5 +1,5 @@
-﻿using Common.Extensions;
-using Common.Log;
+﻿using Common.Log;
+using Lykke.Common.Log;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace WebAuth.EventFilter
@@ -8,14 +8,14 @@ namespace WebAuth.EventFilter
     {
         private readonly ILog _errorLog;
 
-        public UnhandledExceptionFilter(ILog errorLog)
+        public UnhandledExceptionFilter(ILogFactory logFactory)
         {
-            _errorLog = errorLog;
+            _errorLog = logFactory.CreateLog(this);
         }
 
         public void OnException(ExceptionContext context)
         {
-            _errorLog.WriteErrorAsync(context.Exception.Source, null, null, context.Exception).RunSync();
+            _errorLog.Error(context.Exception, context.Exception.Source);
         }
     }
 }

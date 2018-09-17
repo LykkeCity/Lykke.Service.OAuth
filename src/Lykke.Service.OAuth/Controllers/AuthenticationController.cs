@@ -11,6 +11,7 @@ using Core.Extensions;
 using Core.Recaptcha;
 using Core.VerificationCodes;
 using Lykke.Common.Extensions;
+using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Registration;
@@ -50,7 +51,7 @@ namespace WebAuth.Controllers
             IClientAccountClient clientAccountClient,
             IRecaptchaService recaptchaService,
             SecuritySettings securitySettings,
-            ILog log, IClientSessionsClient clientSessionsClient)
+            ILogFactory logFactory, IClientSessionsClient clientSessionsClient)
         {
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -60,13 +61,13 @@ namespace WebAuth.Controllers
             _clientAccountClient = clientAccountClient;
             _recaptchaService = recaptchaService;
             _securitySettings = securitySettings;
-            _log = log;
+            _log = logFactory.CreateLog(this);
             _clientSessionsClient = clientSessionsClient;
         }
 
         [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
-        public async Task<ActionResult> Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
+        public IActionResult Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
         {
 
             // Temporally disabled by LWDEV-9406. Enable after the mobile client has been completed.
@@ -97,7 +98,7 @@ namespace WebAuth.Controllers
             }
             catch (Exception ex)
             {
-                await _log.WriteErrorAsync(ex.Source, "Signin", null, ex);
+                _log.Error(ex);
                 return Content(ex.Message);
             }
         }
@@ -264,7 +265,7 @@ namespace WebAuth.Controllers
         public async Task<ResendCodeResult> ResendCode([FromBody] ResendCodeRequest request)
         {
             var result = new ResendCodeResult();
-            
+
             if (!request.Key.IsValidPartitionOrRowKey())
                 return result;
 
@@ -276,14 +277,14 @@ namespace WebAuth.Controllers
             if (code == null)
                 return ResendCodeResult.Expired;
 
-            if (code.ResendCount > 2) 
+            if (code.ResendCount > 2)
                 return result;
-            
+
             code = await _verificationCodesService.UpdateCodeAsync(request.Key);
 
             if (code == null)
                 return ResendCodeResult.Expired;
-            
+
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(code.Email, code.Code, url);
             result.Result = true;
@@ -311,49 +312,49 @@ namespace WebAuth.Controllers
 
             if (ModelState.IsValid)
             {
-            if (!model.Email.IsValidEmailAndRowKey())
-            {
-                regResult.Errors.Add("Invalid email address");
-                return regResult;
-            }
-
-            string userIp = HttpContext.GetIp();
-            string referer = null;
-            string userAgent = HttpContext.GetUserAgent();
-
-            if (!string.IsNullOrEmpty(model.Referer))
-            {
-                try
+                if (!model.Email.IsValidEmailAndRowKey())
                 {
-                    referer = new Uri(model.Referer).Host;
-                }
-                catch
-                {
-                    regResult.Errors.Add("Invalid referer url");
+                    regResult.Errors.Add("Invalid email address");
                     return regResult;
                 }
-            }
+
+                string userIp = HttpContext.GetIp();
+                string referer = null;
+                string userAgent = HttpContext.GetUserAgent();
+
+                if (!string.IsNullOrEmpty(model.Referer))
+                {
+                    try
+                    {
+                        referer = new Uri(model.Referer).Host;
+                    }
+                    catch
+                    {
+                        regResult.Errors.Add("Invalid referer url");
+                        return regResult;
+                    }
+                }
 
                 var result = await _registrationClient.RegisterAsync(new RegistrationModel
-            {
-                Email = model.Email,
-                Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
-                Ip = userIp,
-                Changer = RecordChanger.Client,
-                UserAgent = userAgent,
-                Referer = referer,
-                CreatedAt = DateTime.UtcNow,
+                {
+                    Email = model.Email,
+                    Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
+                    Ip = userIp,
+                    Changer = RecordChanger.Client,
+                    UserAgent = userAgent,
+                    Referer = referer,
+                    CreatedAt = DateTime.UtcNow,
                     Cid = model.Cid,
                     Traffic = model.Traffic
-            });
+                });
 
-            regResult.RegistrationResponse = result;
+                regResult.RegistrationResponse = result;
 
-            if (regResult.RegistrationResponse == null)
-            {
-                regResult.Errors.Add("Technical problems during registration.");
-                return regResult;
-            }
+                if (regResult.RegistrationResponse == null)
+                {
+                    regResult.Errors.Add("Technical problems during registration.");
+                    return regResult;
+                }
 
                 await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
 
@@ -386,7 +387,7 @@ namespace WebAuth.Controllers
             if (sessionId != null)
             {
                 await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
-        }
+            }
             return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme);
         }
 
