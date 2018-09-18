@@ -68,14 +68,16 @@ namespace WebAuth.Controllers
         [HttpGet("~/register")]
         public async Task<ActionResult> Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
         {
-            if (User.Identities.Any(identity => identity.IsAuthenticated))
-            {
-                var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
-                if (sessionId != null)
-                {
-                    return RedirectToAction("Afterlogin", new { returnUrl, platform });
-                }
-            }
+
+            // Temporally disabled by LWDEV-9406. Enable after the mobile client has been completed.
+//            if (User.Identities.Any(identity => identity.IsAuthenticated))
+//            {
+//                var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+//                if (sessionId != null)
+//                {
+//                    return RedirectToAction("Afterlogin", new { returnUrl, platform });
+//                }
+//            }
 
 
             try
