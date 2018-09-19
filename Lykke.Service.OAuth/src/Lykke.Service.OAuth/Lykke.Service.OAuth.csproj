@@ -1,0 +1,73 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <AssemblyName>Lykke.Service.OAuth</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <PackageId>WebAuth</PackageId>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="wwwroot\**\*;Views\**\*;Areas\**\Views;Messages\**\*;Dockerfile">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="2.0.0-rc3-final" />
+    <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc3-final" />
+    <PackageReference Include="AutoMapper" Version="7.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
+    <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.6.0" />
+    <PackageReference Include="Lykke.Common" Version="7.0.4" />
+    <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.10.1" />
+    <PackageReference Include="Lykke.Logs" Version="6.0.0" />
+    <PackageReference Include="Lykke.Messages" Version="1.9.0" />
+    <PackageReference Include="Lykke.Service.ClientAccount.Client" Version="2.2.3" />
+    <PackageReference Include="Lykke.Service.GoogleAnalyticsWrapper.Client" Version="2.2.0" />
+    <PackageReference Include="Lykke.Service.PersonalData" Version="2.0.3" />
+    <PackageReference Include="Lykke.Service.Registration" Version="2.2.0" />
+    <PackageReference Include="Lykke.Service.Session.Client" Version="1.24.0" />
+    <PackageReference Include="Lykke.SettingsReader" Version="4.0.1" />
+    <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.5" />
+    <PackageReference Include="Lykke.SlackNotifications" Version="2.0.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.4.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.1.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Https" Version="2.1.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Session" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
+    <PackageReference Include="NWebsec.AspNetCore.Middleware" Version="2.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <DotNetCliToolReference Include="BundlerMinifier.Core" Version="2.2.301" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AzureDataAccess\AzureDataAccess.csproj" />
+    <ProjectReference Include="..\BusinessService\BusinessService.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="wwwroot\js\vendor\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings.dev.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Target Name="AddGeneratedContentItems" BeforeTargets="AssignTargetPaths" DependsOnTargets="PrepareForPublish">
+    <ItemGroup>
+      <Content Include="wwwroot/**" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);@(Content)" />
+    </ItemGroup>
+  </Target>
+</Project>

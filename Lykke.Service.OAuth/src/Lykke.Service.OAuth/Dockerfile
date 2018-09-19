@@ -1,0 +1,4 @@
+FROM microsoft/dotnet:2-aspnetcore-runtime
+WORKDIR /app
+COPY . .
+ENTRYPOINT ["dotnet", "Lykke.Service.OAuth.dll"]

@@ -1,0 +1,24 @@
+﻿@using AspNet.Security.OpenIdConnect.Primitives
+@model OpenIdConnectRequest
+
+<div class="text-center">
+    <h3>Logging out, please wait...</h3>
+    <form action="@Url.Action("Logout")" enctype="application/x-www-form-urlencoded" method="post" id="logout">
+        @Html.AntiForgeryToken()
+
+        @* Flow the logout request *@
+        @foreach (var parameter in Model.GetParameters())
+        {
+            <input type="hidden" name="@parameter.Key" value="@parameter.Value.Value?.ToString()" />
+        }
+    </form>
+</div>
+
+@section scripts
+{
+    <script>
+        $(function() {
+            $('#logout').submit();
+        });
+    </script>
+}

@@ -1,0 +1,11 @@
+﻿@if (!string.IsNullOrEmpty(ViewBag.UserId))
+{
+    <script>
+        var dataLayer = window.dataLayer = window.dataLayer || [];
+        dataLayer.push(
+            {
+                'userId': '@ViewBag.UserId'
+            }
+        );
+    </script>
+}

@@ -1,0 +1,157 @@
+﻿@{
+    Layout = null;
+}
+@model WebAuth.Models.LoginViewModel
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Raiffeisen – The Future of Markets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+    <script src="https://www.google.com/recaptcha/api.js?hl=de" async defer></script>
+    @RenderSection("HeadStyles", false)
+
+    <!-- Google Tag Manager -->
+    <script>
+        (function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                    new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-K5Q43JZ');
+    </script>
+    <!-- End Google Tag Manager -->
+</head>
+<body>
+    @await Component.InvokeAsync("GaUserId")
+    <!-- Google Tag Manager (noscript) -->
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K5Q43JZ"
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    @RenderBody()
+    <environment names="Development">
+        <script src="/js/vendor/jquery.min.js"></script>
+        <script src="/js/vendor/bootstrap.min.js"></script>
+        <script src="/js/vendor/fastclick.min.js"></script>
+        <script src="/js/functions.js"></script>
+        <script src="/js/vendor/moment.min.js"></script>
+        <script src="/js/vendor/notify.min.js"></script>
+        <script src="/js/vendor/bootstrap-datetimepicker.min.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="https://code.jquery.com/jquery-2.2.4.min.js"
+                integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+                crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    </environment>
+    <script>
+        function enableSubmit(el, enable) {
+            el.prop("disabled", !enable);
+        }
+
+        function captchaValid(id) {
+            validateInput();
+        }
+
+        function isValidEmail() {
+            const email = $("#email").val();
+            const filter = /^(?!.*[\\#/?\u0000-\u001F\u007F-\u009F\s]).+@@(.+\..+)+$/;
+            const isValidEmail = filter.test(email);
+            return isValidEmail;
+        }
+
+        function validateInput() {
+            const submit = $("#submit");
+            const password = $("#password").val();
+
+            const enable = password !== "" && isValidEmail() && grecaptcha.getResponse() !== "";
+            enableSubmit(submit, enable);
+            resetButtonsState();
+        }
+
+        function resetButtonsState() {
+            if (isValidEmail()) {
+                $('.footer_buttons .btn').removeAttr('disabled');
+            }
+            else {
+                $('.footer_buttons .btn').attr('disabled', 'disabled');
+            }
+        }
+
+        $('._toggle_password').on('click',
+            function () {
+                var $this = $(this);
+                var pass = $('#password');
+                pass.prop('type', pass.prop('type') === 'text' ? 'password' : 'text');
+                $this.find('.eye_icon').toggleClass('eye_icon--show_password_alt');
+                $this.find('.eye_icon').toggleClass('eye_icon--hide_password_alt');
+            });
+
+        (function () {
+            const submit = $("#submit");
+            const form = document.querySelector('.auth_group__form');
+            var fields = [].slice.call(form.querySelectorAll('.form-group-input'));
+
+            submit.on('click', function () {
+
+
+                var formValid = true;
+
+                fields.map(function (el) {
+                    formValid = checkValidate(el.children[0]);
+                });
+
+                if (formValid) {
+                    document.querySelector('.loader').style.display = 'block';
+                }
+
+            });
+
+            form.addEventListener('keyup', validateInput);
+
+            function checkValidate(e) {
+                const target = e.target || e;
+                const val = target.value;
+                const type = target.dataset.type;
+                var valid = true;
+
+                if (val === '') valid = false;
+
+                if (valid && type === 'mail') {
+                    valid = /^[-._a-z0-9]+@@(?:[a-z0-9][-a-z0-9]+\.)+[a-z]{2,6}$/.test(val);
+                }
+
+                const parent = target.parentElement;
+
+                if (!valid) {
+                    parent.classList.add('invalid');
+                    parent.classList.remove('valid');
+                } else {
+                    parent.classList.remove('invalid');
+                    parent.classList.add('valid');
+                }
+
+                return valid;
+            }
+
+            resetButtonsState();
+
+            $('.form-control').each(function () {
+                if ($(this).val() !== '') {
+                    $(this).addClass('not-empty');
+                }
+            }).keyup(function () { //new
+                $(this).toggleClass('not-empty', $(this).val() !== '');
+            }).change(function () {
+                $(this).toggleClass('not-empty', $(this).val() !== '');
+            });
+        })();
+    </script>
+</body>
+</html>

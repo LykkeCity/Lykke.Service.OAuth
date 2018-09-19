@@ -1,0 +1,22 @@
+﻿@model WebAuth.Models.HeaderLogoViewModel
+@if (!string.IsNullOrEmpty(Model.Url) && Model.IsStreams.HasValue)
+{
+    if (Model.IsStreams.Value)
+    {
+        <a href="@Model.Url">
+            <img class="header_logo__img" src="/images/streams_logo.svg" height="40" alt="streams_logo">
+            <div class="header_logo__title">
+                Lykke<span>Streams</span>
+            </div>
+        </a>
+    }
+    else
+    {
+        @await Component.InvokeAsync("LykkeLogo", new { Model.Url })
+    }
+
+}
+else
+{
+    @await Component.InvokeAsync("LykkeLogo")
+}
