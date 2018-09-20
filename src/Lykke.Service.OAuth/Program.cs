@@ -21,8 +21,10 @@ namespace WebAuth
                 var host = new WebHostBuilder()
                     .UseKestrel()
                     .UseContentRoot(Directory.GetCurrentDirectory())
-                    .UseApplicationInsights()
-                    .UseUrls("http://*:5000/")
+#if !DEBUG
+                        .UseApplicationInsights()
+                        .UseUrls("http://*:5000/")
+#endif
                     .UseStartup<Startup>()
                     .Build();
 
@@ -41,7 +43,7 @@ namespace WebAuth
                 Console.WriteLine($"Process will be terminated in {delay}. Press any key to terminate immediately.");
 
                 await Task.WhenAny(
-                    Task.Delay(delay),
+                        Task.Delay(delay),
                     Task.Run(() => { Console.ReadKey(true); }));
             }
 
