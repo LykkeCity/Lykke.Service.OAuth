@@ -13,6 +13,7 @@ namespace Lykke.Service.OAuth.Services
     public class TokenService : ITokenService
     {
         private readonly IDatabase _redisDatabase;
+        private static readonly TimeSpan RefreshTokenWhitelistLifetime = TimeSpan.FromDays(30);
 
         public TokenService(IConnectionMultiplexer connectionMultiplexer)
         {
@@ -22,16 +23,20 @@ namespace Lykke.Service.OAuth.Services
         /// <inheritdoc />
         public Task<bool> RevokeRefreshTokenAsync(string refreshToken)
         {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+                return Task.FromResult(true);
+
             var tokenRedisKey = GetRefreshTokenWhitelistRedisKey(refreshToken);
 
-            return string.IsNullOrWhiteSpace(tokenRedisKey)
-                ? Task.FromResult(true)
-                : _redisDatabase.KeyDeleteAsync(tokenRedisKey);
+            return _redisDatabase.KeyDeleteAsync(tokenRedisKey);
         }
 
         /// <inheritdoc />
         public Task<bool> IsRefreshTokenInWhitelistAsync(string refreshToken)
         {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+                return Task.FromResult(false);
+
             var tokenRedisKey = GetRefreshTokenWhitelistRedisKey(refreshToken);
             return _redisDatabase.KeyExistsAsync(tokenRedisKey);
         }
@@ -51,7 +56,7 @@ namespace Lykke.Service.OAuth.Services
                 // If token is generated upon authorization code exchange save it to redis.
                 if (!isOldTokenPresent)
                 {
-                    await _redisDatabase.StringSetAsync(newKey, true, TimeSpan.FromDays(30));
+                    await _redisDatabase.StringSetAsync(newKey, true, RefreshTokenWhitelistLifetime);
                 }
                 else
                     // If we successfully exchanged refresh token,
@@ -60,7 +65,7 @@ namespace Lykke.Service.OAuth.Services
                     var steps = new List<Task>();
                     var transaction = _redisDatabase.CreateTransaction();
                     steps.Add(transaction.KeyDeleteAsync(oldKey));
-                    steps.Add(transaction.StringSetAsync(newKey, true, TimeSpan.FromDays(30)));
+                    steps.Add(transaction.StringSetAsync(newKey, true, RefreshTokenWhitelistLifetime));
                     if (await transaction.ExecuteAsync()) await Task.WhenAll(steps);
                 }
             }

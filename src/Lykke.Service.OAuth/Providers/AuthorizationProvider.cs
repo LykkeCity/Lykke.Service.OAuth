@@ -301,7 +301,6 @@ namespace WebAuth.Providers
 
         private async Task UpdateRefreshToken(ApplyTokenResponseContext context)
         {
-
             // Only proccess flows that support refresh tokens
             if (!string.IsNullOrWhiteSpace(context.Error) ||
                 !(context.Request.IsRefreshTokenGrantType() ||

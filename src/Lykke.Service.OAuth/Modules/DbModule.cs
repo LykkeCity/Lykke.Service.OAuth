@@ -53,8 +53,12 @@ namespace WebAuth.Modules
             ).As<IWalletCredentialsRepository>().SingleInstance();
 
             builder.Register(context =>
-                    ConnectionMultiplexer.Connect(_settings.CurrentValue.OAuth.RedisSettings.RedisConfiguration))
-                .As<IConnectionMultiplexer>().SingleInstance();
+            {
+                var connectionMultiplexer =
+                    ConnectionMultiplexer.Connect(_settings.CurrentValue.OAuth.RedisSettings.RedisConfiguration);
+                connectionMultiplexer.IncludeDetailInExceptions = false;
+                return connectionMultiplexer;
+            }).As<IConnectionMultiplexer>().SingleInstance();
         }
     }
 }
