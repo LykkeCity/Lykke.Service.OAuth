@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Core.Extensions;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
@@ -26,6 +27,13 @@ namespace WebAuth
                 context.RejectPrincipal();
                 await context.HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
             }
+        }
+
+        public override async Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
+        {
+            if (context.HttpContext.Items["partnerId"] != null)
+                context.RedirectUri += "&partnerId=" + context.HttpContext.Items["partnerId"];
+            await base.RedirectToLogin(context);
         }
     }
 }

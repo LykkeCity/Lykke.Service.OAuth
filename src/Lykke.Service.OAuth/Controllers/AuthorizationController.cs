@@ -79,7 +79,8 @@ namespace WebAuth.Controllers
                 parameters.Add("request_id", identifier);
 
                 redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
-
+                if (parameters["partnerId"] != null)
+                    HttpContext.Items.Add("partnerId", parameters["partnerId"]);
                 return Challenge(new AuthenticationProperties
                 {
                     RedirectUri = Url.Action(redirectUrl)
