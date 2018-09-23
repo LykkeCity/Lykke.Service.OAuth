@@ -9,6 +9,7 @@ namespace WebAuth
 {
     internal class CustomCookieAuthenticationEvents : CookieAuthenticationEvents
     {
+        private const string partnerIdName = "partnerId";
         private readonly IClientSessionsClient _clientSessionsClient;
 
         public CustomCookieAuthenticationEvents(IClientSessionsClient clientSessionsClient)
@@ -31,8 +32,9 @@ namespace WebAuth
 
         public override async Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
         {
-            if (context.HttpContext.Items["partnerId"] != null)
-                context.RedirectUri += "&partnerId=" + context.HttpContext.Items["partnerId"];
+            // this parameter added for authentification on login page with PartnerId
+            if (context.HttpContext.Items[partnerIdName] != null)
+                context.RedirectUri += string.Format("&{0}={1}", partnerIdName, context.HttpContext.Items[partnerIdName]);
             await base.RedirectToLogin(context);
         }
     }

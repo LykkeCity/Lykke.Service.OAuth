@@ -24,6 +24,7 @@ namespace WebAuth.Controllers
 {
     public class AuthorizationController : Controller
     {
+        private const string partnerIdName = "partnerId";
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserManager _userManager;
         private readonly IClientSessionsClient _clientSessionsClient;
@@ -79,8 +80,9 @@ namespace WebAuth.Controllers
                 parameters.Add("request_id", identifier);
 
                 redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
-                if (parameters["partnerId"] != null)
-                    HttpContext.Items.Add("partnerId", parameters["partnerId"]);
+                // this parameter added for authentification on login page with PartnerId
+                if (parameters[partnerIdName] != null)
+                    HttpContext.Items.Add(partnerIdName, parameters[partnerIdName]);
                 return Challenge(new AuthenticationProperties
                 {
                     RedirectUri = Url.Action(redirectUrl)
