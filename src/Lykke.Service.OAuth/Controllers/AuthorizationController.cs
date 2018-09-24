@@ -24,7 +24,7 @@ namespace WebAuth.Controllers
 {
     public class AuthorizationController : Controller
     {
-        private const string partnerIdName = "partnerId";
+        private const string PartnerIdName = "partnerId";
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserManager _userManager;
         private readonly IClientSessionsClient _clientSessionsClient;
@@ -80,13 +80,19 @@ namespace WebAuth.Controllers
                 parameters.Add("request_id", identifier);
 
                 redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
+
                 // this parameter added for authentification on login page with PartnerId
-                if (parameters[partnerIdName] != null)
-                    HttpContext.Items.Add(partnerIdName, parameters[partnerIdName]);
-                return Challenge(new AuthenticationProperties
+                parameters.TryGetValue(PartnerIdName, out var partnerId);
+
+                var authenticationProperties = new AuthenticationProperties
                 {
-                    RedirectUri = Url.Action(redirectUrl)
-                });
+                    RedirectUri = Url.Action(redirectUrl),
+                };
+
+                if (!string.IsNullOrWhiteSpace(partnerId))
+                    authenticationProperties.Parameters.Add(PartnerIdName, partnerId);
+
+                return Challenge(authenticationProperties);
             }
 
             // Note: ASOS automatically ensures that an application corresponds to the client_id specified

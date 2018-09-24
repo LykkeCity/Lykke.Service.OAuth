@@ -1,15 +1,15 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Core.Extensions;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace WebAuth
 {
     internal class CustomCookieAuthenticationEvents : CookieAuthenticationEvents
     {
-        private const string partnerIdName = "partnerId";
+        private const string PartnerIdName = "partnerId";
         private readonly IClientSessionsClient _clientSessionsClient;
 
         public CustomCookieAuthenticationEvents(IClientSessionsClient clientSessionsClient)
@@ -33,8 +33,13 @@ namespace WebAuth
         public override async Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
         {
             // this parameter added for authentification on login page with PartnerId
-            if (context.HttpContext.Items[partnerIdName] != null)
-                context.RedirectUri += string.Format("&{0}={1}", partnerIdName, context.HttpContext.Items[partnerIdName]);
+            context.Properties.Parameters.TryGetValue(PartnerIdName, out var partnerIdValue);
+
+            var partnerId = partnerIdValue as string;
+
+            if (!string.IsNullOrWhiteSpace(partnerId))
+                context.RedirectUri = QueryHelpers.AddQueryString(context.RedirectUri, PartnerIdName, partnerId);
+
             await base.RedirectToLogin(context);
         }
     }
