@@ -4,6 +4,6 @@ namespace Core.Application
 {
     public interface IApplicationRepository
     {
-        Task<Application> GetByIdAsync(string id);        
+        Task<ClientApplication> GetByIdAsync(string id);        
     }
 }

@@ -39,7 +39,7 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/connect/authorize")]
         [HttpPost("~/connect/authorize")]
-        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = false, Duration = 0)]
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true, Duration = 0)]
         public async Task<IActionResult> Authorize()
         {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
@@ -119,7 +119,7 @@ namespace WebAuth.Controllers
         [Authorize]
         [HttpPost("~/connect/authorize/accept")]
         [HttpGet("~/connect/authorize/accept")]
-        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = false, Duration = 0)]
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true, Duration = 0)]
         public async Task<IActionResult> Accept()
         {
             var response = HttpContext.GetOpenIdConnectResponse();

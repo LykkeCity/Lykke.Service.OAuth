@@ -34,7 +34,7 @@ namespace AzureDataAccess.Application
             _applicationTablestorage = applicationTablestorage;
         }
 
-        public async Task<Core.Application.Application> GetByIdAsync(string id)
+        public async Task<Core.Application.ClientApplication> GetByIdAsync(string id)
         {
             if (!id.IsValidPartitionOrRowKey())
             {
@@ -44,7 +44,7 @@ namespace AzureDataAccess.Application
             var rowKey = ApplicationEntity.GenerateRowKey(id);
 
             var application = await _applicationTablestorage.GetDataAsync(partitionKey, rowKey);
-            return Core.Application.Application.Create(application);
+            return Core.Application.ClientApplication.Create(application);
         }
     }
 }

@@ -9,18 +9,18 @@ namespace AzureDataAccess.Application
     {
         private readonly IApplicationRepository _repository;
         private readonly IMemoryCache _cache;
-
+        private readonly TimeSpan _cachedEntityTtl = TimeSpan.FromMinutes(1);
         public ApplicationCachedRepository(IApplicationRepository repository, IMemoryCache cache)
         {
             _repository = repository;
             _cache = cache;
         }
 
-        public Task<Core.Application.Application> GetByIdAsync(string id)
+        public Task<ClientApplication> GetByIdAsync(string id)
         {
             return _cache.GetOrCreateAsync(id, entry =>
               {
-                  entry.SlidingExpiration = TimeSpan.FromMinutes(1);
+                  entry.AbsoluteExpirationRelativeToNow = _cachedEntityTtl;
                   return _repository.GetByIdAsync(id);
               });
         }

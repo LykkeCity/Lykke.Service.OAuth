@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Core.Application
 {
-    public class Application : IApplication
+    public class ClientApplication : IApplication
     {
         public string ApplicationId { get; set; }
         public string DisplayName { get; set; }
@@ -15,11 +15,11 @@ namespace Core.Application
             ? Array.Empty<string>()
             : RedirectUri.Split(new []{',', ';'}, StringSplitOptions.RemoveEmptyEntries).Select(item => item.Trim()).ToArray();
 
-        public static Application Create(IApplication src)
+        public static ClientApplication Create(IApplication src)
         {
             return src == null 
                 ? null 
-                : new Application
+                : new ClientApplication
                 {
                     ApplicationId = src.ApplicationId,
                     DisplayName = src.DisplayName,
