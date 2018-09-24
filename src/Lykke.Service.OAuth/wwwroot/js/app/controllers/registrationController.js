@@ -85,13 +85,16 @@
                     if (!result.isEmailTaken) {
                         registerService.getCountries().then(function (result) {
                             vm.data.countries = result.data;
-                            var result = vm.data.countries.filter(obj => {
-                                return obj.selected == true
+                            var selected = vm.data.countries.filter(obj => {
+                                return obj.selected === true;
                             });
-                            if (result.length !== 0) {
-                                vm.data.uimask = result[0].prefix + vm.data.defaultMask;
-                                vm.data.selectedPrefix = result[0].prefix;
-                                vm.data.selectedCountryName = result[0].title;
+                            if (selected.length !== 0) {
+                                if (selected[0].prefix === "+375")
+                                    vm.data.uimask = selected[0].prefix + " (99) 999-9999";
+                                else
+                                    vm.data.uimask = selected[0].prefix + vm.data.defaultMask;
+                                vm.data.selectedPrefix = selected[0].prefix;
+                                vm.data.selectedCountryName = selected[0].title;
                             }
                             vm.data.step = 2;
                         });
@@ -131,9 +134,12 @@
 
         function changeCountry() {
             var result = vm.data.countries.filter(obj => {
-                return obj.id === vm.data.selectedCountry
+                return obj.id === vm.data.selectedCountry;
             });
-            vm.data.uimask = result[0].prefix + vm.data.defaultMask;
+            if (result[0].prefix === "+375")
+                vm.data.uimask = result[0].prefix + " (99) 999-9999";
+            else
+                vm.data.uimask = result[0].prefix + vm.data.defaultMask;
             vm.data.selectedPrefix = result[0].prefix;
             vm.data.selectedCountryName = result[0].title;
             vm.data.isAutoSelect = false;

@@ -18,7 +18,6 @@
         function sendPhoneCode(key, phone, prefix) {
             return $http.post('/signup/sendPhoneCode', { key: key, code: phone, selectedPrefix: prefix })
                 .then(function (data) {
-                    debugger;
                     return data.data;
                 });
         }
