@@ -24,7 +24,6 @@ namespace WebAuth.Controllers
 {
     public class AuthorizationController : Controller
     {
-        private const string PartnerIdName = "partnerId";
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserManager _userManager;
         private readonly IClientSessionsClient _clientSessionsClient;
@@ -82,7 +81,7 @@ namespace WebAuth.Controllers
                 redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
 
                 // this parameter added for authentification on login page with PartnerId
-                parameters.TryGetValue(PartnerIdName, out var partnerId);
+                parameters.TryGetValue(CommonConstants.PartnerIdParameter, out var partnerId);
 
                 var authenticationProperties = new AuthenticationProperties
                 {
@@ -90,7 +89,7 @@ namespace WebAuth.Controllers
                 };
 
                 if (!string.IsNullOrWhiteSpace(partnerId))
-                    authenticationProperties.Parameters.Add(PartnerIdName, partnerId);
+                    authenticationProperties.Parameters.Add(CommonConstants.PartnerIdParameter, partnerId);
 
                 return Challenge(authenticationProperties);
             }
