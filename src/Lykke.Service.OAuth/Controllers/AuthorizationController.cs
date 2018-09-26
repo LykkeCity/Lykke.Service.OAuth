@@ -80,10 +80,18 @@ namespace WebAuth.Controllers
 
                 redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
 
-                return Challenge(new AuthenticationProperties
+                // this parameter added for authentification on login page with PartnerId
+                parameters.TryGetValue(CommonConstants.PartnerIdParameter, out var partnerId);
+
+                var authenticationProperties = new AuthenticationProperties
                 {
-                    RedirectUri = Url.Action(redirectUrl)
-                });
+                    RedirectUri = Url.Action(redirectUrl),
+                };
+
+                if (!string.IsNullOrWhiteSpace(partnerId))
+                    authenticationProperties.Parameters.Add(CommonConstants.PartnerIdParameter, partnerId);
+
+                return Challenge(authenticationProperties);
             }
 
             // Note: ASOS automatically ensures that an application corresponds to the client_id specified
