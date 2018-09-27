@@ -225,6 +225,12 @@ namespace WebAuth.Controllers
             }
 
             var traffic = Request.Cookies["sbjs_current"];
+            AccountExistsModel accountExistsModel = await _clientAccountClient.IsTraderWithEmailExistsAsync(model.Email, null);
+            if (accountExistsModel.IsClientAccountExisting)
+            {
+                ModelState.AddModelError(nameof(model.Email), "Email is already in use. Your verification code is no longer valid. Try with another email.");
+                return View(viewName, model);
+            }
 
             var code = await _verificationCodesService.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);

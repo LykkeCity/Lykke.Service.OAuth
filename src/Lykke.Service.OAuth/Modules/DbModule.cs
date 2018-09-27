@@ -4,6 +4,7 @@ using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
 using Lykke.SettingsReader;
+using StackExchange.Redis;
 using WebAuth.Settings;
 
 namespace WebAuth.Modules
@@ -30,6 +31,10 @@ namespace WebAuth.Modules
             builder.RegisterInstance(
                 AzureRepoFactories.CreateWalletCredentialsRepository(clientPersonalInfoConnString, _log)
             ).As<IWalletCredentialsRepository>().SingleInstance();
+
+            builder.Register(context =>
+                    ConnectionMultiplexer.Connect(_settings.CurrentValue.OAuth.RedisSettings.RedisConfiguration))
+                .As<IConnectionMultiplexer>().SingleInstance();
         }
     }
 }

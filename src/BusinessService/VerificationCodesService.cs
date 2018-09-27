@@ -4,21 +4,21 @@ using System.Threading.Tasks;
 using Core.VerificationCodes;
 using MessagePack;
 using MessagePack.Resolvers;
-using Microsoft.Extensions.Caching.Distributed;
+using StackExchange.Redis;
 
 namespace BusinessService
 {
     public class VerificationCodesService : IVerificationCodesService
     {
-        private readonly IDistributedCache _cache;
+        private readonly IDatabase _redisDatabase;
         private readonly TimeSpan _verificationCodesExpiration;
 
         public VerificationCodesService(
-            IDistributedCache cache,
+            IConnectionMultiplexer connectionMultiplexer,
             TimeSpan verificationCodesExpiration
             )
         {
-            _cache = cache;
+            _redisDatabase = connectionMultiplexer.GetDatabase() ?? throw new ArgumentNullException(nameof(connectionMultiplexer));
             _verificationCodesExpiration = verificationCodesExpiration;
         }
         
@@ -33,12 +33,8 @@ namespace BusinessService
 
         public async Task<VerificationCode> GetCodeAsync(string key)
         {
-            var value = await _cache.GetAsync(key);
-
-            if (value == null)
-                return null;
-            
-            using (var stream = new MemoryStream(value))
+            var redisValue = await _redisDatabase.StringGetAsync(GetCacheKey(key));
+            using (var stream = new MemoryStream(redisValue))
             {
                 return MessagePackSerializer.Deserialize<VerificationCode>(stream, StandardResolverAllowPrivate.Instance);
             }
@@ -59,17 +55,17 @@ namespace BusinessService
 
         public Task DeleteCodeAsync(string key)
         {
-            return _cache.RemoveAsync(key);
+            return _redisDatabase.KeyDeleteAsync(GetCacheKey(key));
         }
 
         private async Task AddCacheAsync(VerificationCode code)
         {
             var value = MessagePackSerializer.Serialize(code);
-
-            await _cache.SetAsync(code.Key, value, new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = _verificationCodesExpiration
-            });
+            await _redisDatabase.StringSetAsync(GetCacheKey(code.Key), value, _verificationCodesExpiration);
+        }
+        private static string GetCacheKey(string key)
+        {
+            return "OAuth:ConfirmationCodes:" + key;
         }
     }
 }
