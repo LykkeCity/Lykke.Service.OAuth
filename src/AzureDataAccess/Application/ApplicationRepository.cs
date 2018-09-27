@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AzureStorage;
+using Common;
 using Core.Application;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -12,7 +13,7 @@ namespace AzureDataAccess.Application
         public string RedirectUri { get; set; }
         public string Secret { get; set; }
         public string Type { get; set; }
-        
+
         public static string GeneratePartitionKey()
         {
             return "InternalApplication";
@@ -35,6 +36,10 @@ namespace AzureDataAccess.Application
 
         public async Task<Core.Application.Application> GetByIdAsync(string id)
         {
+            if (!id.IsValidPartitionOrRowKey())
+            {
+                return null;
+            }
             var partitionKey = ApplicationEntity.GeneratePartitionKey();
             var rowKey = ApplicationEntity.GenerateRowKey(id);
 
