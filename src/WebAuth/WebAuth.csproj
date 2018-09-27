@@ -19,18 +19,19 @@
     <PackageReference Include="AutoMapper" Version="7.0.0" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="4.0.0" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
-    <PackageReference Include="Lykke.Common" Version="6.8.5" />
-    <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.7.1" />
-    <PackageReference Include="Lykke.Logs" Version="4.3.4" />
-    <PackageReference Include="Lykke.Messages" Version="1.7.0" />
+    <PackageReference Include="Lykke.Common" Version="7.1.0" />
+    <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.10.1" />
+    <PackageReference Include="Lykke.Logs" Version="6.0.0" />
+    <PackageReference Include="Lykke.Messages" Version="1.9.0" />
     <PackageReference Include="Lykke.Service.ClientAccount.Client" Version="1.4.5" />
     <PackageReference Include="Lykke.Service.GoogleAnalyticsWrapper.Client" Version="2.2.0" />
     <PackageReference Include="Lykke.Service.Kyc.Client" Version="1.0.230" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="1.0.80" />
-    <PackageReference Include="Lykke.Service.Registration" Version="2.1.2" />
+    <PackageReference Include="Lykke.Service.Registration" Version="3.0.0" />
     <PackageReference Include="Lykke.Service.Session.Client" Version="1.22.1" />
-    <PackageReference Include="Lykke.SettingsReader" Version="2.4.0" />
-    <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.4" />
+    <PackageReference Include="Lykke.SettingsReader" Version="4.1.1" />
+    <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.5" />
+    <PackageReference Include="Lykke.Service.Registration.Contract" Version="1.1.0" />
     <PackageReference Include="Lykke.SlackNotifications" Version="2.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.0" />
@@ -46,7 +47,7 @@
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
     <PackageReference Include="NWebsec.AspNetCore.Middleware" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>

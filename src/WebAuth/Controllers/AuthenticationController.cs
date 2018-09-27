@@ -15,7 +15,9 @@ using Lykke.Common.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Registration;
-using Lykke.Service.Registration.Models;
+using Lykke.Service.Registration.Contract.Client.Enums;
+using Lykke.Service.Registration.Contract.Client.Models;
+using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +32,7 @@ namespace WebAuth.Controllers
 {
     public class AuthenticationController : BaseController
     {
-        private readonly ILykkeRegistrationClient _registrationClient;
+        private readonly IRegistrationServiceClient _registrationClient;
         private readonly IVerificationCodesService _verificationCodesService;
         private readonly IEmailFacadeService _emailFacadeService;
         private readonly ProfileActionHandler _profileActionHandler;
@@ -41,7 +43,7 @@ namespace WebAuth.Controllers
         private readonly ILog _log;
 
         public AuthenticationController(
-            ILykkeRegistrationClient registrationClient,
+            IRegistrationServiceClient registrationClient,
             IVerificationCodesService verificationCodesService,
             IEmailFacadeService emailFacadeService,
             ProfileActionHandler profileActionHandler,
@@ -139,12 +141,13 @@ namespace WebAuth.Controllers
                 if (!ModelState.IsValid)
                     return View(viewName, model);
 
-                AuthResponse authResult = await _registrationClient.AuthorizeAsync(new AuthModel
+                var authResult = await _registrationClient.LoginApi.AuthenticateAsync(new AuthenticateModel
                 {
                     Email = model.Username,
                     Password = model.Password,
                     Ip = HttpContext.GetIp(),
-                    UserAgent = HttpContext.GetUserAgent()
+                    UserAgent = HttpContext.GetUserAgent(),
+                    Ttl = GetSessionTtl(platform)
                 });
 
                 if (authResult == null)
@@ -159,8 +162,7 @@ namespace WebAuth.Controllers
                     return View(viewName, model);
                 }
 
-                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id,
-                    authResult.Account.Email, model.Username, false);
+                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, model.Username, model.Username, false);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
@@ -320,7 +322,7 @@ namespace WebAuth.Controllers
                 }
             }
 
-            RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
+            var result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
             {
                 Email = model.Email,
                 Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
@@ -329,8 +331,9 @@ namespace WebAuth.Controllers
                 UserAgent = userAgent,
                 Referer = referer,
                 CreatedAt = DateTime.UtcNow,
-                    Cid = model.Cid,
-                    Traffic = model.Traffic
+                Cid = model.Cid,
+                Traffic = model.Traffic,
+                Ttl = GetSessionTtl(null)
             });
 
             regResult.RegistrationResponse = result;
@@ -375,6 +378,19 @@ namespace WebAuth.Controllers
         private bool IsPasswordComplex(string password)
         {
             return password.IsPasswordComplex(useSpecialChars: false);
+        }
+
+        private static TimeSpan? GetSessionTtl(string platform)
+        {
+            switch (platform)
+            {
+                    case "android":
+                    case "ios":
+                        return TimeSpan.FromDays(30);
+
+                    default:
+                        return null;
+            }
         }
     }
 }
