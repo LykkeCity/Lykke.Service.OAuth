@@ -128,8 +128,8 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
             using (new AssertionScope())
             {
                 context.IsRejected.Should().BeTrue();
-                context.Error.Should().Be(OpenIdConnectConstants.Errors.InvalidRequest);
-                context.ErrorDescription.Should().Be("Invalid request: refresh token was revoked.");
+                context.Error.Should().Be(OpenIdConnectConstants.Errors.InvalidGrant);
+                context.ErrorDescription.Should().Be("refresh_token was revoked.");
             }
         }
 

@@ -13,6 +13,7 @@ using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.Log;
 using Lykke.Logs;
+using Lykke.Service.OAuth.Modules;
 using Lykke.SettingsReader;
 using Lykke.SettingsReader.ReloadingManager;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -170,6 +171,8 @@ namespace WebAuth
                 builder.RegisterModule(new DbModule(settings));
                 builder.RegisterModule(new BusinessModule(settings));
                 builder.RegisterModule(new ClientServiceModule(settings));
+                builder.RegisterModule(new ServiceModule());
+
 
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();

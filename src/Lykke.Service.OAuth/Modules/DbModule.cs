@@ -1,10 +1,8 @@
 ﻿using Autofac;
-using AzureDataAccess;
 using AzureDataAccess.Application;
 using AzureDataAccess.Bitcoin;
 using AzureStorage;
 using AzureStorage.Tables;
-using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
 using Lykke.Common.Log;
@@ -28,7 +26,9 @@ namespace WebAuth.Modules
         {
             var clientPersonalInfoConnString = _settings.ConnectionString(x => x.OAuth.Db.ClientPersonalInfoConnString);
 
-            builder.Register(c => AzureTableStorage<ApplicationEntity>.Create(clientPersonalInfoConnString, "Applications", c.Resolve<ILogFactory>()))
+            builder.Register(c =>
+                    AzureTableStorage<ApplicationEntity>.Create(clientPersonalInfoConnString, "Applications",
+                        c.Resolve<ILogFactory>()))
                 .As<INoSQLTableStorage<ApplicationEntity>>()
                 .SingleInstance();
 
@@ -40,17 +40,13 @@ namespace WebAuth.Modules
                 (c, inner) => new ApplicationCachedRepository(inner, c.Resolve<IMemoryCache>()), "notCached");
 
 
-            builder.Register(c => AzureTableStorage<WalletCredentialsEntity>.Create(clientPersonalInfoConnString, "WalletCredentials", c.Resolve<ILogFactory>()))
+            builder.Register(c => AzureTableStorage<WalletCredentialsEntity>.Create(clientPersonalInfoConnString,
+                    "WalletCredentials", c.Resolve<ILogFactory>()))
                 .As<INoSQLTableStorage<WalletCredentialsEntity>>()
                 .SingleInstance();
 
             builder.RegisterType<WalletCredentialsRepository>()
                 .As<IWalletCredentialsRepository>();
-
-
-            builder.RegisterInstance(
-                AzureRepoFactories.CreateWalletCredentialsRepository(clientPersonalInfoConnString, _log)
-            ).As<IWalletCredentialsRepository>().SingleInstance();
 
             builder.Register(context =>
             {

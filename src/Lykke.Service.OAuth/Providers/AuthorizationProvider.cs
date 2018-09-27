@@ -295,8 +295,8 @@ namespace WebAuth.Providers
                 return;
             
             context.Reject(
-                OpenIdConnectConstants.Errors.InvalidRequest,
-                "Invalid request: refresh token was revoked.");
+                OpenIdConnectConstants.Errors.InvalidGrant,
+                "refresh_token was revoked.");
         }
 
         private async Task UpdateRefreshToken(ApplyTokenResponseContext context)
