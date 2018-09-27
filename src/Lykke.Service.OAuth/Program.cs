@@ -6,24 +6,27 @@ using Microsoft.Extensions.PlatformAbstractions;
 
 namespace WebAuth
 {
-    public class Program
+    internal static class Program
     {
-        public static void Main(string[] args)
+        public static string EnvInfo => Environment.GetEnvironmentVariable("ENV_INFO");
+
+        public static async Task Main(string[] args)
         {
+
             Console.WriteLine($"{PlatformServices.Default.Application.ApplicationName} version {PlatformServices.Default.Application.ApplicationVersion}");
 
             try
             {
 
-                    var host = new WebHostBuilder()
-                        .UseKestrel()
-                        .UseContentRoot(Directory.GetCurrentDirectory())
-                        .UseApplicationInsights()
-                        .UseUrls("http://*:5000/")
-                        .UseStartup<Startup>()
-                        .Build();
+                var host = new WebHostBuilder()
+                    .UseKestrel()
+                    .UseContentRoot(Directory.GetCurrentDirectory())
+                    .UseApplicationInsights()
+                    .UseUrls("http://*:5000/")
+                    .UseStartup<Startup>()
+                    .Build();
 
-                    host.Run();
+                await host.RunAsync();
 
             }
             catch (Exception ex)
@@ -37,13 +40,9 @@ namespace WebAuth
                 Console.WriteLine();
                 Console.WriteLine($"Process will be terminated in {delay}. Press any key to terminate immediately.");
 
-                Task.WhenAny(
-                        Task.Delay(delay),
-                        Task.Run(() =>
-                        {
-                            Console.ReadKey(true);
-                        }))
-                    .Wait();
+                await Task.WhenAny(
+                    Task.Delay(delay),
+                    Task.Run(() => { Console.ReadKey(true); }));
             }
 
             Console.WriteLine("Terminated");

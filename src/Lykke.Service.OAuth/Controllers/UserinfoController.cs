@@ -8,6 +8,7 @@ using Core.Application;
 using Core.Bitcoin;
 using Core.Extensions;
 using IdentityServer4.AccessTokenValidation;
+using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Session.Client;
@@ -28,14 +29,14 @@ namespace WebAuth.Controllers
 
 
         public UserinfoController(
-            ILog log,
+            ILogFactory logFactory,
             IApplicationRepository applicationRepository,
             IClientSessionsClient clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository,
             IClientAccountClient clientAccountClient)
 
         {
-            _log = log;
+            _log = logFactory.CreateLog(this);
             _applicationRepository = applicationRepository;
             _clientSessionsClient = clientSessionsClient;
             _walletCredentialsRepository = walletCredentialsRepository;
@@ -82,7 +83,7 @@ namespace WebAuth.Controllers
 
             var session = await _clientSessionsClient.GetAsync(sessionId);
 
-            return Json(new {Token = sessionId, session.AuthId});
+            return Json(new { Token = sessionId, session.AuthId });
         }
 
 
@@ -123,7 +124,7 @@ namespace WebAuth.Controllers
             }
             catch (Exception)
             {
-                _log.WriteInfo(nameof(GetClientByIdAsync), clientId, "Can't get client info");
+                _log.Info(nameof(GetClientByIdAsync), clientId, "Can't get client info");
             }
 
             return client;

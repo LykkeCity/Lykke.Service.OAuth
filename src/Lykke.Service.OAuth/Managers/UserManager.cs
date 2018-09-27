@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -17,16 +18,12 @@ namespace WebAuth.Managers
     {
         private readonly IPersonalDataService _personalDataService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILog _log;
 
         public UserManager(IPersonalDataService personalDataService,
-            IHttpContextAccessor httpContextAccessor,
-            ILog log
-            )
+            IHttpContextAccessor httpContextAccessor)
         {
             _personalDataService = personalDataService;
             _httpContextAccessor = httpContextAccessor;
-            _log = log.CreateComponentScope(nameof(UserManager));
         }
 
         public ClaimsIdentity CreateIdentity(List<string> scopes, IEnumerable<Claim> claims)
@@ -37,50 +34,50 @@ namespace WebAuth.Managers
                 switch (claim.Type)
                 {
                     case ClaimTypes.NameIdentifier:
-                    {
-                        identity.AddClaim(claim);
-                        identity.AddClaim(OpenIdConnectConstants.Claims.Subject, claim.Value);
-                        break;
-                    }
+                        {
+                            identity.AddClaim(claim);
+                            identity.AddClaim(OpenIdConnectConstants.Claims.Subject, claim.Value);
+                            break;
+                        }
                     case ClaimTypes.Name:
-                    {
-                        AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstants.Claims.Email:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Email))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Email))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstants.Claims.GivenName:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstants.Claims.FamilyName:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Profile))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstantsExt.Claims.Country:
-                    {
-                        if (scopes.Contains(OpenIdConnectConstants.Scopes.Address))
-                            AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            if (scopes.Contains(OpenIdConnectConstants.Scopes.Address))
+                                AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstantsExt.Claims.SignType:
-                    {
-                        AddClaim(claim, identity);
-                        break;
-                    }
+                        {
+                            AddClaim(claim, identity);
+                            break;
+                        }
                     case OpenIdConnectConstantsExt.Claims.SessionId:
                         {
                             AddClaim(claim, identity);
                             break;
-                }
+                        }
                 }
 
             return identity;
@@ -89,6 +86,11 @@ namespace WebAuth.Managers
         public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, string sessionId, bool? register = null)
         {
             var personalData = await _personalDataService.GetAsync(clientId);
+
+            if (personalData == null)
+            {
+                throw new InvalidOperationException("Unable to find personal data for user " + clientId);
+            }
 
             var claims = new List<Claim>
             {
@@ -108,7 +110,7 @@ namespace WebAuth.Managers
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Country, personalData.Country));
 
             if (register.HasValue)
-                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register": "Login"));
+                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register" : "Login"));
 
             return new ClaimsIdentity(new GenericIdentity(userName, "Token"), claims);
         }

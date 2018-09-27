@@ -1,5 +1,5 @@
 ﻿using Autofac;
-using Common.Log;
+using Lykke.Common.Log;
 using Lykke.Messages.Email;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.GoogleAnalyticsWrapper.Client;
@@ -15,25 +15,23 @@ namespace WebAuth.Modules
     public class ClientServiceModule : Module
     {
         private readonly IReloadingManager<AppSettings> _settings;
-        private readonly ILog _log;
 
-        public ClientServiceModule(IReloadingManager<AppSettings> settings, ILog log)
+        public ClientServiceModule(IReloadingManager<AppSettings> settings)
         {
             _settings = settings;
-            _log = log;
         }
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterClientSessionClient(_settings.CurrentValue.OAuth.SessionApiUrl, _log);
-            builder.RegisterRegistrationClient(_settings.CurrentValue.OAuth.RegistrationApiUrl, _log);
-            builder.RegisterInstance<IPersonalDataService>(
-                    new PersonalDataService(_settings.CurrentValue.PersonalDataServiceSettings, _log))
+            builder.RegisterClientSessionClient(_settings.CurrentValue.OAuth.SessionApiUrl);
+            builder.RegisterRegistrationClient(_settings.CurrentValue.OAuth.RegistrationApiUrl);
+            builder.Register(c => new PersonalDataService(_settings.CurrentValue.PersonalDataServiceSettings, c.Resolve<ILogFactory>().CreateLog(typeof(PersonalDataService))))
+                .As<IPersonalDataService>()
                 .SingleInstance();
 
             builder.RegisterEmailSenderViaAzureQueueMessageProducer(_settings.ConnectionString(x => x.OAuth.Db.ClientPersonalInfoConnString));
             builder.RegisterLykkeServiceClient(_settings.CurrentValue.ClientAccountServiceClient.ServiceUrl);
-            
+
             builder.RegisterGoogleAnalyticsWrapperClient(_settings.CurrentValue.GaWrapperServiceClient.ServiceUrl);
         }
     }

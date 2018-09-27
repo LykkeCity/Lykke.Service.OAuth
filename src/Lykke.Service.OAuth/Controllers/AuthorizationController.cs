@@ -39,7 +39,8 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/connect/authorize")]
         [HttpPost("~/connect/authorize")]
-        public async Task<IActionResult> Authorize(CancellationToken cancellationToken)
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true, Duration = 0)]
+        public async Task<IActionResult> Authorize()
         {
             // Note: when a fatal error occurs during the request processing, an OpenID Connect response
             // is prematurely forged and added to the ASP.NET context by OpenIdConnectServerHandler.
@@ -118,7 +119,8 @@ namespace WebAuth.Controllers
         [Authorize]
         [HttpPost("~/connect/authorize/accept")]
         [HttpGet("~/connect/authorize/accept")]
-        public async Task<IActionResult> Accept(CancellationToken cancellationToken)
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true, Duration = 0)]
+        public async Task<IActionResult> Accept()
         {
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null)
