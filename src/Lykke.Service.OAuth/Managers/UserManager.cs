@@ -74,6 +74,7 @@ namespace WebAuth.Managers
                             break;
                         }
                     case OpenIdConnectConstantsExt.Claims.SessionId:
+                    case OpenIdConnectConstantsExt.Claims.PartnerId:
                         {
                             AddClaim(claim, identity);
                             break;
@@ -83,7 +84,7 @@ namespace WebAuth.Managers
             return identity;
         }
 
-        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, string sessionId, bool? register = null)
+        public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, string partnerId, string sessionId, bool? register = null)
         {
             var personalData = await _personalDataService.GetAsync(clientId);
 
@@ -109,6 +110,10 @@ namespace WebAuth.Managers
             if (!string.IsNullOrEmpty(personalData.Country))
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Country, personalData.Country));
 
+            if (!string.IsNullOrEmpty(partnerId))
+            {
+                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.PartnerId, partnerId));
+            }
             if (register.HasValue)
                 claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register" : "Login"));
 
