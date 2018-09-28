@@ -66,7 +66,7 @@ namespace WebAuth.Controllers
             Dictionary<string, string> parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
             string redirectUrl;
 
-            // Note: authentication could be theorically enforced at the filter level via AuthorizeAttribute
+            // Note: authentication could be theoretically enforced at the filter level via AuthorizeAttribute
             // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
             // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
             // To work around this limitation, the OpenID Connect request is automatically saved in the user session and will be
