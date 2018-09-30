@@ -78,10 +78,10 @@ namespace WebAuth.Controllers
         {
             // Mobile client process authentication on AuthenticationController and get correct cookies.
             // That should be enough to pass authorization validation here.
-            return GetToken(null);
+            return GetToken(null, TimeSpan.FromDays(30));
         }
 
-        private async Task<IActionResult> GetToken(string appType)
+        private async Task<IActionResult> GetToken(string appType, TimeSpan? ttl = null)
         {
             var clientId = User.Identity.GetClientId();
 
@@ -95,7 +95,7 @@ namespace WebAuth.Controllers
 
             try
             {
-                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", application: appType);
+                var authResult = await _clientSessionsClient.Authenticate(clientAccount.Id, "oauth server", application: appType, ttl: ttl);
                 return Json(new { Token = authResult.SessionToken, authResult.AuthId });
             }
             catch (Exception ex)

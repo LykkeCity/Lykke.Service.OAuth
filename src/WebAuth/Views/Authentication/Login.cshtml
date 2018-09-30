@@ -39,7 +39,7 @@
     <div class="form-group">
         <div class="input-group" lykke-validation-for="Email" lykke-validationerror-class="input-group--error">
             <i class="input-group-addon icon icon--email"></i>
-            <input type="email" class="form-control" placeholder="E-mail address" asp-for="Email" onfocus="checkRegCaptcha()">
+            <input type="email" class="form-control" placeholder="E-mail address" asp-for="Email" onfocus="checkRegCaptcha()" />
         </div>
         <span class="label_error" asp-validation-for="Email"></span>
 

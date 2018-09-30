@@ -28,8 +28,8 @@ namespace WebAuth.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterClientSessionClient(_settings.CurrentValue.OAuth.SessionApiUrl, _log);
-            builder.RegisterRegistrationClient(_settings.CurrentValue.OAuth.RegistrationApiUrl, _log);
+            builder.RegisterClientSessionClient(_settings.CurrentValue.SessionServiceClient);
+            builder.RegisterRegistrationServiceClient(_settings.CurrentValue.RegistrationServiceClient);
             builder.RegisterInstance<IPersonalDataService>(
                     new PersonalDataService(_settings.CurrentValue.PersonalDataServiceSettings, _log))
                 .SingleInstance();

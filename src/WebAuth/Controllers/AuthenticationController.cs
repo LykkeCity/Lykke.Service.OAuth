@@ -15,7 +15,8 @@ using Lykke.Common.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Registration;
-using Lykke.Service.Registration.Models;
+using Lykke.Service.Registration.Contract.Client.Enums;
+using Lykke.Service.Registration.Contract.Client.Models;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ namespace WebAuth.Controllers
 {
     public class AuthenticationController : BaseController
     {
-        private readonly ILykkeRegistrationClient _registrationClient;
+        private readonly IRegistrationServiceClient _registrationClient;
         private readonly IVerificationCodesService _verificationCodesService;
         private readonly IEmailFacadeService _emailFacadeService;
         private readonly ProfileActionHandler _profileActionHandler;
@@ -41,7 +42,7 @@ namespace WebAuth.Controllers
         private readonly ILog _log;
 
         public AuthenticationController(
-            ILykkeRegistrationClient registrationClient,
+            IRegistrationServiceClient registrationClient,
             IVerificationCodesService verificationCodesService,
             IEmailFacadeService emailFacadeService,
             ProfileActionHandler profileActionHandler,
@@ -139,7 +140,7 @@ namespace WebAuth.Controllers
                 if (!ModelState.IsValid)
                     return View(viewName, model);
 
-                AuthResponse authResult = await _registrationClient.AuthorizeAsync(new AuthModel
+                var authResult = await _registrationClient.LoginApi.AuthenticateAsync(new AuthenticateModel
                 {
                     Email = model.Username,
                     Password = model.Password,
@@ -320,7 +321,7 @@ namespace WebAuth.Controllers
                 }
             }
 
-            RegistrationResponse result = await _registrationClient.RegisterAsync(new RegistrationModel
+            var result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
             {
                 Email = model.Email,
                 Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
