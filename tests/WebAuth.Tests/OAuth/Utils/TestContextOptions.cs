@@ -7,65 +7,9 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using NSubstitute;
-using WebAuth.Providers;
 
-namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
+namespace WebAuth.Tests.OAuth.Utils
 {
-    /// <summary>
-    ///     Utitlity class for testing <see cref="AuthorizationProvider" />.
-    /// </summary>
-    internal static class AuthorizationProviderUtils
-    {
-        /// <summary>
-        ///     Helper method for creating fake for <see cref="ApplyTokenResponseContext" />.
-        /// </summary>
-        /// <param name="contextAction">
-        ///     Action for configuring necessary parameters on <see cref="TestContextOptions" />.
-        /// </param>
-        /// <returns>Fake for <see cref="ApplyTokenResponseContext" />.</returns>
-        internal static ApplyTokenResponseContext CreateApplyTokenResponseContext(
-            Action<TestContextOptions> contextAction)
-        {
-            var testContextOptions = new TestContextOptions();
-
-            contextAction.Invoke(testContextOptions);
-
-            testContextOptions.FillWithTestData();
-
-            return new ApplyTokenResponseContext(
-                testContextOptions.HttpContext,
-                testContextOptions.AuthenticationScheme,
-                testContextOptions.OpenIdConnectServerOptions,
-                testContextOptions.AuthenticationTicket,
-                testContextOptions.OpenIdConnectRequest,
-                testContextOptions.OpenIdConnectResponse);
-        }
-
-        /// <summary>
-        ///     Helper method for creating fake for <see cref="HandleTokenRequestContext" />.
-        /// </summary>
-        /// <param name="contextAction">
-        ///     Action for configuring necessary parameters on <see cref="TestContextOptions" />.
-        /// </param>
-        /// <returns>Fake for <see cref="HandleTokenRequestContext" />.</returns>
-        internal static HandleTokenRequestContext CreateHandleTokenRequestContext(
-            Action<TestContextOptions> contextAction)
-        {
-            var testContextOptions = new TestContextOptions();
-
-            contextAction.Invoke(testContextOptions);
-
-            testContextOptions.FillWithTestData();
-
-            return new HandleTokenRequestContext(
-                testContextOptions.HttpContext,
-                testContextOptions.AuthenticationScheme,
-                testContextOptions.OpenIdConnectServerOptions,
-                testContextOptions.OpenIdConnectRequest,
-                testContextOptions.AuthenticationTicket);
-        }
-    }
-
     /// <summary>
     ///     This is a comon class to mock any dependency for any Oauth handlers context.
     ///     If you need any dependency to call context constructor add it here and then fill in <see cref="Action" />.
@@ -86,7 +30,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
         [CanBeNull] internal OpenIdConnectResponse OpenIdConnectResponse { get; set; }
         [CanBeNull] internal IEnumerable<Claim> Claims { get; set; } = null;
 
-        internal void FillWithTestData()
+        internal void Initialize()
         {
             if (AuthSchemeName == null) AuthSchemeName = DefaultAuthSchemeName;
 

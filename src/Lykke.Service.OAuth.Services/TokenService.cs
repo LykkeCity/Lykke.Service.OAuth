@@ -47,12 +47,12 @@ namespace Lykke.Service.OAuth.Services
             var isOldTokenPresent = !string.IsNullOrWhiteSpace(oldRefreshToken);
             var isNewTokenPresent = !string.IsNullOrWhiteSpace(newRefreshToken);
 
-            var oldKey = GetRefreshTokenWhitelistRedisKey(oldRefreshToken);
-            var newKey = GetRefreshTokenWhitelistRedisKey(newRefreshToken);
-
             // Replace or add only if new token is issued.
             if (isNewTokenPresent)
             {
+                var oldKey = GetRefreshTokenWhitelistRedisKey(oldRefreshToken);
+                var newKey = GetRefreshTokenWhitelistRedisKey(newRefreshToken);
+
                 // If token is generated upon authorization code exchange save it to redis.
                 if (!isOldTokenPresent)
                 {

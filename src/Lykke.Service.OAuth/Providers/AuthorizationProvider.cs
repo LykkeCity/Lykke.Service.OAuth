@@ -5,10 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
+using Common.Log;
 using Core.Application;
 using Core.Extensions;
 using Lykke.Service.ClientAccount.Client;
 using Core.Services;
+using Lykke.Common.Log;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -22,6 +24,7 @@ namespace WebAuth.Providers
         private readonly IClientAccountClient _accountClient;
         private readonly ITokenService _tokenService;
         private readonly IValidationService _validationService;
+        private readonly ILog _log;
 
 
         public AuthorizationProvider(
@@ -29,13 +32,15 @@ namespace WebAuth.Providers
             IClientSessionsClient clientSessionsClient,
             IClientAccountClient accountClient,
             ITokenService tokenService, 
-            IValidationService validationService)
+            IValidationService validationService,
+            ILogFactory logFactory)
         {
             _applicationRepository = applicationRepository;
             _clientSessionsClient = clientSessionsClient;
             _tokenService = tokenService;
             _validationService = validationService;
             _accountClient = accountClient;
+            _log = logFactory.CreateLog(this);
         }
 
         public override Task MatchEndpoint(MatchEndpointContext context)
@@ -294,6 +299,8 @@ namespace WebAuth.Providers
             if (isRefreshTokenValid) 
                 return;
             
+            _log.Warning("refresh_token was revoked.");
+
             context.Reject(
                 OpenIdConnectConstants.Errors.InvalidGrant,
                 "refresh_token was revoked.");

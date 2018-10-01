@@ -2,41 +2,30 @@
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
-using Core.Application;
 using Core.Extensions;
 using Core.Services;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Lykke.Service.Session.Client;
 using NSubstitute;
 using WebAuth.Providers;
+using WebAuth.Tests.OAuth.Utils;
 using Xunit;
 
 namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
 {
     public class HandleTokenRequestTests
     {
-        private readonly IApplicationRepository _applicationRepository;
-        private readonly IClientSessionsClient _clientSessionsClient;
-        private readonly ITokenService _tokenService;
         private readonly IValidationService _validationService;
         private readonly AuthorizationProvider _authorizationProvider;
 
-        private const string RefreshTokenGrantType = "refresh_token";
-        private const string AuthorizationCodeTokenGrantType = "authorization_code";
-
         public HandleTokenRequestTests()
         {
-            _applicationRepository = Substitute.For<IApplicationRepository>();
-            _clientSessionsClient = Substitute.For<IClientSessionsClient>();
-            _tokenService = Substitute.For<ITokenService>();
             _validationService = Substitute.For<IValidationService>();
 
-            _authorizationProvider = new AuthorizationProvider(
-                _applicationRepository,
-                _clientSessionsClient,
-                _tokenService,
-                _validationService);
+            _authorizationProvider = AuthorizationProviderUtils.CreateAuthorizationProvider(options =>
+            {
+                options.ValidationService = _validationService;
+            });
         }
 
         [Fact]
@@ -45,7 +34,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
             // Arrange
             var openIdRequest = new OpenIdConnectRequest
             {
-                GrantType = RefreshTokenGrantType
+                GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken
             };
 
             var context = AuthorizationProviderUtils.CreateHandleTokenRequestContext(
@@ -74,7 +63,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
 
             var openIdRequest = new OpenIdConnectRequest
             {
-                GrantType = RefreshTokenGrantType,
+                GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 // Assume refresh token was not passed.
                 RefreshToken = refreshToken
             };
@@ -106,7 +95,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
 
             var openIdRequest = new OpenIdConnectRequest
             {
-                GrantType = RefreshTokenGrantType,
+                GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 // Assume token was passed.
                 RefreshToken = "test_token"
             };
@@ -141,7 +130,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
 
             var openIdRequest = new OpenIdConnectRequest
             {
-                GrantType = RefreshTokenGrantType,
+                GrantType = OpenIdConnectConstants.GrantTypes.RefreshToken,
                 // Assume token was passed.
                 RefreshToken = "test_token"
             };
@@ -201,7 +190,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
             // Arrange
             var openIdRequest = new OpenIdConnectRequest
             {
-                GrantType = AuthorizationCodeTokenGrantType
+                GrantType = OpenIdConnectConstants.GrantTypes.AuthorizationCode
             };
 
             var context = AuthorizationProviderUtils.CreateHandleTokenRequestContext(
