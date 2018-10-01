@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -215,25 +214,25 @@ namespace WebAuth.Providers
         {
             if (!context.Claims.TryGetValue(OpenIdConnectConstantsExt.Claims.SessionId, out var sessionId))
             {
-                context.Reject("No session", "Session id is not provided in claims");
+                context.Reject(OpenIdConnectConstantsExt.Errors.UnknownSession, "Session id is not provided in claims");
             }
 
             var session = await _clientSessionsClient.GetAsync(sessionId.Value.ToString());
             if (session == null)
             {
-                context.Reject("Unknown session", "Unable to find a session. Probably it expired");
+                context.Reject(OpenIdConnectConstantsExt.Errors.UnknownSession, "Unable to find a session. Probably it expired");
                 return;
             }
 
             if (string.IsNullOrEmpty(context.Subject))
             {
-                context.Reject("No subject");
+                context.Reject(OpenIdConnectConstantsExt.Errors.NoSubjectClaim);
                 return;
             }
 
             if (await _accountClient.IsClientBannedAsync(context.Subject))
             {
-                context.Reject("Client banned", $"Client {context.Subject} banned");
+                context.Reject(OpenIdConnectConstantsExt.Errors.ClientBanned, $"Client {context.Subject} banned");
                 return;
             }
 
