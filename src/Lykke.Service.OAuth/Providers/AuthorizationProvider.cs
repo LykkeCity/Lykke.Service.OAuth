@@ -226,7 +226,7 @@ namespace WebAuth.Providers
 
             if (string.IsNullOrEmpty(context.Subject))
             {
-                context.Reject(OpenIdConnectConstantsExt.Errors.NoSubjectClaim);
+                context.Reject(OpenIdConnectConstantsExt.Errors.ClaimNotFound, "Subject claim not found");
                 return;
             }
 
