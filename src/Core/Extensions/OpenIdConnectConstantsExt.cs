@@ -18,7 +18,7 @@
         public static class Errors
         {
             public const string UnknownSession = "lykke_unknown_session";
-            public const string NoSubjectClaim = "lykke_no_subject";
+            public const string ClaimNotFound = "lykke_claim_not_found";
             public const string ClientBanned = "lykke_client_banned";
         }
     }
