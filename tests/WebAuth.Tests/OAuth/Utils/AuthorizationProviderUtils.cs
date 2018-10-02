@@ -23,6 +23,7 @@ namespace WebAuth.Tests.OAuth.Utils
             return new AuthorizationProvider(
                 providerOptions.ApplicationRepository,
                 providerOptions.ClientSessionsClient,
+                providerOptions.ClientAccountClient,
                 providerOptions.TokenService,
                 providerOptions.ValidationService,
                 providerOptions.LogFactory);

@@ -277,7 +277,7 @@ namespace WebAuth.Providers
             if (sessionIdClaim == null)
             {
                 context.Reject
-                    (OpenIdConnectConstantsExt.Errors.ClaimNotProvided, 
+                    (OpenIdConnectConstantsExt.Errors.ClaimNotFound, 
                     "Session id is not provided in claims.");
                 return;
             }

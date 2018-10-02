@@ -47,7 +47,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
             using (new AssertionScope())
             {
                 context.IsRejected.Should().BeTrue();
-                context.Error.Should().Be(OpenIdConnectConstantsExt.Errors.ClaimNotProvided);
+                context.Error.Should().Be(OpenIdConnectConstantsExt.Errors.ClaimNotFound);
                 context.ErrorDescription.Should().Be("Session id is not provided in claims.");
             }
         }
