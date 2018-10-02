@@ -17,9 +17,9 @@
 
         public static class Errors
         {
-            public const string UnknownSession = "Unknown session";
-            public const string NoSubjectClaim = "No subject";
-            public const string ClientBanned = "Client banned";
+            public const string UnknownSession = "lykke_unknown_session";
+            public const string NoSubjectClaim = "lykke_no_subject";
+            public const string ClientBanned = "lykke_client_banned";
         }
     }
 }
