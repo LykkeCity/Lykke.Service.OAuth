@@ -23,7 +23,7 @@ namespace WebAuth.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterClientSessionClient(_settings.CurrentValue.OAuth.SessionApiUrl);
+            builder.RegisterClientSessionClient(_settings.CurrentValue.SessionServiceClient);
             builder.RegisterRegistrationServiceClient(_settings.CurrentValue.RegistrationServiceClient);
             builder.Register(c => new PersonalDataService(_settings.CurrentValue.PersonalDataServiceSettings, c.Resolve<ILogFactory>().CreateLog(typeof(PersonalDataService))))
                 .As<IPersonalDataService>()

@@ -14,5 +14,12 @@
         {
             public const string DefaultScheme = "ServerCookie";
         }
+
+        public static class Errors
+        {
+            public const string UnknownSession = "Unknown session";
+            public const string NoSubjectClaim = "No subject";
+            public const string ClientBanned = "Client banned";
+        }
     }
 }

@@ -6,8 +6,6 @@ namespace WebAuth.Settings.ServiceSettings
     [UsedImplicitly]
     public class OAuthSettings
     {
-        [HttpCheck("/api/isalive")]
-        public string SessionApiUrl { get; set; }
         public DbSettings Db { get; set; }
         public CorsSettings Cors { get; set; } = new CorsSettings();
         [Optional]

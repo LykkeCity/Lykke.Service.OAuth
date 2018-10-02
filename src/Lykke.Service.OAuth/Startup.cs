@@ -32,6 +32,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using WebAuth.Settings.ServiceSettings;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace WebAuth
 {
@@ -73,7 +74,7 @@ namespace WebAuth
                     "OauthLog",
                     settings.CurrentValue.SlackNotifications.AzureQueue.ConnectionString,
                     settings.CurrentValue.SlackNotifications.AzureQueue.QueueName
-                );
+                , options => { options.AddFilter("AspNet.Security.OpenIdConnect.Server", LogLevel.Error); });
 
                 _settings = settings.CurrentValue;
 
