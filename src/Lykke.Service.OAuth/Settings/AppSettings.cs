@@ -3,6 +3,7 @@ using Lykke.Service.GoogleAnalyticsWrapper.Client;
 using Lykke.Service.PersonalData.Settings;
 using Lykke.Service.Session.Client;
 using Lykke.Service.Registration;
+using Lykke.Service.Session.Client;
 using WebAuth.Settings.ClientSettings;
 using WebAuth.Settings.ServiceSettings;
 using WebAuth.Settings.SlackNotifications;
