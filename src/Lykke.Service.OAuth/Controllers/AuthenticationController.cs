@@ -401,7 +401,7 @@ namespace WebAuth.Controllers
 
         private static TimeSpan? GetSessionTtl(string platform)
         {
-            switch (platform)
+            switch (platform?.ToLower())
             {
                     case "android":
                     case "ios":
