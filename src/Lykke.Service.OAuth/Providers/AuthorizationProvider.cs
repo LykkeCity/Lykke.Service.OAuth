@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
+using Core;
 using Common.Log;
 using Core.Application;
 using Core.Extensions;
@@ -125,6 +126,22 @@ namespace WebAuth.Providers
                 return;
             }
 
+
+            if (application.OAuthClientProperties != null && application.OAuthClientProperties.AllowedAuthorizationFlows?.Any() == true)
+            {
+                if (context.Request.IsAuthorizationCodeFlow() && !application.OAuthClientProperties.AllowedAuthorizationFlows.Contains(AuthorizationFlow.AuthorizationCode))
+                {
+                    context.Reject(OpenIdConnectConstants.Errors.InvalidRequest, "AuthorizationCode flow not supported for the client");
+                    return;
+                }
+
+                if (context.Request.IsImplicitFlow() && !application.OAuthClientProperties.AllowedAuthorizationFlows.Contains(AuthorizationFlow.Implicit))
+                {
+                    context.Reject(OpenIdConnectConstants.Errors.InvalidRequest, "Implicit flow not supported for the client");
+                    return;
+                }
+            }
+
             var redirectUrl = application.Urls.FirstOrDefault(item => item.Equals(context.RedirectUri, StringComparison.Ordinal));
 
             if (!string.IsNullOrEmpty(context.RedirectUri) && redirectUrl == null)
@@ -181,6 +198,22 @@ namespace WebAuth.Providers
             {
                 return;
             }
+
+            var application = await _applicationRepository.GetByIdAsync(context.ClientId);
+            if (application.OAuthClientProperties != null && application.OAuthClientProperties.AllowedAuthorizationFlows?.Any() == true)
+            {
+                if (context.Request.IsAuthorizationCodeGrantType() && !application.OAuthClientProperties.AllowedAuthorizationFlows.Contains(AuthorizationFlow.AuthorizationCode))
+                {
+                    context.Reject(OpenIdConnectConstants.Errors.UnsupportedGrantType, "AuthorizationCode grant type not supported for the client");
+                    return;
+                }
+                if (context.Request.IsRefreshTokenGrantType() && !application.OAuthClientProperties.AllowOfflineAccess)
+                {
+                    context.Reject(OpenIdConnectConstants.Errors.UnsupportedGrantType, "Refresh token grant type not supported for client the client");
+                    return;
+                }
+            }
+
 
             context.Validate();
         }
@@ -257,12 +290,12 @@ namespace WebAuth.Providers
         public override async Task HandleTokenRequest(HandleTokenRequestContext context)
         {
             await ValidateRefreshTokenGrantTypeAsync(context);
-        }
+    }
 
         public override async Task ApplyTokenResponse(ApplyTokenResponseContext context)
         {
             await UpdateRefreshToken(context);
-        }
+}
 
         private async Task ValidateRefreshTokenGrantTypeAsync(BaseValidatingTicketContext context)
         {
