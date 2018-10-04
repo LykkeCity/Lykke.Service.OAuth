@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace Core.Application
 {
@@ -13,7 +11,7 @@ namespace Core.Application
         public string RedirectUri { get; private set; }
         public string Secret { get; private set; }
         public string Type { get; private set; }
-        public IReadOnlyCollection<GrantType> GrantTypes { get; private set; }
+        public OAuthClientProperties OAuthClientProperties { get; private set; }
 
         public IEnumerable<string> Urls => string.IsNullOrEmpty(RedirectUri?.Trim())
             ? Array.Empty<string>()
@@ -30,42 +28,8 @@ namespace Core.Application
                     RedirectUri = src.RedirectUri,
                     Secret = src.Secret,
                     Type = src.Type,
-                    GrantTypes = src.GrantTypes
+                    OAuthClientProperties = src.OAuthClientProperties
                 };
         }
-    }
-
-    public class OAuthSettings
-    {
-        public IReadOnlyCollection<AuthorizationOptions> Options { get; set; }
-        public ClientType ClientType { get; set; }
-
-    }
-
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum AuthorizationFlow
-    {
-        Code,
-        Implicit
-    }
-
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum GrantType
-    {
-        AuthorizationCode,
-        RefreshToken
-    }
-
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum ClientType
-    {
-        Public,
-        Confidential
-    }
-
-    public class AuthorizationOptions
-    {
-        public AuthorizationFlow AuthorizationFlow { get; set; }
-        public GrantType GrantType { get; set; }
     }
 }

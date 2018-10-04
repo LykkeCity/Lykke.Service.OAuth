@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Core;
-using Core.Application;
+﻿using Core.Application;
 using Lykke.AzureStorage.Tables;
 using Lykke.AzureStorage.Tables.Entity.Annotation;
 using Lykke.AzureStorage.Tables.Entity.Serializers;
@@ -17,7 +14,7 @@ namespace AzureDataAccess.Application
         public string Type { get; set; }
 
         [ValueSerializer(typeof(JsonStorageValueSerializer))]
-        public IReadOnlyCollection<GrantType> GrantTypes { get; set; } = Array.Empty<GrantType>();
+        public OAuthClientProperties OAuthClientProperties { get; set; }
 
 
         public static string GeneratePartitionKey()

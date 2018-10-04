@@ -9,6 +9,6 @@ namespace Core.Application
         string RedirectUri { get; }
         string Secret { get; }
         string Type { get; }
-        IReadOnlyCollection<GrantType> GrantTypes { get; }
+        OAuthClientProperties OAuthClientProperties { get; }
     }
 }

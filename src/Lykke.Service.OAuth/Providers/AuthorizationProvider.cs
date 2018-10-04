@@ -127,15 +127,15 @@ namespace WebAuth.Providers
             }
 
 
-            if (application.GrantTypes.Any())
+            if (application.OAuthClientProperties != null)
             {
-                if (context.Request.IsAuthorizationCodeFlow() && !application.GrantTypes.Contains(GrantType.AuthorizationCode))
+                if (context.Request.IsAuthorizationCodeFlow() && !application.OAuthClientProperties.AllowedAuthorizationFlows.Contains(AuthorizationFlow.AuthorizationCode))
                 {
                     context.Reject(OpenIdConnectConstants.Errors.InvalidRequest, "AuthorizationCode flow not supported for the client");
                     return;
                 }
 
-                if (context.Request.IsImplicitFlow() && !application.GrantTypes.Contains(GrantType.Implicit))
+                if (context.Request.IsImplicitFlow() && !application.OAuthClientProperties.AllowedAuthorizationFlows.Contains(AuthorizationFlow.Implicit))
                 {
                     context.Reject(OpenIdConnectConstants.Errors.InvalidRequest, "Implicit flow not supported for the client");
                     return;
@@ -200,14 +200,14 @@ namespace WebAuth.Providers
             }
 
             var application = await _applicationRepository.GetByIdAsync(context.ClientId);
-            if (application.GrantTypes.Any())
+            if (application.OAuthClientProperties != null)
             {
-                if (context.Request.IsAuthorizationCodeGrantType() && !application.GrantTypes.Contains(GrantType.AuthorizationCode))
+                if (context.Request.IsAuthorizationCodeGrantType() && !application.OAuthClientProperties.AllowedAuthorizationFlows.Contains(AuthorizationFlow.AuthorizationCode))
                 {
                     context.Reject(OpenIdConnectConstants.Errors.UnsupportedGrantType, "AuthorizationCode grant type not supported for the client");
                     return;
                 }
-                if (context.Request.IsRefreshTokenGrantType() && !application.GrantTypes.Contains(GrantType.RefreshToken))
+                if (context.Request.IsRefreshTokenGrantType() && !application.OAuthClientProperties.AllowOfflineAccess)
                 {
                     context.Reject(OpenIdConnectConstants.Errors.UnsupportedGrantType, "Refresh token grant type not supported for client the client");
                     return;
