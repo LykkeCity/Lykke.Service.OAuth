@@ -127,7 +127,7 @@ namespace WebAuth.Providers
             }
 
 
-            if (application.OAuthClientProperties != null)
+            if (application.OAuthClientProperties != null && application.OAuthClientProperties.AllowedAuthorizationFlows?.Any() == true)
             {
                 if (context.Request.IsAuthorizationCodeFlow() && !application.OAuthClientProperties.AllowedAuthorizationFlows.Contains(AuthorizationFlow.AuthorizationCode))
                 {
@@ -200,7 +200,7 @@ namespace WebAuth.Providers
             }
 
             var application = await _applicationRepository.GetByIdAsync(context.ClientId);
-            if (application.OAuthClientProperties != null)
+            if (application.OAuthClientProperties != null && application.OAuthClientProperties.AllowedAuthorizationFlows?.Any() == true)
             {
                 if (context.Request.IsAuthorizationCodeGrantType() && !application.OAuthClientProperties.AllowedAuthorizationFlows.Contains(AuthorizationFlow.AuthorizationCode))
                 {
