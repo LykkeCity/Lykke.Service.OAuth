@@ -203,7 +203,7 @@ namespace WebAuth.Tests.Managers
             Assert.Equal(personalData.LastName, result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
             Assert.Equal("test@test.com", result.GetClaim(OpenIdConnectConstants.Claims.Email));
             Assert.Equal(personalData.Country, result.GetClaim(OpenIdConnectConstantsExt.Claims.Country));
-            Assert.Equal(7, result.Claims.Count());
+            Assert.Equal(9, result.Claims.Count());
         }
     }
 }

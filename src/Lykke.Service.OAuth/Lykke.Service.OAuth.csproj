@@ -51,6 +51,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
     <PackageReference Include="NWebsec.AspNetCore.Middleware" Version="2.0.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.0.505" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="BundlerMinifier.Core" Version="2.2.301" />
@@ -59,6 +60,7 @@
     <ProjectReference Include="..\AzureDataAccess\AzureDataAccess.csproj" />
     <ProjectReference Include="..\BusinessService\BusinessService.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Lykke.Service.OAuth.Services\Lykke.Service.OAuth.Services.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\dist\" />

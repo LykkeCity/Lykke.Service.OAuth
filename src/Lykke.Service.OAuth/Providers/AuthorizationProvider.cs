@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
+using Common.Log;
 using Core.Application;
 using Core.Extensions;
 using Lykke.Service.ClientAccount.Client;
+using Core.Services;
+using Lykke.Common.Log;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -18,13 +22,25 @@ namespace WebAuth.Providers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IClientAccountClient _accountClient;
+        private readonly ITokenService _tokenService;
+        private readonly IValidationService _validationService;
+        private readonly ILog _log;
 
 
-        public AuthorizationProvider(IApplicationRepository applicationRepository, IClientSessionsClient clientSessionsClient, IClientAccountClient accountClient)
+        public AuthorizationProvider(
+            IApplicationRepository applicationRepository,
+            IClientSessionsClient clientSessionsClient,
+            IClientAccountClient accountClient,
+            ITokenService tokenService, 
+            IValidationService validationService,
+            ILogFactory logFactory)
         {
             _applicationRepository = applicationRepository;
             _clientSessionsClient = clientSessionsClient;
+            _tokenService = tokenService;
+            _validationService = validationService;
             _accountClient = accountClient;
+            _log = logFactory.CreateLog(this);
         }
 
         public override Task MatchEndpoint(MatchEndpointContext context)
@@ -185,11 +201,10 @@ namespace WebAuth.Providers
 
             // Note: to mitigate brute force attacks, you SHOULD strongly consider applying
             // a key derivation function like PBKDF2 to slow down the secret validation process.
-            // You SHOULD also consider using a time-constant comparer to prevent timing attacks.
-            // For that, you can use the CryptoHelper library developed by @henkmollema:
-            // https://github.com/henkmollema/CryptoHelper. If you don't need .NET Core support,
-            // SecurityDriven.NET/inferno is a rock-solid alternative: http://securitydriven.net/inferno/
-            if (!string.Equals(context.ClientSecret, application.Secret, StringComparison.Ordinal))
+            // Added fixed time comparison to prevent timing attacks.
+            var clientSecretBytes = Encoding.UTF8.GetBytes(context.ClientSecret);
+            var applicationSecretBytes = Encoding.UTF8.GetBytes(application.Secret);
+            if (!CryptographicOperations.FixedTimeEquals(clientSecretBytes, applicationSecretBytes))
             {
                 context.Reject(
                     OpenIdConnectConstants.Errors.InvalidClient,
@@ -237,6 +252,71 @@ namespace WebAuth.Providers
             }
 
             context.Validate();
+        }
+
+        public override async Task HandleTokenRequest(HandleTokenRequestContext context)
+        {
+            await ValidateRefreshTokenGrantTypeAsync(context);
+        }
+
+        public override async Task ApplyTokenResponse(ApplyTokenResponseContext context)
+        {
+            await UpdateRefreshToken(context);
+        }
+
+        private async Task ValidateRefreshTokenGrantTypeAsync(BaseValidatingTicketContext context)
+        {
+            // Only proccess refresh token grant type.
+            if (!string.IsNullOrWhiteSpace(context.Error) ||
+                !context.Request.IsRefreshTokenGrantType())
+                return;
+
+            var sessionIdClaim = context.Ticket.Principal.Claims.FirstOrDefault(claim =>
+                string.Equals(claim.Type, OpenIdConnectConstantsExt.Claims.SessionId, StringComparison.Ordinal));
+
+            if (sessionIdClaim == null)
+            {
+                context.Reject
+                    (OpenIdConnectConstantsExt.Errors.ClaimNotFound, 
+                    "Session id is not provided in claims.");
+                return;
+            }
+
+            var oldRefreshToken = context.Request.RefreshToken;
+
+            if (string.IsNullOrWhiteSpace(oldRefreshToken))
+            {
+                context.Reject(
+                    OpenIdConnectConstants.Errors.InvalidRequest,
+                    "refresh_token not present in request.");
+                return;
+            }
+
+            var sessionId = sessionIdClaim.Value;
+
+            var isRefreshTokenValid = await _validationService.IsRefreshTokenValidAsync(oldRefreshToken, sessionId);
+
+            if (isRefreshTokenValid) 
+                return;
+            
+            _log.Info("refresh_token was revoked.");
+
+            context.Reject(
+                OpenIdConnectConstants.Errors.InvalidGrant,
+                "refresh_token was revoked.");
+        }
+
+        private async Task UpdateRefreshToken(ApplyTokenResponseContext context)
+        {
+            // Only proccess flows that support refresh tokens
+            if (!string.IsNullOrWhiteSpace(context.Error) ||
+                !(context.Request.IsRefreshTokenGrantType() ||
+                  context.Request.IsAuthorizationCodeGrantType()))
+                return;
+
+            await _tokenService.UpdateRefreshTokenInWhitelistAsync(
+                    context.Request.RefreshToken,
+                    context.Response.RefreshToken);
         }
     }
 }

@@ -13,26 +13,29 @@ using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.Log;
 using Lykke.Logs;
+using Lykke.Service.OAuth.Modules;
 using Lykke.SettingsReader;
 using Lykke.SettingsReader.ReloadingManager;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WebAuth.EventFilter;
-using WebAuth.Providers;
-using WebAuth.Modules;
-using WebAuth.Settings;
-using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using WebAuth.EventFilter;
+using WebAuth.Modules;
+using WebAuth.Providers;
+using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
+using AspNet.Security.OpenIdConnect.Server;
 
 namespace WebAuth
 {
@@ -78,41 +81,59 @@ namespace WebAuth
 
                 _settings = settings.CurrentValue;
 
-                var certBlob = AzureBlobStorage.Create(ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
+                var certBlob =
+                    AzureBlobStorage.Create(
+                        ConstantReloadingManager.From(_settings.OAuth.Db.CertStorageConnectionString));
 
-                var cert = certBlob.GetAsync(Certificates.ContainerName, _settings.OAuth.Certificates.OpenIdConnectCertName).Result.ToBytes();
+                var cert = certBlob
+                    .GetAsync(Certificates.ContainerName, _settings.OAuth.Certificates.OpenIdConnectCertName).Result
+                    .ToBytes();
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
                 services.AddMemoryCache();
-                services.AddAuthentication(options => { options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme; })
+                services.AddAuthentication(options =>
+                    {
+                        options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                    })
+
                     .AddCookie(OpenIdConnectConstantsExt.Auth.DefaultScheme, options =>
                     {
-                        options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix + OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                        options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix +
+                                              OpenIdConnectConstantsExt.Auth.DefaultScheme;
+                        // Lifetime of AuthenticationTicket for silent refresh. 
+                        options.ExpireTimeSpan = TimeSpan.FromDays(60);
                         options.LoginPath = new PathString("/signin");
                         options.LogoutPath = new PathString("/signout");
                         options.Cookie.HttpOnly = true;
                         options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                         options.EventsType = typeof(CustomCookieAuthenticationEvents);
-                    }).AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme, options =>
-                     {
-                         var config = settings.Nested(n => n.OAuth.ResourceServerSettings).CurrentValue;
-                         options.Authority = config.Authority;
-                         options.ApiName = config.ClientId;
-                         options.ApiSecret = config.ClientSecret;
-                     })
-                .AddOpenIdConnectServer(options =>
-                {
-                    options.ProviderType = typeof(AuthorizationProvider);
-                    options.AuthorizationEndpointPath = "/connect/authorize";
-                    options.LogoutEndpointPath = "/connect/logout";
-                    options.TokenEndpointPath = "/connect/token";
-                    options.IntrospectionEndpointPath = "/connect/introspection";
-                    options.UserinfoEndpointPath = "/connect/default_userinfo";
-                    options.ApplicationCanDisplayErrors = true;
-                    options.AllowInsecureHttp = Environment.IsDevelopment();
-                    options.SigningCredentials.AddCertificate(xcert);
-                });
+                    })
+
+                    .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
+                        options =>
+                        {
+                            var config = settings.Nested(n => n.OAuth.ResourceServerSettings).CurrentValue;
+                            options.Authority = config.Authority;
+                            options.ApiName = config.ClientId;
+                            options.ApiSecret = config.ClientSecret;
+                        })
+
+                    .AddOpenIdConnectServer(options =>
+                    {
+                        options.ProviderType = typeof(AuthorizationProvider);
+                        options.AuthorizationEndpointPath = "/connect/authorize";
+                        options.LogoutEndpointPath = "/connect/logout";
+                        options.TokenEndpointPath = "/connect/token";
+                        options.IntrospectionEndpointPath = "/connect/introspection";
+                        options.UserinfoEndpointPath = "/connect/default_userinfo";
+                        options.ApplicationCanDisplayErrors = true;
+                        options.AllowInsecureHttp = Environment.IsDevelopment();
+                        options.SigningCredentials.AddCertificate(xcert);
+                        options.AccessTokenLifetime = TimeSpan.FromMinutes(10);
+                        options.RefreshTokenLifetime = TimeSpan.FromDays(30);
+                        options.UseSlidingExpiration = true;
+                    });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
 
@@ -142,12 +163,16 @@ namespace WebAuth
                 services.AddDataProtection()
                     // Do not change this value. Otherwise the key will be invalid.
                     .SetApplicationName("Lykke.Service.OAuth")
-                    .PersistKeysToAzureBlobStorage(SetupDataProtectionStorage(_settings.OAuth.Db.DataProtectionConnString), $"{DataProtectionContainerName}/cookie-keys/keys.xml");
+                    .PersistKeysToAzureBlobStorage(
+                        SetupDataProtectionStorage(_settings.OAuth.Db.DataProtectionConnString),
+                        $"{DataProtectionContainerName}/cookie-keys/keys.xml");
 
                 builder.RegisterModule(new WebModule(settings));
                 builder.RegisterModule(new DbModule(settings));
                 builder.RegisterModule(new BusinessModule(settings));
                 builder.RegisterModule(new ClientServiceModule(settings));
+                builder.RegisterModule(new ServiceModule());
+
 
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();
@@ -163,19 +188,15 @@ namespace WebAuth
             }
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime appLifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory,
+            IApplicationLifetime appLifetime)
         {
             try
             {
                 if (env.IsDevelopment())
-                {
                     app.UseDeveloperExceptionPage();
-                }
                 else
-                {
                     app.UseExceptionHandler("/Home/Error");
-                }
-
 
                 app.UseLykkeForwardedHeaders();
                 var supportedCultures = new[]
@@ -203,7 +224,8 @@ namespace WebAuth
 
                 app.UseSession();
 
-                app.UseCsp(options => options.DefaultSources(directive => directive.Self().CustomSources(BlobSource, "www.google.com"))
+                app.UseCsp(options => options
+                    .DefaultSources(directive => directive.Self().CustomSources(BlobSource, "www.google.com"))
                     .ImageSources(directive => directive.Self()
                         .CustomSources(AnySource, DataSource, BlobSource))
                     .ScriptSources(directive =>
@@ -286,12 +308,12 @@ namespace WebAuth
 
         private static CloudStorageAccount SetupDataProtectionStorage(string dbDataProtectionConnString)
         {
-
             var storageAccount = CloudStorageAccount.Parse(dbDataProtectionConnString);
             var client = storageAccount.CreateCloudBlobClient();
             var container = client.GetContainerReference(DataProtectionContainerName);
 
-            container.CreateIfNotExistsAsync(new BlobRequestOptions { RetryPolicy = new ExponentialRetry() }, new OperationContext()).GetAwaiter().GetResult();
+            container.CreateIfNotExistsAsync(new BlobRequestOptions {RetryPolicy = new ExponentialRetry()},
+                new OperationContext()).GetAwaiter().GetResult();
 
             return storageAccount;
         }
