@@ -299,7 +299,7 @@ namespace WebAuth.Providers
             if (isRefreshTokenValid) 
                 return;
             
-            _log.Warning("refresh_token was revoked.");
+            _log.Info("refresh_token was revoked.");
 
             context.Reject(
                 OpenIdConnectConstants.Errors.InvalidGrant,

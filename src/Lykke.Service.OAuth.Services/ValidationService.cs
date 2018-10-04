@@ -45,7 +45,7 @@ namespace Lykke.Service.OAuth.Services
 
             if (!isTokenSuccessfulyRevoked)
             {
-                _log.Warning("Could not revoke refresh token!");
+                _log.Info("Could not revoke refresh token!");
             }
 
             return false;
