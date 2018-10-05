@@ -3,10 +3,11 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>Core</AssemblyName>
     <PackageId>Core</PackageId>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="6.8.5" />
-    <PackageReference Include="Lykke.SettingsReader" Version="2.4.0" />
+    <PackageReference Include="Lykke.Common" Version="7.1.0" />
+    <PackageReference Include="Lykke.SettingsReader" Version="4.1.1" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
   </ItemGroup>
