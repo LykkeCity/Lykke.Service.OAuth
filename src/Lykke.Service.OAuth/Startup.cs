@@ -170,7 +170,7 @@ namespace WebAuth
                 builder.RegisterModule(new WebModule(settings));
                 builder.RegisterModule(new DbModule(settings));
                 builder.RegisterModule(new BusinessModule(settings));
-                builder.RegisterModule(new ClientServiceModule(settings));
+                builder.RegisterModule(new ClientServiceModule(settings, ApplicationContainer.Resolve<ILogFactory>().CreateLog(this)));
                 builder.RegisterModule(new ServiceModule());
 
 
