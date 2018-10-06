@@ -4,21 +4,22 @@ using System.Threading.Tasks;
 using Core.VerificationCodes;
 using MessagePack;
 using MessagePack.Resolvers;
-using Microsoft.Extensions.Caching.Distributed;
+using StackExchange.Redis;
 
 namespace BusinessService
 {
     public class VerificationCodesService : IVerificationCodesService
     {
-        private readonly IDistributedCache _cache;
+        private const string RedisPrefix = "OAuth:EmailConfirmationCodes:"; 
+        private readonly IDatabase _database;
         private readonly TimeSpan _verificationCodesExpiration;
 
         public VerificationCodesService(
-            IDistributedCache cache,
+            IConnectionMultiplexer connectionMultiplexer,
             TimeSpan verificationCodesExpiration
             )
         {
-            _cache = cache;
+            _database = connectionMultiplexer.GetDatabase();
             _verificationCodesExpiration = verificationCodesExpiration;
         }
         
@@ -33,9 +34,9 @@ namespace BusinessService
 
         public async Task<VerificationCode> GetCodeAsync(string key)
         {
-            var value = await _cache.GetAsync(key);
+            var value = await _database.StringGetAsync(GetRedisKey(key));
 
-            if (value == null)
+            if (!value.HasValue)
                 return null;
             
             using (var stream = new MemoryStream(value))
@@ -59,17 +60,22 @@ namespace BusinessService
 
         public Task DeleteCodeAsync(string key)
         {
-            return _cache.RemoveAsync(key);
+            return _database.KeyDeleteAsync(GetRedisKey(key));
         }
 
         private async Task AddCacheAsync(VerificationCode code)
         {
             var value = MessagePackSerializer.Serialize(code);
 
-            await _cache.SetAsync(code.Key, value, new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = _verificationCodesExpiration
-            });
+            await _database.StringSetAsync(GetRedisKey(code.Key), value, _verificationCodesExpiration);
+        }
+
+        private string GetRedisKey(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentNullException(nameof(key));
+
+            return string.Concat(RedisPrefix, key);
         }
     }
 }
