@@ -21,7 +21,7 @@
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.6.0" />
     <PackageReference Include="Lykke.Common" Version="7.1.0" />
-    <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.10.1" />
+    <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.10.2" />
     <PackageReference Include="Lykke.Logs" Version="6.0.1" />
     <PackageReference Include="Lykke.Messages" Version="1.9.0" />
     <PackageReference Include="Lykke.Service.ClientAccount.Client" Version="2.2.3" />
@@ -51,7 +51,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
     <PackageReference Include="NWebsec.AspNetCore.Middleware" Version="2.0.0" />
-    <PackageReference Include="StackExchange.Redis" Version="2.0.505" />
+    <PackageReference Include="StackExchange.Redis" Version="2.0.513" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="BundlerMinifier.Core" Version="2.2.301" />

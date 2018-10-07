@@ -32,7 +32,7 @@ namespace WebAuth.Providers
             IApplicationRepository applicationRepository,
             IClientSessionsClient clientSessionsClient,
             IClientAccountClient accountClient,
-            ITokenService tokenService, 
+            ITokenService tokenService,
             IValidationService validationService,
             ILogFactory logFactory)
         {
@@ -178,21 +178,6 @@ namespace WebAuth.Providers
                 return;
             }
 
-            // Note: client authentication is not mandatory for non-confidential client applications like mobile apps
-            // (except when using the client credentials grant type) but this authorization server uses a safer policy
-            // that makes client authentication mandatory and returns an error if client_id or client_secret is missing.
-            // You may consider relaxing it to support the resource owner password credentials grant type
-            // with JavaScript or desktop applications, where client credentials cannot be safely stored.
-            // In this case, call context.Skip() to inform the server middleware the client is not trusted.
-            if (string.IsNullOrEmpty(context.ClientId) || string.IsNullOrEmpty(context.ClientSecret))
-            {
-                context.Reject(
-                    OpenIdConnectConstants.Errors.InvalidRequest,
-                    "Missing credentials: ensure that your credentials were correctly " +
-                    "flowed in the request body or in the authorization header");
-
-                return;
-            }
 
             if (!await ValidateClient(context))
             {
@@ -214,7 +199,6 @@ namespace WebAuth.Providers
                 }
             }
 
-
             context.Validate();
         }
 
@@ -229,6 +213,32 @@ namespace WebAuth.Providers
                     OpenIdConnectConstants.Errors.InvalidClient,
                     "Application not found in the database: ensure that your client_id is correct");
 
+                return false;
+            }
+
+
+            // Note: client authentication is not mandatory for non-confidential client applications like mobile apps
+            // (except when using the client credentials grant type) but this authorization server uses a safer policy
+            // that makes client authentication mandatory and returns an error if client_id or client_secret is missing.
+            // You may consider relaxing it to support the resource owner password credentials grant type
+            // with JavaScript or desktop applications, where client credentials cannot be safely stored.
+            // In this case, call context.Skip() to inform the server middleware the client is not trusted.
+            if (string.IsNullOrEmpty(context.ClientSecret) &&
+                (application.OAuthClientProperties == null || application.OAuthClientProperties.RequireClientSecret))
+            {
+                context.Reject(
+                    OpenIdConnectConstants.Errors.InvalidRequest,
+                    "Missing credentials: ensure that your credentials were correctly " +
+                    "flowed in the request body or in the authorization header");
+
+                return false;
+            }
+
+            // Call context.Skip() to inform the server middleware the client is not trusted.
+            if (application.OAuthClientProperties != null &&
+                application.OAuthClientProperties.RequireClientSecret == false)
+            {
+                context.Skip();
                 return false;
             }
 
@@ -290,12 +300,12 @@ namespace WebAuth.Providers
         public override async Task HandleTokenRequest(HandleTokenRequestContext context)
         {
             await ValidateRefreshTokenGrantTypeAsync(context);
-    }
+        }
 
         public override async Task ApplyTokenResponse(ApplyTokenResponseContext context)
         {
             await UpdateRefreshToken(context);
-}
+        }
 
         private async Task ValidateRefreshTokenGrantTypeAsync(BaseValidatingTicketContext context)
         {
@@ -310,7 +320,7 @@ namespace WebAuth.Providers
             if (sessionIdClaim == null)
             {
                 context.Reject
-                    (OpenIdConnectConstantsExt.Errors.ClaimNotFound, 
+                    (OpenIdConnectConstantsExt.Errors.ClaimNotFound,
                     "Session id is not provided in claims.");
                 return;
             }
@@ -329,9 +339,9 @@ namespace WebAuth.Providers
 
             var isRefreshTokenValid = await _validationService.IsRefreshTokenValidAsync(oldRefreshToken, sessionId);
 
-            if (isRefreshTokenValid) 
+            if (isRefreshTokenValid)
                 return;
-            
+
             _log.Info("refresh_token was revoked.");
 
             context.Reject(
