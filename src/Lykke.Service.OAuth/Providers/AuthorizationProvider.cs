@@ -204,6 +204,16 @@ namespace WebAuth.Providers
 
         private async Task<bool> ValidateClient(BaseValidatingClientContext context)
         {
+            if (string.IsNullOrEmpty(context.ClientId))
+            {
+                context.Reject(
+                    OpenIdConnectConstants.Errors.InvalidRequest,
+                    "Missing credentials: ensure that your credentials were correctly " +
+                    "flowed in the request body or in the authorization header");
+
+                return false;
+            }
+
             // Retrieve the application details corresponding to the requested client_id.
             var application = await _applicationRepository.GetByIdAsync(context.ClientId);
 
@@ -215,7 +225,6 @@ namespace WebAuth.Providers
 
                 return false;
             }
-
 
             // Note: client authentication is not mandatory for non-confidential client applications like mobile apps
             // (except when using the client credentials grant type) but this authorization server uses a safer policy
