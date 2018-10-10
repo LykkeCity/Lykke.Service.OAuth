@@ -10,19 +10,19 @@
 <environment names="Development">
     <link rel="stylesheet" href="~/styles/ios.css" asp-append-version="true">
 
-    <link rel="stylesheet" href="~/styles/raiffeisen.ios.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/styles/ModernMoney.ios.css" asp-append-version="true" />
 </environment>
 <environment names="Staging,Production">
     <link rel="stylesheet" href="~/dist/ios.min.css" asp-append-version="true">
 
-    <link rel="stylesheet" href="~/styles/raiffeisen.ios.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/styles/ModernMoney.ios.css" asp-append-version="true" />
 </environment>
 
 }
 
 <div class="auth_group auth_group--form">
     <div class="container">
-        <img src="~/images/RAI_Lab_InnovationsInkubatorRaiffeisen_WebSmall.png" alt="Raiffeisen" class="auth_group__logo" width="335" height="120">
+        <img src="~/images/modernMoneyLogo@2x.png" alt="ModernMoney" class="auth_group__logo" width="300" height="70">
 
         <form novalidate enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin" class="auth_group__form">
             <div class="form-group">
@@ -32,7 +32,7 @@
                 </div>
                 <div class="form-group-input">
                     <input type="password" id="password" required class="form-control" asp-for="Password">
-                    <label for="password" class="control-label">Passwort</label>
+                    <label for="password" class="control-label">Password</label>
                     <button class="btn btn--icon input-group-addon _toggle_password" type="button"><i class="eye_icon eye_icon--show_password_alt"></i></button>
                 </div>
                 <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
@@ -44,16 +44,16 @@
                 <div class="g-recaptcha" data-sitekey="@Model.LoginRecaptchaKey" data-theme="white" data-callback="captchaValid"></div>
             </div>
             <div class="auth_group__indent">
-                <button id="submit" type="submit" class="btn raiffeisen-btn--gradient .raifeisen-btn btn-block" disabled>Anmelden</button>
+                <button id="submit" type="submit" class="btn modernMoney-btn btn-block default" disabled>Sign in</button>
             </div>
             
             <div class="footer_buttons clearfix">
-                <div>
-                    <button class="btn btn--link" type="button" id="hint" disabled>Schicken Sie mir einen Hinweis</button>
+                <div class="pull-left">
+                    <button class="btn btn--link" type="button" id="hint" disabled>Send me hint</button>
                 </div>
-                <div>
-                    <button class="btn btn--link" type="button" id="request" disabled>Ich habe mein Passwort vergessen</button>
-                </div>
+                <div class="pull-right">
+                    <button class="btn btn--link" type="button" id="request" disabled>I forgot my password</button>
+                </div>>
             </div>
         </form>
 

@@ -1,0 +1,77 @@
+﻿body {
+    background: #006e57; /* Old browsers */
+    background: -moz-linear-gradient(-45deg, #006e57 5%, #33cc8b 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(-45deg, #006e57 5%,#33cc8b 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(135deg, #006e57 5%,#33cc8b 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#006e57', endColorstr='#33cc8b',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+}
+
+.modernMoney-btn {
+    border-radius: 0px;
+    background-color: Transparent;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    border: 2px solid white;
+}
+
+    .modernMoney-btn:disabled {
+        background-color: Transparent;
+        color: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+.btn[disabled] {
+    background: none !important;
+    color: white !important;
+    opacity: 0.5;
+}
+
+.btn--link {
+    color: white;
+}
+
+input[type="email"], input[type="password"] {
+    background: transparent;
+    color: white !important;
+    border: none;
+    border-bottom: 2px solid white;
+}
+
+.form-control:focus ~ .control-label {
+    color: #b2b8bf;
+}
+
+.form-control:focus {
+    border-bottom: 2px solid white;
+    background-color: transparent;
+}
+
+input:-webkit-autofill {
+    color: white !important;
+    -webkit-text-fill-color: white !important;
+}
+
+
+@media all and (max-width:543px) {
+    .auth_group--form .auth_group__logo {
+        width: 240px;
+        height: 40px;
+        margin-bottom: 28px
+    }
+}
+
+@media all and (max-height:543px) and (max-width:543px) {
+
+    .auth_group--form .auth_group__logo {
+        margin-bottom: 240px;
+        width: 60px;
+        height: 60px
+    }
+}
+
+@media all and (max-width:320px) {
+    .footer_buttons {
+        width: 260px;
+    }
+}
