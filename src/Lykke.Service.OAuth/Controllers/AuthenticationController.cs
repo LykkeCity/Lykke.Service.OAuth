@@ -49,6 +49,11 @@ namespace WebAuth.Controllers
         private readonly SecuritySettings _securitySettings;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly ILog _log;
+        private static readonly Dictionary<string, List<string>> CustomViewsDictionary = new Dictionary<string, List<string>>
+        {
+            { "raiffeisenkryptowallet" , new List<string>{"ios"}},
+            { "modernmoney" , new List<string>{"ios"}}
+        };
         private readonly IIpGeoLocationClient _geoLocationClient;
         private readonly IEnumerable<CountryItem> _countries;
 
@@ -108,7 +113,7 @@ namespace WebAuth.Controllers
                     PartnerId = partnerId
                 };
 
-                var viewName = PlatformToViewName(platform);
+                var viewName = PlatformToViewName(platform, partnerId);
 
                 return View(viewName, model);
             }
@@ -119,8 +124,14 @@ namespace WebAuth.Controllers
             }
         }
 
-        private static string PlatformToViewName(string platform)
+        private static string PlatformToViewName(string platform, string partnerId)
         {
+            if (partnerId != null)
+            {
+                CustomViewsDictionary.TryGetValue(partnerId.ToLower(), out var customViews);
+                if (customViews != null && customViews.Contains(platform)) return $"Login.{partnerId}.{platform}";
+            }
+
             switch (platform?.ToLower())
             {
                 case "android":
@@ -158,7 +169,7 @@ namespace WebAuth.Controllers
             model.LoginRecaptchaKey = _securitySettings.RecaptchaKey;
             model.RegisterRecaptchaKey = _securitySettings.RecaptchaKey;
 
-            var viewName = PlatformToViewName(platform);
+            var viewName = PlatformToViewName(platform, model.PartnerId);
 
             if (model.IsLogin.HasValue && model.IsLogin.Value)
             {
