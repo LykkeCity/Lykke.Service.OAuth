@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="StackExchange.Redis" Version="2.0.513" />
+    <PackageReference Include="Lykke.Service.ClientAccount.Client" Version="2.2.5" />
     <PackageReference Include="Lykke.Service.Session.Client" Version="3.0.0" />
   </ItemGroup>
 

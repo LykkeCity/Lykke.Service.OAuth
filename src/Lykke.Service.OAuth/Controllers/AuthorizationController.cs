@@ -64,6 +64,9 @@ namespace WebAuth.Controllers
             }
 
             Dictionary<string, string> parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
+
+            var isExternalAuth = parameters.TryGetValue(CommonConstants.IdentityProviderParameter,
+                out var externalProviderScheme);
             string redirectUrl;
 
             // Note: authentication could be theoretically enforced at the filter level via AuthorizeAttribute
@@ -73,20 +76,35 @@ namespace WebAuth.Controllers
             // restored by AuthorizationProvider.ExtractAuthorizationRequest after the external authentication process has been completed.
             if (!User.Identities.Any(identity => identity.IsAuthenticated))
             {
+
+                if (isExternalAuth)
+                {
+                    var externalRedirectUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeExternal"), parameters);
+
+                    var properties = new AuthenticationProperties
+                    {
+                        RedirectUri = Url.Action("AfterExternalLoginCallback", "External"),
+                        // We need to save original redirectUrl, later get it in AfterExternalLoginCallback and redirect back to it.
+                        Items = {{CommonConstants.AfterExternalLoginReturnUrl, externalRedirectUrl}}
+                    };
+
+                    return Challenge(properties, externalProviderScheme);
+                }
+
+                redirectUrl = QueryHelpers.AddQueryString(Url.Action("Authorize"), parameters);
+
                 var identifier = Guid.NewGuid().ToString();
 
                 // Store the authorization request in the user session.
                 HttpContext.Session.Set("authorization-request:" + identifier, request.ToJson().ToUtf8Bytes());
                 parameters.Add("request_id", identifier);
 
-                redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
-
                 // this parameter added for authentification on login page with PartnerId
                 parameters.TryGetValue(CommonConstants.PartnerIdParameter, out var partnerId);
 
                 var authenticationProperties = new AuthenticationProperties
                 {
-                    RedirectUri = Url.Action(redirectUrl),
+                    RedirectUri = redirectUrl
                 };
 
                 if (!string.IsNullOrWhiteSpace(partnerId))
@@ -110,10 +128,62 @@ namespace WebAuth.Controllers
                 });
             }
 
-            var acceptUri = Url.Action("Accept");
+            var acceptUri = isExternalAuth
+                ? Url.Action("AuthorizeExternal")
+                : Url.Action("Accept");
+
             redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
 
             return Redirect(redirectUrl);
+        }
+
+        [Authorize]
+        [HttpPost("~/connect/authorize/external")]
+        [HttpGet("~/connect/authorize/external")]
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true, Duration = 0)]
+        public async Task<IActionResult> AuthorizeExternal()
+        {
+            var response = HttpContext.GetOpenIdConnectResponse();
+            if (response != null)
+            {
+                return View("Error", response);
+            }
+
+            var request = HttpContext.GetOpenIdConnectRequest();
+            if (request == null)
+            {
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "An internal error has occurred"
+                });
+            }
+
+            // Remove the authorization request from the user session.
+            if (!string.IsNullOrEmpty(request.RequestId))
+            {
+                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
+            }
+
+            // Create a new authentication ticket holding the user identity.
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(User.Identity),
+                new AuthenticationProperties(),
+                OpenIdConnectServerDefaults.AuthenticationScheme);
+
+            // Set the list of scopes granted to the client application.
+            // Note: this sample always grants the "openid", "email" and "profile" scopes
+            // when they are requested by the client application: a real world application
+            // would probably display a form allowing to select the scopes to grant.
+            //TODO:@gafanasiev add allowed scopes for client application.
+            ticket.SetScopes(new[]
+            {
+                OpenIdConnectConstants.Scopes.OpenId,
+                OpenIdConnectConstants.Scopes.Email,
+                OpenIdConnectConstants.Scopes.Profile
+            }.Intersect(request.GetScopes()));
+
+            return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 
         [Authorize]
@@ -169,7 +239,6 @@ namespace WebAuth.Controllers
                     ErrorDescription = "Unable to find session id in the calling context"
                 });
             }
-
 
             identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -265,7 +334,8 @@ namespace WebAuth.Controllers
             {
                 await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
             }
-            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
+            //TODO:@gafanasiev Fix bug with logout 
+            return SignOut(OpenIdConnectServerDefaults.AuthenticationScheme);
         }
     }
 }

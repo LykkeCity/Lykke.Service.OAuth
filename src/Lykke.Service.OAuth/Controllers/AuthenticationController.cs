@@ -10,6 +10,7 @@ using Core;
 using Core.Email;
 using Core.Extensions;
 using Core.Recaptcha;
+using Core.Services;
 using Core.VerificationCodes;
 using Lykke.Common;
 using Lykke.Common.Extensions;
@@ -57,6 +58,8 @@ namespace WebAuth.Controllers
         private readonly IIpGeoLocationClient _geoLocationClient;
         private readonly IEnumerable<CountryItem> _countries;
 
+        private readonly TimeSpan _mobileSessionLifetime;
+
         public AuthenticationController(
             IRegistrationServiceClient registrationClient,
             IVerificationCodesService verificationCodesService,
@@ -68,7 +71,9 @@ namespace WebAuth.Controllers
             SecuritySettings securitySettings,
             IConfirmationCodesClient confirmationCodesClient,
             IIpGeoLocationClient geoLocationClient,
-            ILogFactory logFactory, IClientSessionsClient clientSessionsClient)
+            ILogFactory logFactory, 
+            IClientSessionsClient clientSessionsClient,
+            ILifetimeSettingsProvider lifetimeSettingsProvider)
         {
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -84,6 +89,7 @@ namespace WebAuth.Controllers
             _clientSessionsClient = clientSessionsClient;
             var codes = new CountryPhoneCodes();
             _countries = codes.GetCountries();
+            _mobileSessionLifetime = lifetimeSettingsProvider.GetMobileSessionLifetime();
         }
 
         [HttpGet("~/signin/{platform?}")]
@@ -463,13 +469,13 @@ namespace WebAuth.Controllers
             return password.IsPasswordComplex(useSpecialChars: false);
         }
 
-        private static TimeSpan? GetSessionTtl(string platform)
+        private TimeSpan? GetSessionTtl(string platform)
         {
             switch (platform?.ToLower())
             {
                     case "android":
                     case "ios":
-                        return TimeSpan.FromDays(30);
+                        return _mobileSessionLifetime;
 
                     default:
                         return null;

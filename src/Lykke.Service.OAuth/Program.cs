@@ -21,10 +21,10 @@ namespace WebAuth
                 var host = new WebHostBuilder()
                     .UseKestrel()
                     .UseContentRoot(Directory.GetCurrentDirectory())
-#if !DEBUG
-                        .UseApplicationInsights()
-                        .UseUrls("http://*:5000/")
-#endif
+//#if !DEBUG
+//                        .UseApplicationInsights()
+//                        .UseUrls("http://*:5000/")
+//#endif
                     .UseStartup<Startup>()
                     .Build();
 

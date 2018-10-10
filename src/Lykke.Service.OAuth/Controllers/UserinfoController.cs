@@ -43,8 +43,9 @@ namespace WebAuth.Controllers
             _clientAccountClient = clientAccountClient;
         }
 
+        //TODO:@gafanasiev Remove
         [HttpGet("~/connect/userinfo")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme, Policy = OpenIdConnectConstantsExt.Policies.OnlyLykkeSignIn)]
         public IActionResult GetUserInfo()
         {
             var userInfo = new UserInfoViewModel
@@ -57,7 +58,7 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/getlykkewallettoken")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme, Policy = OpenIdConnectConstantsExt.Policies.OnlyLykkeSignIn)]
         public async Task<IActionResult> GetLykkewalletToken()
         {
             return await GetToken();
@@ -65,7 +66,7 @@ namespace WebAuth.Controllers
 
         // Do not delete or merge it with getlykkewallettoken. It will break mobiles
         [HttpGet("~/getlykkewallettokenmobile")]
-        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.DefaultScheme)]
+        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.DefaultScheme, Policy = OpenIdConnectConstantsExt.Policies.OnlyLykkeSignIn)]
         public async Task<IActionResult> GetLykkeWalletTokenMobile()
         {
             return await GetToken();
@@ -83,12 +84,15 @@ namespace WebAuth.Controllers
 
             var session = await _clientSessionsClient.GetAsync(sessionId);
 
-            return Json(new { Token = sessionId, session.AuthId });
+            if (session == null)
+                return BadRequest("Session not found.");
+
+            return Json(new { Token = session.SessionToken, session.AuthId });
         }
 
-
+        //TODO:@gafanasiev Remove
         [HttpGet("~/getprivatekey")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme, Policy = OpenIdConnectConstantsExt.Policies.OnlyLykkeSignIn)]
         public async Task<IActionResult> GetPrivateKey()
         {
             var applicationId = HttpContext.GetApplicationId();

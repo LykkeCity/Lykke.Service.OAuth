@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
@@ -9,14 +12,20 @@ using AzureStorage.Blob;
 using Common;
 using Common.Log;
 using Core.Extensions;
+using IdentityModel;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.Log;
 using Lykke.Logs;
+using Lykke.Service.OAuth.Events;
 using Lykke.Service.OAuth.Modules;
 using Lykke.SettingsReader;
 using Lykke.SettingsReader.ReloadingManager;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -26,6 +35,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -35,7 +46,6 @@ using WebAuth.Providers;
 using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using AspNet.Security.OpenIdConnect.Server;
 
 namespace WebAuth
 {
@@ -91,6 +101,18 @@ namespace WebAuth
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
+                services.AddMemoryCache();
+
+                services.AddAuthorization(options =>
+                {
+                    // Policy that is allowed only for users signed in through Lykke.
+                    options.AddPolicy(OpenIdConnectConstantsExt.Policies.OnlyLykkeSignIn, policyBuilder =>
+                    {
+                        policyBuilder.AddAuthenticationSchemes(OpenIdConnectConstantsExt.Auth.DefaultScheme, IdentityServerAuthenticationDefaults.AuthenticationScheme);
+                        policyBuilder.AddRequirements(new ClaimsAuthorizationRequirement(OpenIdConnectConstantsExt.Claims.SignInProvider, new List<string>{OpenIdConnectConstantsExt.Providers.Lykke}));
+                    });
+                });
+
                 services.AddAuthentication(options =>
                     {
                         options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
@@ -101,17 +123,50 @@ namespace WebAuth
                         options.Cookie.Name = CookieAuthenticationDefaults.CookiePrefix +
                                               OpenIdConnectConstantsExt.Auth.DefaultScheme;
                         // Lifetime of AuthenticationTicket for silent refresh. 
-                        options.ExpireTimeSpan = TimeSpan.FromDays(60);
+                        options.ExpireTimeSpan = _settings.OAuth.LifetimeSettings.SilentRefreshCookieLifetime;
                         options.LoginPath = new PathString("/signin");
                         options.LogoutPath = new PathString("/signout");
                         options.Cookie.HttpOnly = true;
                         options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                         options.EventsType = typeof(CustomCookieAuthenticationEvents);
                     })
+                    .AddCookie(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme, options =>
+                    {
+                        options.Cookie.HttpOnly = true;
+                        options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
+                    })
+
+                    .AddOpenIdConnect(OpenIdConnectConstantsExt.Auth.VmoolaAuthenticationScheme, OpenIdConnectConstantsExt.Providers.vMoola, options =>
+                    {
+                        options.SignInScheme = OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme;
+
+                        var vmoolaSettings =
+                                _settings.OAuth.ExternalProvidersSettings.ExternalIdentityProviders.FirstOrDefault(
+                                    provider => provider.Id == OpenIdConnectConstantsExt.Providers.vMoola);
+                        if (vmoolaSettings == null)
+                        {
+                            throw new InvalidOperationException($"Configuration not found for provider: {OpenIdConnectConstantsExt.Providers.vMoola}");
+                        }
+                        options.Authority = vmoolaSettings.Authority;
+                        options.ClientId = vmoolaSettings.ClientId;
+                        options.ClientSecret = vmoolaSettings.ClientSecret;
+                        options.ResponseType = vmoolaSettings.ResponseType;
+                        options.TokenValidationParameters.ValidIssuers = new List<string>(vmoolaSettings.ValidIssuers);
+                        
+                        options.SaveTokens = true;
+                        options.DisableTelemetry = true;
+                        options.ClaimActions.Remove(JwtClaimTypes.Issuer);
+                        options.ClaimActions.Remove(JwtClaimTypes.Audience);
+
+                        //Get claims from user info to map them.
+                        options.GetClaimsFromUserInfoEndpoint = true;
+                        options.EventsType = typeof(ExternalOpenIdConnectEvents);
+                    })
 
                     .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
                         options =>
                         {
+
                             var config = settings.Nested(n => n.OAuth.ResourceServerSettings).CurrentValue;
                             options.Authority = config.Authority;
                             options.ApiName = config.ClientId;
@@ -129,8 +184,8 @@ namespace WebAuth
                         options.ApplicationCanDisplayErrors = true;
                         options.AllowInsecureHttp = Environment.IsDevelopment();
                         options.SigningCredentials.AddCertificate(xcert);
-                        options.AccessTokenLifetime = TimeSpan.FromMinutes(10);
-                        options.RefreshTokenLifetime = TimeSpan.FromDays(30);
+                        options.AccessTokenLifetime = _settings.OAuth.LifetimeSettings.AccessTokenLifetime;
+                        options.RefreshTokenLifetime = _settings.OAuth.LifetimeSettings.RefreshTokenLifetime;
                         options.UseSlidingExpiration = true;
                     });
 
@@ -155,7 +210,7 @@ namespace WebAuth
 
                 services.AddAutoMapper();
 
-                services.AddSession(options => { options.IdleTimeout = TimeSpan.FromMinutes(30); });
+                services.AddSession(options => { options.IdleTimeout = _settings.OAuth.LifetimeSettings.SessionIdleTimeout; });
 
                 var builder = new ContainerBuilder();
 
@@ -170,8 +225,7 @@ namespace WebAuth
                 builder.RegisterModule(new DbModule(settings));
                 builder.RegisterModule(new BusinessModule(settings));
                 builder.RegisterModule(new ClientServiceModule(settings));
-                builder.RegisterModule(new ServiceModule());
-
+                builder.RegisterModule(new ServiceModule(settings));
 
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();

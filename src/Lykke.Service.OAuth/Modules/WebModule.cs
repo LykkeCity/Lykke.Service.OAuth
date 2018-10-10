@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Lykke.Service.OAuth.Events;
 using Lykke.SettingsReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -29,6 +30,7 @@ namespace WebAuth.Modules
             builder.RegisterType<AuthorizationProvider>().AsSelf().SingleInstance();
             builder.RegisterType<CustomCookieAuthenticationEvents>().SingleInstance();
             builder.RegisterInstance(_settings.CurrentValue.OAuth.Security);
+            builder.RegisterType<ExternalOpenIdConnectEvents>().SingleInstance();
         }
     }
 }

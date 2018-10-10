@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using Core.Settings;
+using JetBrains.Annotations;
 using Lykke.Service.OAuth.Settings.ServiceSettings;
 using Lykke.SettingsReader.Attributes;
 
@@ -17,5 +18,7 @@ namespace WebAuth.Settings.ServiceSettings
         public CookieSettings CookieSettings { get; set; }
         public ResourceServerSettings ResourceServerSettings { get; set; }
         public RedisSettings RedisSettings { get; set; }
+        public LifetimeSettings LifetimeSettings { get; set; }
+        public ExternalProvidersSettings ExternalProvidersSettings { get; set; }
     }
 }

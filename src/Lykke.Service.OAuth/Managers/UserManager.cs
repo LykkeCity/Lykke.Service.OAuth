@@ -98,7 +98,9 @@ namespace WebAuth.Managers
                 new Claim(ClaimTypes.NameIdentifier, clientId),
                 new Claim(OpenIdConnectConstants.Claims.Email, email),
                 new Claim(OpenIdConnectConstants.Claims.Subject, clientId),
-                new Claim(OpenIdConnectConstantsExt.Claims.SessionId,sessionId)
+                new Claim(OpenIdConnectConstantsExt.Claims.SessionId,sessionId),
+                // Mark that signin was performed through lykke.
+                new Claim(OpenIdConnectConstantsExt.Claims.SignInProvider, OpenIdConnectConstantsExt.Providers.Lykke)
             };
 
             if (!string.IsNullOrEmpty(personalData.FirstName))
