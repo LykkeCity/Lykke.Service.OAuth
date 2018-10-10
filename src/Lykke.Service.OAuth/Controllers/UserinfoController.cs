@@ -44,19 +44,6 @@ namespace WebAuth.Controllers
             _clientAccountClient = clientAccountClient;
         }
 
-        [HttpGet("~/connect/userinfo")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
-        public IActionResult GetUserInfo()
-        {
-            var userInfo = new UserInfoViewModel
-            {
-                Email = User.GetClaim(OpenIdConnectConstants.Claims.Email),
-                FirstName = User.GetClaim(OpenIdConnectConstants.Claims.GivenName),
-                LastName = User.GetClaim(OpenIdConnectConstants.Claims.FamilyName)
-            };
-            return Json(userInfo);
-        }
-
         [HttpGet("~/getlykkewallettoken")]
         [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetLykkewalletToken()
@@ -84,35 +71,10 @@ namespace WebAuth.Controllers
 
             var session = await _clientSessionsClient.GetAsync(sessionId);
 
-            return Json(new { Token = sessionId, session.AuthId });
-        }
+            if (session == null)
+                return NotFound("Session not found.");
 
-
-        [HttpGet("~/getprivatekey")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> GetPrivateKey()
-        {
-            var applicationId = HttpContext.GetApplicationId();
-
-            if (!applicationId.IsValidPartitionOrRowKey())
-                return BadRequest("Invalid applicationId");
-
-            var app = await _applicationRepository.GetByIdAsync(applicationId);
-
-            if (app == null)
-                return BadRequest("Application Id Incorrect!");
-
-            var clientId = User.Identity.GetClientId();
-            string encodedPrivateKey = string.Empty;
-
-            if (clientId != null)
-            {
-                var walletCredential = await _walletCredentialsRepository.GetAsync(clientId);
-
-                return Json(new { EncodedPrivateKey = walletCredential?.EncodedPrivateKey });
-            }
-
-            return Json(new { EncodedPrivateKey = encodedPrivateKey });
+            return Json(new { Token = session.SessionToken, session.AuthId });
         }
 
         private async Task<ClientModel> GetClientByIdAsync(string clientId)

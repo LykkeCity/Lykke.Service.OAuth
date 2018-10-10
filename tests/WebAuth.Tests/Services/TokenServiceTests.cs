@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Core.Settings;
 using FluentAssertions;
 using Lykke.Service.OAuth.Services;
 using NSubstitute;
@@ -21,9 +22,11 @@ namespace WebAuth.Tests.Services
             _redisDatabase = Substitute.For<IDatabase>();
 
             var multiplexer = Substitute.For<IConnectionMultiplexer>();
+            var lifetimeSettingsProvider = new LifetimeSettingsProvider(new LifetimeSettings());
+
             multiplexer.GetDatabase().ReturnsForAnyArgs(_redisDatabase);
 
-            _tokenService = new TokenService(multiplexer);
+            _tokenService = new TokenService(multiplexer, lifetimeSettingsProvider);
         }
 
         [Theory]

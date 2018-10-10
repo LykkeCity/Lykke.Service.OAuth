@@ -11,6 +11,7 @@ using Core.Email;
 using Core.Extensions;
 using Core.Recaptcha;
 using Core.Registration;
+using Core.Services;
 using Core.VerificationCodes;
 using Lykke.Common;
 using Lykke.Common.Extensions;
@@ -61,6 +62,8 @@ namespace WebAuth.Controllers
         private readonly IEnumerable<CountryItem> _countries;
         private readonly IRegistrationRepository _registrationRepository;
 
+        private readonly TimeSpan _mobileSessionLifetime;
+
         public AuthenticationController(
             IRegistrationServiceClient registrationClient,
             IVerificationCodesService verificationCodesService,
@@ -74,7 +77,8 @@ namespace WebAuth.Controllers
             IIpGeoLocationClient geoLocationClient,
             ILogFactory logFactory,
             IClientSessionsClient clientSessionsClient,
-            IRegistrationRepository registrationRepository)
+            IRegistrationRepository registrationRepository,
+            ILifetimeSettingsProvider lifetimeSettingsProvider)
         {
             _registrationRepository = registrationRepository;
             _registrationClient = registrationClient;
@@ -90,6 +94,7 @@ namespace WebAuth.Controllers
             _log = logFactory.CreateLog(this);
             _clientSessionsClient = clientSessionsClient;
             _countries = new CountryPhoneCodes().GetCountries();
+            _mobileSessionLifetime = lifetimeSettingsProvider.GetMobileSessionLifetime();
         }
 
         [HttpGet("~/signin/{platform?}")]
@@ -501,13 +506,13 @@ namespace WebAuth.Controllers
             return password.IsPasswordComplex(useSpecialChars: false);
         }
 
-        private static TimeSpan? GetSessionTtl(string platform)
+        private TimeSpan? GetSessionTtl(string platform)
         {
             switch (platform?.ToLower())
             {
                     case "android":
                     case "ios":
-                        return TimeSpan.FromDays(30);
+                        return _mobileSessionLifetime;
 
                     default:
                         return null;

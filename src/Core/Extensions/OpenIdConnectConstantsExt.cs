@@ -10,9 +10,16 @@
             public const string SessionId = "http://lykke.com/oauth/sessionid";
         }
 
+        public static class Parameters
+        {
+            public const string PartnerIdParameter = "partnerId";
+            public const string AfterExternalLoginCallback = "after_external_login_callback";
+        }
+
         public static class Auth
         {
             public const string DefaultScheme = "ServerCookie";
+            public const string ExternalAuthenticationScheme = "ExternalAuthenticationScheme";
         }
 
         public static class Errors

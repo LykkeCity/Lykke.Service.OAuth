@@ -13,11 +13,14 @@ namespace Lykke.Service.OAuth.Services
     public class TokenService : ITokenService
     {
         private readonly IDatabase _redisDatabase;
-        private static readonly TimeSpan RefreshTokenWhitelistLifetime = TimeSpan.FromDays(30);
+        private readonly TimeSpan _refreshTokenWhitelistLifetime;
 
-        public TokenService(IConnectionMultiplexer connectionMultiplexer)
+        public TokenService(
+            IConnectionMultiplexer connectionMultiplexer,
+            ILifetimeSettingsProvider lifetimeSettingsProvider)
         {
             _redisDatabase = connectionMultiplexer.GetDatabase();
+            _refreshTokenWhitelistLifetime = lifetimeSettingsProvider.GetRefreshTokenWhitelistLifetime();
         }
 
         /// <inheritdoc />
@@ -56,7 +59,7 @@ namespace Lykke.Service.OAuth.Services
                 // If token is generated upon authorization code exchange save it to redis.
                 if (!isOldTokenPresent)
                 {
-                    await _redisDatabase.StringSetAsync(newKey, true, RefreshTokenWhitelistLifetime);
+                    await _redisDatabase.StringSetAsync(newKey, true, _refreshTokenWhitelistLifetime);
                 }
                 else
                     // If we successfully exchanged refresh token,
@@ -65,7 +68,7 @@ namespace Lykke.Service.OAuth.Services
                     var steps = new List<Task>();
                     var transaction = _redisDatabase.CreateTransaction();
                     steps.Add(transaction.KeyDeleteAsync(oldKey));
-                    steps.Add(transaction.StringSetAsync(newKey, true, RefreshTokenWhitelistLifetime));
+                    steps.Add(transaction.StringSetAsync(newKey, true, _refreshTokenWhitelistLifetime));
                     if (await transaction.ExecuteAsync()) await Task.WhenAll(steps);
                 }
             }
