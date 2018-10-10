@@ -1,0 +1,35 @@
+﻿.raiffeisen-btn--gradient {
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#de3326+31,0075df+70,0075df+70,004380+100 */
+    background: #de3326; /* Old browsers */
+    background: -moz-linear-gradient(left, #de3326 31%, #0075df 70%, #0075df 70%, #004380 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(left, #de3326 31%,#0075df 70%,#0075df 70%,#004380 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to right, #de3326 31%,#0075df 70%,#0075df 70%,#004380 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#de3326', endColorstr='#004380',GradientType=1 ); /* IE6-9 */
+}
+
+.btn:not([disabled]):hover {
+    color: #fff;
+    background: #de3326
+}
+
+@media all and (max-width:543px) {
+    .auth_group--form .auth_group__logo {
+        width: 240px;
+        height: 76px;
+        margin-bottom: 28px
+    }
+}
+
+@media all and (max-height:543px) and (max-width:543px) {
+    .auth_group--form .auth_group__logo {
+        margin-bottom: 240px;
+        width: 60px;
+        height: 60px
+    }
+}
+
+@media all and (max-width:320px) {
+    .footer_buttons {
+        width: 260px;
+    }
+}
