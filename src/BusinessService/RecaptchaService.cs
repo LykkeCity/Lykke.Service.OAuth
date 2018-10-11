@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Common.Log;
 using Core.Recaptcha;
 using Flurl.Http;
+using Lykke.Common.Log;
 using Microsoft.AspNetCore.Http;
 
 namespace BusinessService
@@ -14,21 +15,18 @@ namespace BusinessService
         private readonly ILog _log;
 
         public RecaptchaService(
-            IHttpContextAccessor httpContextAccessor, 
+            IHttpContextAccessor httpContextAccessor,
             string secret,
-            ILog log)
+            ILogFactory logFactory)
         {
             _httpContextAccessor = httpContextAccessor;
             _secret = secret;
-            _log = log.CreateComponentScope(nameof(RecaptchaService));
+            _log = logFactory.CreateLog(this);
         }
-        
+
         public async Task<bool> Validate(string response = null)
         {
-            var resp = response ?? (string)_httpContextAccessor.HttpContext.Request.Form["g-recaptcha-response"];
-
-            if (resp == null)
-                return false;
+            var resp = response ?? _httpContextAccessor.HttpContext.Request.Form["g-recaptcha-response"];
 
             try
             {
@@ -43,7 +41,7 @@ namespace BusinessService
             }
             catch (Exception ex)
             {
-                _log.WriteWarning(nameof(Validate), string.Empty, "Error validating captcha", ex);
+                _log.Warning(nameof(Validate), ex, "Error validating captcha");
             }
 
             return false;
