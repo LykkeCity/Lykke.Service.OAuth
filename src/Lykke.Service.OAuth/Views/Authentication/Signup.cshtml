@@ -78,7 +78,7 @@
             <p class="lead">Country of residence</p>
             <div class="form-group">
                 <div class="input-group">
-                    <select class="custom-select" ng-model="vm.data.step2Form.countryOfResidence">
+                    <select class="custom-select" ng-model="vm.data.step2Form.countryOfResidence" ng-change="vm.handlers.changeCountryOfResidence()">
                         <option ng-repeat="item in vm.data.countries" value="{{item.id}}" ng-selected="{{item.selected}}" prefix="{{item.prefix}}">{{item.title}}</option>
                     </select>
                 </div>

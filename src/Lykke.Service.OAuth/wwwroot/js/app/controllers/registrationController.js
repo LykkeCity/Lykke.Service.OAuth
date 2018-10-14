@@ -61,6 +61,7 @@
             successCaptcha: successCaptcha,
             errorCaptcha: errorCaptcha,
             changeCountry: changeCountry,
+            changeCountryOfResidence: changeCountryOfResidence,
             confirmPhone: confirmPhone
         };
 
@@ -133,8 +134,12 @@
             });
             vm.data.step2Form.phone = result[0].prefix;
             vm.data.selectedCountryName = result[0].title;
+        }
+
+        function changeCountryOfResidence() {
             vm.data.isAutoSelect = false;
         }
+
         function confirmPhone() {
             if (vm.data.step2Form.phone == null)
                 return;
