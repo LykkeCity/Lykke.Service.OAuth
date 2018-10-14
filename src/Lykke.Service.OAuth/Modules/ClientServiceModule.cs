@@ -18,12 +18,10 @@ namespace WebAuth.Modules
     public class ClientServiceModule : Module
     {
         private readonly IReloadingManager<AppSettings> _settings;
-        private readonly ILog _log;
 
-        public ClientServiceModule(IReloadingManager<AppSettings> settings, ILog log)
+        public ClientServiceModule(IReloadingManager<AppSettings> settings)
         {
             _settings = settings;
-            _log = log;
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -37,7 +35,9 @@ namespace WebAuth.Modules
             builder.RegisterEmailSenderViaAzureQueueMessageProducer(_settings.ConnectionString(x => x.OAuth.Db.ClientPersonalInfoConnString));
             builder.RegisterLykkeServiceClient(_settings.CurrentValue.ClientAccountServiceClient.ServiceUrl);
 
-            builder.RegisterIpGeoLocationClient(_settings.CurrentValue.IpGeoLocationServiceClient.ServiceUrl, _log);
+            builder.Register(c => new IpGeoLocationClient(_settings.CurrentValue.IpGeoLocationServiceClient.ServiceUrl, c.Resolve<ILogFactory>().CreateLog(this)))
+                .AsImplementedInterfaces()
+                .SingleInstance();
 
             builder.RegisterConfirmationCodesClient(_settings.CurrentValue.ConfirmationCodesClient);
 

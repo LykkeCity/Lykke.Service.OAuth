@@ -6,6 +6,6 @@ namespace Lykke.Service.OAuth.Models
 {
     public class CountryModel
     {
-        public List<ItemViewModel> Data { get; set; }
+        public List<CountryViewModel> Data { get; set; }
     }
 }

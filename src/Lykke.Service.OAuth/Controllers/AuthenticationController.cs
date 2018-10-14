@@ -77,6 +77,8 @@ namespace WebAuth.Controllers
             _geoLocationClient = geoLocationClient;
             _log = logFactory.CreateLog(this);
             _clientSessionsClient = clientSessionsClient;
+            var codes = new CountryPhoneCodes();
+            _countries = codes.GetCountries();
         }
 
         [HttpGet("~/signin/{platform?}")]
@@ -311,13 +313,13 @@ namespace WebAuth.Controllers
         {
             var localityData = await _geoLocationClient.GetLocalityDataAsync(HttpContext.GetIp());
             var model = new CountryModel();
-            List<ItemViewModel> countries = _countries
-                .Select(o => new ItemViewModel
+            var countries = _countries
+                .Select(o => new CountryViewModel
                 {
                     Id = o.Id,
                     Title = o.Name,
                     Prefix = o.Prefix,
-                    Selected = localityData.Country != null && localityData.Country == o.Name
+                    Selected = localityData?.Country != null && localityData.Country == o.Name
                 })
                 .ToList();
             model.Data = countries;
