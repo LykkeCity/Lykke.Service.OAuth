@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -10,10 +11,15 @@ using Core.Email;
 using Core.Extensions;
 using Core.Recaptcha;
 using Core.VerificationCodes;
+using Lykke.Common;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
+using Lykke.Service.ConfirmationCodes.Client;
+using Lykke.Service.ConfirmationCodes.Client.Models.Request;
+using Lykke.Service.IpGeoLocation;
+using Lykke.Service.OAuth.Models;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Enums;
 using Lykke.Service.Registration.Contract.Client.Models;
@@ -33,6 +39,7 @@ namespace WebAuth.Controllers
     public class AuthenticationController : BaseController
     {
         private readonly IRegistrationServiceClient _registrationClient;
+        private readonly IConfirmationCodesClient _confirmationCodesClient;
         private readonly IVerificationCodesService _verificationCodesService;
         private readonly IEmailFacadeService _emailFacadeService;
         private readonly ProfileActionHandler _profileActionHandler;
@@ -42,6 +49,8 @@ namespace WebAuth.Controllers
         private readonly SecuritySettings _securitySettings;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly ILog _log;
+        private readonly IIpGeoLocationClient _geoLocationClient;
+        private readonly IEnumerable<CountryItem> _countries;
 
         public AuthenticationController(
             IRegistrationServiceClient registrationClient,
@@ -52,6 +61,8 @@ namespace WebAuth.Controllers
             IClientAccountClient clientAccountClient,
             IRecaptchaService recaptchaService,
             SecuritySettings securitySettings,
+            IConfirmationCodesClient confirmationCodesClient,
+            IIpGeoLocationClient geoLocationClient,
             ILogFactory logFactory, IClientSessionsClient clientSessionsClient)
         {
             _registrationClient = registrationClient;
@@ -62,8 +73,12 @@ namespace WebAuth.Controllers
             _clientAccountClient = clientAccountClient;
             _recaptchaService = recaptchaService;
             _securitySettings = securitySettings;
+            _confirmationCodesClient = confirmationCodesClient;
+            _geoLocationClient = geoLocationClient;
             _log = logFactory.CreateLog(this);
             _clientSessionsClient = clientSessionsClient;
+            var codes = new CountryPhoneCodes();
+            _countries = codes.GetCountries();
         }
 
         [HttpGet("~/signin/{platform?}")]
@@ -292,7 +307,43 @@ namespace WebAuth.Controllers
             result.Result = true;
             return result;
         }
+        [HttpPost("~/signup/countrieslist")]
+        [ValidateAntiForgeryToken]
+        public async Task<CountryModel> CountriesList()
+        {
+            var localityData = await _geoLocationClient.GetLocalityDataAsync(HttpContext.GetIp());
+            var model = new CountryModel();
+            var countries = _countries
+                .Select(o => new CountryViewModel
+                {
+                    Id = o.Id,
+                    Title = o.Name,
+                    Prefix = o.Prefix,
+                    Selected = localityData?.Country != null && localityData.Country == o.Name
+                })
+                .ToList();
+            model.Data = countries;
+            return model;
+        }
+        [HttpPost("~/signup/sendPhoneCode")]
+        [ValidateAntiForgeryToken]
+        public async Task SendPhoneCode([FromBody] VerificationCodeRequest request)
+        {
+            await _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest() { Phone = request.Code });
+        }
+        [HttpPost("~/signup/verifyPhone")]
+        [ValidateAntiForgeryToken]
+        public async Task<VerificationCodeResult> VerifyPhone([FromBody] VerificationCodeRequest request)
+        {
+            var result = new VerificationCodeResult();
 
+            if (request == null || !request.Key.IsValidPartitionOrRowKey())
+                return result;
+
+            var resCode = await _confirmationCodesClient.VerifySmsCodeAsync(new VerifySmsConfirmationRequest() { Code = request.Code, Phone = request.Phone });
+            result.IsValid = resCode.IsValid;
+            return result;
+        }
         [HttpPost("~/signup/checkPassword")]
         [ValidateAntiForgeryToken]
         public bool CheckPassword([FromBody]string password)
@@ -337,19 +388,21 @@ namespace WebAuth.Controllers
                     }
                 }
 
-            var result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
-            {
-                Email = model.Email,
-                Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
-                Ip = userIp,
-                Changer = RecordChanger.Client,
-                UserAgent = userAgent,
-                Referer = referer,
-                CreatedAt = DateTime.UtcNow,
-                Cid = model.Cid,
-                Traffic = model.Traffic,
-                Ttl = GetSessionTtl(null)
-            });
+                var result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
+                {
+                    Email = model.Email,
+                    Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
+                    Hint = model.Hint,
+                    Ip = userIp,
+                    Changer = RecordChanger.Client,
+                    UserAgent = userAgent,
+                    Referer = referer,
+                    CreatedAt = DateTime.UtcNow,
+                    Cid = model.Cid,
+                    Traffic = model.Traffic,
+                    Ttl = GetSessionTtl(null),
+                    CountryFromPOA = model.CountryOfResidence
+                });
 
                 regResult.RegistrationResponse = result;
 
@@ -359,7 +412,7 @@ namespace WebAuth.Controllers
                     return regResult;
                 }
 
-                await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName);
+                await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName, model.Phone);
 
                 var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, null, result.Token, true);
 

@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Messages.Email;
 using Lykke.Service.ClientAccount.Client;
@@ -9,6 +10,8 @@ using Lykke.Service.Registration;
 using Lykke.Service.Session.Client;
 using Lykke.SettingsReader;
 using WebAuth.Settings;
+using Lykke.Service.ConfirmationCodes.Client;
+using Lykke.Service.IpGeoLocation;
 
 namespace WebAuth.Modules
 {
@@ -31,6 +34,12 @@ namespace WebAuth.Modules
 
             builder.RegisterEmailSenderViaAzureQueueMessageProducer(_settings.ConnectionString(x => x.OAuth.Db.ClientPersonalInfoConnString));
             builder.RegisterLykkeServiceClient(_settings.CurrentValue.ClientAccountServiceClient.ServiceUrl);
+
+            builder.Register(c => new IpGeoLocationClient(_settings.CurrentValue.IpGeoLocationServiceClient.ServiceUrl, c.Resolve<ILogFactory>().CreateLog(this)))
+                .AsImplementedInterfaces()
+                .SingleInstance();
+
+            builder.RegisterConfirmationCodesClient(_settings.CurrentValue.ConfirmationCodesClient);
 
             builder.RegisterGoogleAnalyticsWrapperClient(_settings.CurrentValue.GaWrapperServiceClient.ServiceUrl);
         }

@@ -1,5 +1,7 @@
 ﻿using JetBrains.Annotations;
+using Lykke.Service.ConfirmationCodes.Client;
 using Lykke.Service.GoogleAnalyticsWrapper.Client;
+using Lykke.Service.OAuth.Settings;
 using Lykke.Service.PersonalData.Settings;
 using Lykke.Service.Session.Client;
 using Lykke.Service.Registration;
@@ -19,5 +21,7 @@ namespace WebAuth.Settings
         public ClientAccountSettings ClientAccountServiceClient { get; set; }
         public GoogleAnalyticsWrapperServiceClientSettings GaWrapperServiceClient { get; set; }
         public SessionServiceClientSettings SessionServiceClient { get; set; }
+        public ConfirmationCodesServiceClientSettings ConfirmationCodesClient { get; set; }
+        public IpGeoLocationServiceClientSettings IpGeoLocationServiceClient { get; set; }
     }
 }

@@ -2235,7 +2235,7 @@ a.action_link:hover img, button.action_link:hover img { opacity: 1; }
 
 .modal-open { overflow: hidden; }
 
-.modal-open article, .modal-open header, .modal-open footer, .modal-open nav.header_nav, .modal-open .site_nav { -webkit-filter: blur(5px); filter: blur(5px); }
+/*.modal-open article, .modal-open header, .modal-open footer, .modal-open nav.header_nav, .modal-open .site_nav { -webkit-filter: blur(5px); filter: blur(5px); }*/
 
 .modal-open > .btn { opacity: 0; }
 

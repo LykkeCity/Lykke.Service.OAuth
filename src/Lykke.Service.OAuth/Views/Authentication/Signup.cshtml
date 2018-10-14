@@ -1,8 +1,33 @@
 ﻿@model Core.VerificationCodes.VerificationCode
 <div data-ng-app="registerApp" data-ng-controller="registrationController as vm" data-ng-init="vm.init('@Model.Key', @Model.ResendCount)" class="ng-cloak">
     @Html.AntiForgeryToken()
+
+    <div class="modal modal--message fade" id="modal_message" tabindex="-1" role="dialog">
+        <div class="modal_valign">
+            <div class="modal_valign__row">
+                <div class="modal_valign__cell">
+                    <div class="modal__dialog" role="document">
+                        <div class="modal__content">
+                            <button type="button" class="close visible-xs" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"></span></button>
+                            <div class="modal__body">
+                                <h3>Confirm country of residence</h3>
+                                <div class="text">
+                                    <p>Please confirm your country of residence in {{vm.data.selectedCountryName}}</p>
+                                </div>
+                            </div>
+                            <div class="modal__footer">
+                                <button type="button" class="btn btn--flat" data-dismiss="modal">Select other</button>
+                                <button type="button" class="btn btn--primary" data-dismiss="modal" data-ng-click="vm.handlers.setPhone()">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div data-ng-show="vm.data.step == 1">
-        <span class="hint_accent">Step 1 of 3</span>
+        <span class="hint_accent">Step 1 of 5</span>
         <h4>Verify e-mail</h4>
         <p class="lead">Please enter the verification code we sent to your e-mail address.</p>
         <form name="vm.step1Form" class="form form_register" novalidate autocomplete="off">
@@ -17,9 +42,11 @@
                           data-ng-bind="'Email '+vm.data.step1Form.email+ ' is already in use. Your verification code is no longer valid. Try with another email.'"></span>
                 </div>
                 <button class="btn btn--flat" type="button" data-ng-click="vm.data.showResendBlock = !vm.data.showResendBlock"
-                        data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired">Resend the code</button>
+                        data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired">
+                    Resend the code
+                </button>
             </div>
-            
+
             <div data-ng-show="vm.data.showResendBlock">
                 <div class="form-group" data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.resendCount > 2 || vm.data.step1Form.isCodeExpired">
                     <div class="g-recaptcha" vc-recaptcha key="'@ViewBag.RecaptchaKey'" on-success="vm.handlers.successCaptcha(response)" on-expire="vm.handlers.errorCaptcha()" required="false"></div>
@@ -32,83 +59,157 @@
                 </div>
                 <div data-ng-show="vm.data.step1Form.resendCount > 2">Max resend count reached</div>
             </div>
-            
+
             <div class="submit-group">
                 <button class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" type="submit"
                         data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired"
                         data-ng-disabled="!vm.step1Form.$valid || vm.data.loading"
-                        data-ng-click="vm.handlers.verifyEmail()">Submit</button>
+                        data-ng-click="vm.handlers.verifyEmail()">
+                    Submit
+                </button>
                 <button data-ng-show="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired" class="btn btn--primary btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
             </div>
         </form>
     </div>
-    
     <div data-ng-show="vm.data.step == 2">
-        <span class="hint_accent">Step 2 of 3</span>
-        <h4>Create password</h4>
-        <p class="lead">Enter the password to protect you profile. Use 10 or more characters, uppercase and lowercase letter, number and not more than 2 identical characters in a row.</p>
+        <span class="hint_accent">Step 2 of 5</span>
+        <h4>Country and phone</h4>
         <form class="form form_register" name="vm.step2Form" novalidate autocomplete="off">
+            <p class="lead">Country of residence</p>
             <div class="form-group">
-                <div class="input-group" data-ng-class="{'input-group--error': !vm.step2Form.Password.$valid && vm.step2Form.Password.$touched}">
-                    <input type="{{(vm.data.step2Form.showPassword ? 'text' : 'password')}}" data-ng-model-options="{ debounce: 300 }" data-ng-trim="false" placeholder="Password" class="form-control" name="Password" data-ng-model="vm.data.step2Form.password" required strong-password>
-                    <i class="icon input-group-addon" data-ng-class="{'icon--show_password' : !vm.data.step2Form.showPassword, 'icon--hide_password' : vm.data.step2Form.showPassword}" 
-                       data-ng-click="vm.data.step2Form.showPassword = !vm.data.step2Form.showPassword"></i>
+                <div class="input-group">
+                    <select class="custom-select" ng-model="vm.data.countryOfResidence">
+                        <option ng-repeat="item in vm.data.countries" value="{{item.id}}" ng-selected="{{item.selected}}" prefix="{{item.prefix}}">{{item.title}}</option>
+                    </select>
                 </div>
-                <div ng-show="vm.step2Form.$submitted || vm.step2Form.Password.$touched">
-                    <span class="label_error" data-ng-show="vm.step2Form.Password.$error.required">Password is required</span>
-                    <span class="label_error" data-ng-show="vm.step2Form.Password.$error.strongPassword">The password length should not be less than 10 characters including both an uppercase and lowercase letter, number and not more than 2 identical characters in a row.</span>
+                <div ng-show="vm.step2Form.$submitted || vm.step2Form.Phone.$touched">
+                    <span class="label_error" data-ng-show="vm.data.selectedPrefix == null">Select country, please</span>
+                </div>
+            </div>
+            <p class="lead">Phone number</p>
+            <div class="form-group">
+                <div class="input-group">
+                    <select class="custom-select" ng-model="vm.data.selectedCountry" ng-change="vm.handlers.changeCountry()">
+                        <option ng-repeat="item in vm.data.countries" value="{{item.id}}" ng-selected="{{item.selected}}" prefix="{{item.prefix}}">{{item.title}}</option>
+                    </select>
+                </div>
+                <div ng-show="vm.step2Form.$submitted || vm.step2Form.Phone.$touched">
+                    <span class="label_error" data-ng-show="vm.data.selectedPrefix == null">Select country, please</span>
                 </div>
             </div>
             <div class="form-group">
-                <div class="input-group" data-ng-class="{'input-group--error': (!vm.step2Form.ConfirmPassword.$valid ||vm.data.step2Form.confirmPassword.length && vm.data.step2Form.password !== vm.data.step2Form.confirmPassword) && vm.step2Form.ConfirmPassword.$touched}">
-                    <input type="{{(vm.data.step2Form.showConfirmPassword ? 'text' : 'password')}}" data-ng-trim="false" placeholder="Confirm password" class="form-control" name="ConfirmPassword" data-ng-model="vm.data.step2Form.confirmPassword" required>
-                    <i class="icon input-group-addon" data-ng-class="{'icon--show_password' : !vm.data.step2Form.showConfirmPassword, 'icon--hide_password' : vm.data.step2Form.showConfirmPassword}" data-ng-click="vm.data.step2Form.showConfirmPassword = !vm.data.step2Form.showConfirmPassword"></i>
+                <div class="input-group" data-ng-class="{'input-group--error': !vm.step2Form.phone.$valid && vm.step2Form.phone.$touched}">
+                    <input type="text" class="form-control" data-ng-model="vm.data.step2Form.phone" ui-mask="{{vm.data.uimask}}" ui-mask-placeholder ui-mask-placeholder-char="_" />
                 </div>
-                <div ng-show="vm.step2Form.$submitted || vm.step2Form.ConfirmPassword.$touched">
-                    <span class="label_error" data-ng-show="vm.step2Form.ConfirmPassword.$error.required">Confirm password</span>
-                    <span class="label_error" data-ng-show="vm.step2Form.Password.$valid && vm.data.step2Form.confirmPassword.length && vm.data.step2Form.password !== vm.data.step2Form.confirmPassword">Passwords do not match</span>
+                <div ng-show="vm.step2Form.$submitted || vm.step2Form.Phone.$touched">
+                    <span class="label_error" data-ng-show="vm.step2Form.phone.$error.required">Phone number is required</span>
                 </div>
             </div>
             <div class="submit-group">
-                <button class="btn btn--primary btn-block" type="submit" data-ng-disabled="vm.handlers.isStep2FormSubmitDisabled()" data-ng-click="vm.handlers.setPassword()">Submit</button>
+                <button class="btn btn--primary btn-block" type="submit" data-ng-disabled="!vm.step2Form.$valid" data-ng-click="vm.handlers.confirmPhone()">Submit</button>
             </div>
         </form>
     </div>
-    
     <div data-ng-show="vm.data.step == 3">
-        <span class="hint_accent">Step 3 of 3</span>
-        <h4>Enter your name and surname</h4>
-        <p class="lead">This is the last step to creating your profile.</p>
-        <form class="form form_register" name="vm.step3Form" novalidate autocomplete="off">
+        <span class="hint_accent">Step 3 of 5</span>
+        <h4>Verify phone number</h4>
+        <p class="lead">Please enter the verification code we sent to your phone number.</p>
+        <form name="vm.step3Form" class="form form_register" novalidate autocomplete="off">
             <div class="form-group">
-                <div class="input-group" data-ng-class="{'input-group--error': !vm.step3Form.FirstName.$valid && vm.step3Form.FirstName.$touched}">
-                    <input placeholder="First name" class="form-control" name="FirstName" data-ng-model="vm.data.step3Form.firstName" required>
+                <div class="input-group">
+                    <input type="text" placeholder="Code" class="form-control" name="Code" data-ng-model="vm.data.step3Form.code" required>
                 </div>
-                <div ng-show="vm.step3Form.$submitted || vm.step3Form.FirstName.$touched">
-                    <span class="label_error" data-ng-show="vm.step3Form.FirstName.$error.required">First name is required</span>
+                <div>
+                    <span class="label_error" data-ng-show="vm.data.step3Form.code.$error.required">Code is required</span>
+                    <span class="label_error" data-ng-show="vm.data.step3Form.isNotValidCode">Code is not valid.</span>
+                </div>
+                <button class="btn btn--flat" type="button" data-ng-click="vm.data.showResendBlock = !vm.data.showResendBlock"
+                        data-ng-hide="vm.data.step3Form.result">
+                    Resend the code
+                </button>
+            </div>
+
+            <div class="submit-group">
+                <button class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step3Form.$valid  || vm.data.loading" type="submit" data-ng-click="vm.handlers.setPhoneCode()">
+                    Submit
+                </button>
+                <button data-ng-show="vm.data.step3Form.result" class="btn btn--primary btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
+            </div>
+        </form>
+    </div>
+    <div data-ng-show="vm.data.step == 4">
+        <span class="hint_accent">Step 4 of 5</span>
+        <h4>Create password</h4>
+        <p class="lead">Enter the password to protect you profile. Use 10 or more characters, uppercase and lowercase letter, number and not more than 2 identical characters in a row.</p>
+        <form class="form form_register" name="vm.step4Form" novalidate autocomplete="off">
+            <div class="form-group">
+                <div class="input-group" data-ng-class="{'input-group--error': !vm.step4Form.Password.$valid && vm.step4Form.Password.$touched}">
+                    <input type="{{(vm.data.step4Form.showPassword ? 'text' : 'password')}}" data-ng-model-options="{ debounce: 300 }" data-ng-trim="false" placeholder="Password" class="form-control" name="Password" data-ng-model="vm.data.step4Form.password" required strong-password>
+                    <i class="icon input-group-addon" data-ng-class="{'icon--show_password' : !vm.data.step4Form.showPassword, 'icon--hide_password' : vm.data.step4Form.showPassword}"
+                       data-ng-click="vm.data.step4Form.showPassword = !vm.data.step4Form.showPassword"></i>
+                </div>
+                <div ng-show="vm.step4Form.$submitted || vm.step4Form.Password.$touched">
+                    <span class="label_error" data-ng-show="vm.step4Form.Password.$error.required">Password is required</span>
+                    <span class="label_error" data-ng-show="vm.step4Form.Password.$error.strongPassword">The password length should not be less than 10 characters including both an uppercase and lowercase letter, number and not more than 2 identical characters in a row.</span>
                 </div>
             </div>
             <div class="form-group">
-                <div class="input-group" data-ng-class="{'input-group--error': !vm.step3Form.LastName.$valid && vm.step3Form.LastName.$touched}">
-                    <input placeholder="Last name" class="form-control" name="LastName" data-ng-model="vm.data.step3Form.lastName" required>
+                <div class="input-group" data-ng-class="{'input-group--error': (!vm.step4Form.ConfirmPassword.$valid ||vm.data.step4Form.confirmPassword.length && vm.data.step4Form.password !== vm.data.step4Form.confirmPassword) && vm.step4Form.ConfirmPassword.$touched}">
+                    <input type="{{(vm.data.step4Form.showConfirmPassword ? 'text' : 'password')}}" data-ng-trim="false" placeholder="Confirm password" class="form-control" name="ConfirmPassword" data-ng-model="vm.data.step4Form.confirmPassword" required>
+                    <i class="icon input-group-addon" data-ng-class="{'icon--show_password' : !vm.data.step4Form.showConfirmPassword, 'icon--hide_password' : vm.data.step4Form.showConfirmPassword}" data-ng-click="vm.data.step4Form.showConfirmPassword = !vm.data.step4Form.showConfirmPassword"></i>
                 </div>
-                <div ng-show="vm.step3Form.$submitted || vm.step3Form.LastName.$touched">
-                    <span class="label_error" data-ng-show="vm.step3Form.LastName.$error.required">Last name is required</span>
+                <div ng-show="vm.step4Form.$submitted || vm.step2Form.ConfirmPassword.$touched">
+                    <span class="label_error" data-ng-show="vm.step4Form.ConfirmPassword.$error.required">Confirm password</span>
+                    <span class="label_error" data-ng-show="vm.step4Form.Password.$valid && vm.data.step4Form.confirmPassword.length && vm.data.step4Form.password !== vm.data.step4Form.confirmPassword">Passwords do not match</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group" data-ng-class="{'input-group--error': !vm.step4Form.Hint.$valid && vm.step4Form.Hint.$touched}">
+                    <input type="text" data-ng-model-options="{ debounce: 300 }" data-ng-trim="false" placeholder="Hint" class="form-control" name="Hint" data-ng-model="vm.data.step4Form.hint" required>
+                </div>
+                <div ng-show="vm.step4Form.$submitted || vm.step4Form.Hint.$touched">
+                    <span class="label_error" data-ng-show="vm.step4Form.Hint.$error.required">Hint is required</span>
+                </div>
+            </div>
+            <div class="submit-group">
+                <button class="btn btn--primary btn-block" type="submit" data-ng-disabled="vm.handlers.isStep4FormSubmitDisabled()" data-ng-click="vm.handlers.setPassword()">Submit</button>
+            </div>
+        </form>
+    </div>
+    <div data-ng-show="vm.data.step == 5">
+        <span class="hint_accent">Step 5 of 5</span>
+        <h4>Enter your name and surname</h4>
+        <p class="lead">This is the last step to creating your profile.</p>
+        <form class="form form_register" name="vm.step5Form" novalidate autocomplete="off">
+            <div class="form-group">
+                <div class="input-group" data-ng-class="{'input-group--error': !vm.step5Form.FirstName.$valid && vm.step5Form.FirstName.$touched}">
+                    <input placeholder="First name" class="form-control" name="FirstName" data-ng-model="vm.data.step5Form.firstName" required>
+                </div>
+                <div ng-show="vm.step5Form.$submitted || vm.step5Form.FirstName.$touched">
+                    <span class="label_error" data-ng-show="vm.step5Form.FirstName.$error.required">First name is required</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group" data-ng-class="{'input-group--error': !vm.step5Form.LastName.$valid && vm.step5Form.LastName.$touched}">
+                    <input placeholder="Last name" class="form-control" name="LastName" data-ng-model="vm.data.step5Form.lastName" required>
+                </div>
+                <div ng-show="vm.step5Form.$submitted || vm.step5Form.LastName.$touched">
+                    <span class="label_error" data-ng-show="vm.step5Form.LastName.$error.required">Last name is required</span>
                 </div>
             </div>
             <div data-ng-repeat="error in vm.data.summaryErrors" class="label_error" data-ng-bind="error"></div>
             <div class="submit-group">
-                <button type="submit" class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step3Form.$valid || vm.data.loading" data-ng-click="vm.handlers.register()">Submit</button>
+                <button type="submit" class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step5Form.$valid || vm.data.loading" data-ng-click="vm.handlers.register()">Submit</button>
             </div>
         </form>
     </div>
 </div>
-
 @section scripts
-{
+    {
     <environment names="Development">
         <script src="/js/vendor/angular.min.js"></script>
         <script src="/js/vendor/angular-recaptcha.min.js"></script>
+        <script src="/js/vendor/mask.js"></script>
         <script src="/js/app/registerModule.js"></script>
         <script src="/js/app/directives/strongPassword.js"></script>
         <script src="/js/app/controllers/registrationController.js"></script>

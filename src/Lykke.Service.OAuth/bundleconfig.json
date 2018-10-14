@@ -42,6 +42,7 @@
     "inputFiles": [
       "wwwroot/js/vendor/angular.js",
       "wwwroot/js/vendor/angular-recaptcha.min.js",
+      "wwwroot/js/vendor/mask.js",
       "wwwroot/js/app/registerModule.js",
       "wwwroot/js/app/controllers/registrationController.js",
       "wwwroot/js/app/services/registerService.js",
