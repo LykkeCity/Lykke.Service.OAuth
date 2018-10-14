@@ -400,7 +400,8 @@ namespace WebAuth.Controllers
                     CreatedAt = DateTime.UtcNow,
                     Cid = model.Cid,
                     Traffic = model.Traffic,
-                    Ttl = GetSessionTtl(null)
+                    Ttl = GetSessionTtl(null),
+                    CountryFromPOA = model.CountryOfResidence
                 });
 
                 regResult.RegistrationResponse = result;

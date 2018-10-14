@@ -29,8 +29,8 @@
     <PackageReference Include="Lykke.Service.GoogleAnalyticsWrapper.Client" Version="2.2.0" />
     <PackageReference Include="Lykke.Service.IpGeoLocation" Version="1.1.2" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="2.0.3" />
-    <PackageReference Include="Lykke.Service.Registration" Version="3.0.0" />
-    <PackageReference Include="Lykke.Service.Registration.Contract" Version="1.1.0" />
+    <PackageReference Include="Lykke.Service.Registration" Version="3.1.0" />
+    <PackageReference Include="Lykke.Service.Registration.Contract" Version="1.2.0" />
     <PackageReference Include="Lykke.Service.Session.Client" Version="3.0.0" />
     <PackageReference Include="Lykke.SettingsReader" Version="4.1.1" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.5" />
