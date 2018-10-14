@@ -388,20 +388,20 @@ namespace WebAuth.Controllers
                     }
                 }
 
-            var result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
-            {
-                Email = model.Email,
-                Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
-                Hint = model.Hint,
-                Ip = userIp,
-                Changer = RecordChanger.Client,
-                UserAgent = userAgent,
-                Referer = referer,
-                CreatedAt = DateTime.UtcNow,
-                Cid = model.Cid,
-                Traffic = model.Traffic,
-                Ttl = GetSessionTtl(null)
-            });
+                var result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
+                {
+                    Email = model.Email,
+                    Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
+                    Hint = model.Hint,
+                    Ip = userIp,
+                    Changer = RecordChanger.Client,
+                    UserAgent = userAgent,
+                    Referer = referer,
+                    CreatedAt = DateTime.UtcNow,
+                    Cid = model.Cid,
+                    Traffic = model.Traffic,
+                    Ttl = GetSessionTtl(null)
+                });
 
                 regResult.RegistrationResponse = result;
 

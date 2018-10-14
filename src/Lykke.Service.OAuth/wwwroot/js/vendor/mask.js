@@ -4,7 +4,7 @@
 angular.module('ui.mask', [])
         .value('uiMaskConfig', {
             maskDefinitions: {
-                '9': /\d/,
+                'X': /\d/,
                 'A': /[a-zA-Z]/,
                 '*': /[a-zA-Z0-9]/
             },

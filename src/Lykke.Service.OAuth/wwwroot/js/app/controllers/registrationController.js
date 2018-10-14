@@ -9,8 +9,8 @@
         var vm = this;
 
         vm.data = {
-            uimask: " (999) 999-9999",
-            defaultMask: " (999) 999-9999",
+            uimask: " (XXX) XXX-XXXX",
+            defaultMask: " (XXX) XXX-XXXX",
             step: 1,
             loading: false,
             showResendBlock: false,
@@ -90,9 +90,9 @@
                             });
                             if (selected.length !== 0) {
                                 if (selected[0].prefix === "+375")
-                                    vm.data.uimask = selected[0].prefix + " (99) 999-9999";
+                                    vm.data.uimask = selected[0].prefix.concat(" (XX) XXX-XXXX");
                                 else
-                                    vm.data.uimask = selected[0].prefix + vm.data.defaultMask;
+                                    vm.data.uimask = selected[0].prefix.concat(vm.data.defaultMask);
                                 vm.data.selectedPrefix = selected[0].prefix;
                                 vm.data.selectedCountryName = selected[0].title;
                             }
@@ -135,11 +135,12 @@
             var result = vm.data.countries.filter(obj => {
                 return obj.id === vm.data.selectedCountry;
             });
+            debugger;
             if (result[0].prefix === "+375")
-                vm.data.uimask = result[0].prefix + " (99) 999-9999";
+                vm.data.uimask = result[0].prefix.concat(" (XX) XXX-XXXX");
             else
-                vm.data.uimask = result[0].prefix + vm.data.defaultMask;
-            vm.data.uimask = result[0].prefix + vm.data.defaultMask;
+                vm.data.uimask = result[0].prefix.concat(vm.data.defaultMask);
+            vm.data.uimask = result[0].prefix.concat(vm.data.defaultMask);
             vm.data.selectedPrefix = result[0].prefix;
             vm.data.selectedCountryName = result[0].title;
             vm.data.isAutoSelect = false;
@@ -155,6 +156,8 @@
         function setPhone() {
             vm.data.loading = true;
             vm.data.model.phone = vm.data.selectedPrefix + vm.data.step2Form.phone;
+            debugger;
+            vm.data.model.countryOfResidence = vm.data.countryOfResidence;
             registerService.sendPhoneCode(vm.data.key, vm.data.model.phone).then(function (result) {
                 vm.data.step2Form.result = true;
                 vm.data.loading = false;

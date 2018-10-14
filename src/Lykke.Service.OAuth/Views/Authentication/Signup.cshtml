@@ -73,9 +73,20 @@
     </div>
     <div data-ng-show="vm.data.step == 2">
         <span class="hint_accent">Step 2 of 5</span>
-        <h4>Enter phone number</h4>
-        <p class="lead">Enter phone number.</p>
+        <h4>Country and phone</h4>
         <form class="form form_register" name="vm.step2Form" novalidate autocomplete="off">
+            <p class="lead">Country of residence</p>
+            <div class="form-group">
+                <div class="input-group">
+                    <select class="custom-select" ng-model="vm.data.countryOfResidence">
+                        <option ng-repeat="item in vm.data.countries" value="{{item.id}}" ng-selected="{{item.selected}}" prefix="{{item.prefix}}">{{item.title}}</option>
+                    </select>
+                </div>
+                <div ng-show="vm.step2Form.$submitted || vm.step2Form.Phone.$touched">
+                    <span class="label_error" data-ng-show="vm.data.selectedPrefix == null">Select country, please</span>
+                </div>
+            </div>
+            <p class="lead">Phone number</p>
             <div class="form-group">
                 <div class="input-group">
                     <select class="custom-select" ng-model="vm.data.selectedCountry" ng-change="vm.handlers.changeCountry()">

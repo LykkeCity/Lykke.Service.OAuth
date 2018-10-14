@@ -25,6 +25,6 @@ namespace WebAuth.ActionHandlers
                 FullName = fullname,
                 ContactPhone = phone
             });
-                }
         }
     }
+}

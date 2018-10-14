@@ -19,5 +19,6 @@ namespace WebAuth.Models
         public string Traffic { get; set; }
         public string Hint { get; set; }
         public string Phone { get; set; }
+        public string CountryOfResidence { get; set; }
     }
 }
