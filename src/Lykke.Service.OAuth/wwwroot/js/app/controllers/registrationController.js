@@ -30,7 +30,8 @@
                 captchaResponse : null
             },
             step2Form: {
-                phone: null
+                phone: null,
+                countryOfResidence: null
             },
             step3Form: {
                 code: null,
@@ -87,7 +88,7 @@
                                 return obj.selected === true;
                             });
                             if (selected.length !== 0) {
-                                vm.data.uimask = selected[0].prefix;
+                                vm.data.step2Form.phone = selected[0].prefix;
                                 vm.data.selectedPrefix = selected[0].prefix;
                                 vm.data.selectedCountryName = selected[0].title;
                             }
@@ -135,9 +136,9 @@
             vm.data.isAutoSelect = false;
         }
         function confirmPhone() {
-            if (vm.data.phone === null)
+            if (vm.data.step2Form.phone == null)
                 return;
-            if (vm.data.step2Form.countryOfResidence === null)
+            if (vm.data.step2Form.countryOfResidence == null)
                 return;
             if (vm.data.isAutoSelect)
                 $("#modal_message").modal('show');
