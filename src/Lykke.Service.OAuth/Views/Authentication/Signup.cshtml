@@ -78,12 +78,12 @@
             <p class="lead">Country of residence</p>
             <div class="form-group">
                 <div class="input-group">
-                    <select class="custom-select" ng-model="vm.data.countryOfResidence">
+                    <select class="custom-select" ng-model="vm.data.step2Form.countryOfResidence">
                         <option ng-repeat="item in vm.data.countries" value="{{item.id}}" ng-selected="{{item.selected}}" prefix="{{item.prefix}}">{{item.title}}</option>
                     </select>
                 </div>
-                <div ng-show="vm.step2Form.$submitted || vm.step2Form.Phone.$touched">
-                    <span class="label_error" data-ng-show="vm.data.selectedPrefix == null">Select country, please</span>
+                <div ng-show="vm.step2Form.$submitted">
+                    <span class="label_error" data-ng-show="vm.data.step2Form.countryOfResidence == null">Select country, please</span>
                 </div>
             </div>
             <p class="lead">Phone number</p>
@@ -93,16 +93,13 @@
                         <option ng-repeat="item in vm.data.countries" value="{{item.id}}" ng-selected="{{item.selected}}" prefix="{{item.prefix}}">{{item.title}}</option>
                     </select>
                 </div>
-                <div ng-show="vm.step2Form.$submitted || vm.step2Form.Phone.$touched">
-                    <span class="label_error" data-ng-show="vm.data.selectedPrefix == null">Select country, please</span>
-                </div>
             </div>
             <div class="form-group">
                 <div class="input-group" data-ng-class="{'input-group--error': !vm.step2Form.phone.$valid && vm.step2Form.phone.$touched}">
-                    <input type="text" class="form-control" data-ng-model="vm.data.step2Form.phone" ui-mask="{{vm.data.uimask}}" ui-mask-placeholder ui-mask-placeholder-char="_" />
+                    <input type="text" class="form-control" data-ng-model="vm.data.step2Form.phone" />
                 </div>
-                <div ng-show="vm.step2Form.$submitted || vm.step2Form.Phone.$touched">
-                    <span class="label_error" data-ng-show="vm.step2Form.phone.$error.required">Phone number is required</span>
+                <div ng-show="vm.step2Form.$submitted">
+                    <span class="label_error" data-ng-show="vm.step2Form.phone == null">Phone number is required</span>
                 </div>
             </div>
             <div class="submit-group">
