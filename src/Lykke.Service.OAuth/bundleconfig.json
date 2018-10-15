@@ -21,6 +21,18 @@
     ]
   },
   {
+    "outputFileName": "wwwroot/dist/modernmoney.ios.min.css",
+    "inputFiles": [
+      "wwwroot/styles/modernmoney.ios.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/dist/raiffeisen.ios.min.css",
+    "inputFiles": [
+      "wwwroot/styles/raiffeisen.ios.css"
+    ]
+  },
+  {
     "outputFileName": "wwwroot/dist/site.min.js",
     "inputFiles": [
       "wwwroot/js/vendor/jquery.min.js",

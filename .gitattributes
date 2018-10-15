@@ -19,3 +19,4 @@
 *.eot     -text diff
 *.woff    -text diff
 *.woff2   -text diff
+*.png binary
