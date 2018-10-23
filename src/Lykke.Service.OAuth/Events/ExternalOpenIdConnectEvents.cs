@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Core.ExternalProvider;
 using IdentityModel;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 namespace Lykke.Service.OAuth.Events
@@ -20,7 +19,7 @@ namespace Lykke.Service.OAuth.Events
             _externalProviderService = externalProviderService;
         }
 
-        public override Task TicketReceived(TicketReceivedContext context)
+        public override Task TokenValidated(TokenValidatedContext context)
         {
             // Map claims to our claims, based on configuration.
             var claims = context.Principal.Claims;
@@ -42,7 +41,7 @@ namespace Lykke.Service.OAuth.Events
                 identity.AddClaim(claim);
             }
 
-            return base.TicketReceived(context);
+            return base.TokenValidated(context);
         }
     }
 }

@@ -77,7 +77,7 @@ namespace Lykke.Service.OAuth.Controllers
             // Autoprovision user.
             var principal = authenticateResult.Principal;
 
-            var externalUserId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            var externalUserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var issuer = principal.FindFirst(JwtClaimTypes.Issuer)?.Value;
             string externalIdentityProviderId;
 
@@ -94,8 +94,7 @@ namespace Lykke.Service.OAuth.Controllers
                 });
             }
 
-            var email = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var phone = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.MobilePhone)?.Value;
+            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
 
             if (email == null)
             {
@@ -105,6 +104,19 @@ namespace Lykke.Service.OAuth.Controllers
                     ErrorDescription = "Email claim was not provided!"
                 });
             }
+
+            var isPhoneVerified = principal.FindFirst(OpenIdConnectConstantsExt.Claims.PhoneNumberVerified)?.Value;
+
+            if (!Convert.ToBoolean(isPhoneVerified))
+            {
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "Phone is not verified on provider side!"
+                });
+            }
+
+            var phone = principal.FindFirst(ClaimTypes.MobilePhone)?.Value;
 
             var account = await _externalUserService.ProvisionIfNotExistAsync(new ExternalClientProvisionModel
             {

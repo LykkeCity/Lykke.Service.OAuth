@@ -9,6 +9,7 @@
             public const string PartnerId = "http://lykke.com/oauth/partner_id";
             public const string SessionId = "http://lykke.com/oauth/sessionid";
             public const string SignInProvider = "http://lykke.com/oauth/signin_provider";
+            public const string PhoneNumberVerified = "http://lykke.com/oauth/phone_number_verified";
         }
 
         public static class Auth

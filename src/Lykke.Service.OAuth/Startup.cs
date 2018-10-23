@@ -155,8 +155,20 @@ namespace WebAuth
                         
                         options.SaveTokens = true;
                         options.DisableTelemetry = true;
+
+                        // Allow issuer and audience to be available as claims.
                         options.ClaimActions.Remove(JwtClaimTypes.Issuer);
                         options.ClaimActions.Remove(JwtClaimTypes.Audience);
+
+                        foreach (var map in vmoolaSettings.ClaimsMapping)
+                        {
+                            var from = map.Key;
+                            var to = map.Value;
+
+                            options.ClaimActions.Remove(from);
+                            options.ClaimActions.Remove(to);
+                            options.ClaimActions.MapUniqueJsonKey(to, from);
+                        }
 
                         //Get claims from user info to map them.
                         options.GetClaimsFromUserInfoEndpoint = true;
