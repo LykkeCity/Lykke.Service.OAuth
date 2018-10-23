@@ -55,6 +55,30 @@ namespace WebAuth.Tests.OAuth.Utils
         }
 
         /// <summary>
+        ///     Helper method for creating fake for <see cref="HandleUserinfoRequestContext" />.
+        /// </summary>
+        /// <param name="contextAction">
+        ///     Action for configuring necessary parameters on <see cref="TestContextOptions" />.
+        /// </param>
+        /// <returns>Fake for <see cref="HandleUserinfoRequestContext" />.</returns>
+        internal static HandleUserinfoRequestContext CreateHandleUserinfoRequestContext(
+            Action<TestContextOptions> contextAction = null)
+        {
+            var testContextOptions = new TestContextOptions();
+
+            contextAction?.Invoke(testContextOptions);
+
+            testContextOptions.Initialize();
+
+            return new HandleUserinfoRequestContext(
+                testContextOptions.HttpContext,
+                testContextOptions.AuthenticationScheme,
+                testContextOptions.OpenIdConnectServerOptions,
+                testContextOptions.OpenIdConnectRequest,
+                testContextOptions.AuthenticationTicket);
+        }
+
+        /// <summary>
         ///     Helper method for creating fake for <see cref="HandleTokenRequestContext" />.
         /// </summary>
         /// <param name="contextAction">
