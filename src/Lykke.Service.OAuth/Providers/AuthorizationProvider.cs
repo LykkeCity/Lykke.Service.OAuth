@@ -316,6 +316,14 @@ namespace WebAuth.Providers
             await UpdateRefreshToken(context);
         }
 
+        public override async Task HandleUserinfoRequest(HandleUserinfoRequestContext context)
+        {
+            var clientAccount = await _accountClient.GetByIdAsync(context.Subject);
+            context.PhoneNumber = clientAccount.Phone;
+            context.PhoneNumberVerified = true;
+            await base.HandleUserinfoRequest(context);
+        }
+
         private async Task ValidateRefreshTokenGrantTypeAsync(BaseValidatingTicketContext context)
         {
             // Only proccess refresh token grant type.
