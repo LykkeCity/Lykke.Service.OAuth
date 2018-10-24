@@ -71,7 +71,7 @@ namespace WebAuth.Controllers
             var session = await _clientSessionsClient.GetAsync(sessionId);
 
             if (session == null)
-                return BadRequest("Session not found.");
+                return NotFound("Session not found.");
 
             return Json(new { Token = session.SessionToken, session.AuthId });
         }

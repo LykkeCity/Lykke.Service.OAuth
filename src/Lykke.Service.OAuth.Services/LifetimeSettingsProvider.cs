@@ -11,9 +11,9 @@ namespace Lykke.Service.OAuth.Services
         private readonly LifetimeSettings _lifetimeSettings;
 
         public LifetimeSettingsProvider(
-            [NotNull]LifetimeSettings lifetimeSettings1)
+            [NotNull]LifetimeSettings lifetimeSettings)
         {
-            _lifetimeSettings = lifetimeSettings1;
+            _lifetimeSettings = lifetimeSettings;
         }
 
         public TimeSpan GetRefreshTokenLifetime()

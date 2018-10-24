@@ -27,7 +27,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                     model.ExternalUserId) ??
                 await _clientAccountClient.ProvisionAsync(model);
 
-            return lykkeAccount ?? throw new Exception("Unable to provision user!");
+            return lykkeAccount;
         }
     }
 }

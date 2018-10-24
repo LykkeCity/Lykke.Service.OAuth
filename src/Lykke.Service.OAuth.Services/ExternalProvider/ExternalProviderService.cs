@@ -29,7 +29,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         /// <inheritdoc/>
         public string GetProviderId(string iss)
         {
-            var notFoundException = new ExternalProviderNotFound($"Provider id not found by specified issuer: {iss}");
+            var notFoundException = new ExternalProviderNotFoundException($"Provider id not found by specified issuer: {iss}");
 
             if (string.IsNullOrWhiteSpace(iss))
                 throw notFoundException;
@@ -42,7 +42,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         /// <inheritdoc/>
         public ExternalIdentityProvider GetProviderConfiguration(string providerId)
         {
-            var notFoundException = new ExternalProviderNotFound($"Provider not found by specified providerId: {providerId}");
+            var notFoundException = new ExternalProviderNotFoundException($"Provider not found by specified providerId: {providerId}");
             
             if (string.IsNullOrWhiteSpace(providerId))
                 throw notFoundException;

@@ -159,22 +159,12 @@ namespace WebAuth.Controllers
                 });
             }
 
-            // Remove the authorization request from the user session.
-            if (!string.IsNullOrEmpty(request.RequestId))
-            {
-                HttpContext.Session.Remove("authorization-request:" + request.RequestId);
-            }
-
             // Create a new authentication ticket holding the user identity.
             var ticket = new AuthenticationTicket(
                 new ClaimsPrincipal(User.Identity),
                 new AuthenticationProperties(),
                 OpenIdConnectServerDefaults.AuthenticationScheme);
 
-            // Set the list of scopes granted to the client application.
-            // Note: this sample always grants the "openid", "email" and "profile" scopes
-            // when they are requested by the client application: a real world application
-            // would probably display a form allowing to select the scopes to grant.
             //TODO:@gafanasiev add allowed scopes for client application.
             ticket.SetScopes(new[]
             {

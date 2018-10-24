@@ -85,7 +85,7 @@ namespace Lykke.Service.OAuth.Controllers
             {
                 externalIdentityProviderId = _externalProviderService.GetProviderId(issuer);
             }
-            catch (ExternalProviderNotFound)
+            catch (ExternalProviderNotFoundException)
             {
                 return View("Error", new OpenIdConnectMessage
                 {

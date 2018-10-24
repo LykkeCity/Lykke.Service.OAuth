@@ -12,7 +12,7 @@ namespace Core.ExternalProvider
         /// </summary>
         /// <param name="iss">Iss claim value.</param>
         /// <returns>Provider id.</returns>
-        /// <exception cref="ExternalProviderNotFound">Thrown when provider is not found by <paramref name="iss" />.</exception>
+        /// <exception cref="ExternalProviderNotFoundException">Thrown when provider is not found by <paramref name="iss" />.</exception>
         string GetProviderId(string iss);
 
         /// <summary>
@@ -20,7 +20,7 @@ namespace Core.ExternalProvider
         /// </summary>
         /// <param name="providerId">Provider id.</param>
         /// <returns>Provider configuration.</returns>
-        /// <exception cref="ExternalProviderNotFound">Thrown when provider is not found by <paramref name="providerId" />.</exception>
+        /// <exception cref="ExternalProviderNotFoundException">Thrown when provider is not found by <paramref name="providerId" />.</exception>
         ExternalIdentityProvider GetProviderConfiguration(string providerId);
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Core.ExternalProvider
         /// </summary>
         /// <param name="providerId">Provider id.</param>
         /// <returns>Provider claim mapping dictionary.</returns>
-        /// <exception cref="ExternalProviderNotFound">Thrown when provider is not found by <paramref name="providerId" />.</exception>
+        /// <exception cref="ExternalProviderNotFoundException">Thrown when provider is not found by <paramref name="providerId" />.</exception>
         IDictionary<string, string> GetProviderClaimMapping(string providerId);
     }
 }

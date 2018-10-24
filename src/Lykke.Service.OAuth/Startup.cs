@@ -101,8 +101,6 @@ namespace WebAuth
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
-                services.AddMemoryCache();
-
                 services.AddAuthorization(options =>
                 {
                     // Policy that is allowed only for users signed in through Lykke.
