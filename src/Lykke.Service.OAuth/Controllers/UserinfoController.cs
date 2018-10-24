@@ -44,7 +44,7 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/getlykkewallettoken")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme, Policy = OpenIdConnectConstantsExt.Policies.OnlyLykkeSignIn)]
+        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetLykkewalletToken()
         {
             return await GetToken();
@@ -52,7 +52,7 @@ namespace WebAuth.Controllers
 
         // Do not delete or merge it with getlykkewallettoken. It will break mobiles
         [HttpGet("~/getlykkewallettokenmobile")]
-        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.DefaultScheme, Policy = OpenIdConnectConstantsExt.Policies.OnlyLykkeSignIn)]
+        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.DefaultScheme)]
         public async Task<IActionResult> GetLykkeWalletTokenMobile()
         {
             return await GetToken();
