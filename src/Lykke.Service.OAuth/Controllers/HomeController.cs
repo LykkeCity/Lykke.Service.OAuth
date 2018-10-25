@@ -5,6 +5,7 @@ using System.Text;
 
 namespace WebAuth.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class HomeController : Controller
     {
         [Route("/")]
@@ -27,7 +28,6 @@ namespace WebAuth.Controllers
         [Route("/home/error")]
         public IActionResult Error()
         {
-            
             return View("Error", new OpenIdConnectMessage());
         }
 

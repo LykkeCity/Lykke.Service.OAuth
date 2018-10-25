@@ -11,6 +11,7 @@ using Common.Log;
 using Core.Extensions;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
+using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Common.Log;
 using Lykke.Logs;
 using Lykke.Service.OAuth.Modules;
@@ -35,7 +36,6 @@ using WebAuth.Providers;
 using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using AspNet.Security.OpenIdConnect.Server;
 
 namespace WebAuth
 {
@@ -166,6 +166,8 @@ namespace WebAuth
                         SetupDataProtectionStorage(_settings.OAuth.Db.DataProtectionConnString),
                         $"{DataProtectionContainerName}/cookie-keys/keys.xml");
 
+                services.AddSwaggerGen(opt => opt.DefaultLykkeConfiguration("v1", "Lykke OAuth Server"));
+
                 builder.RegisterModule(new WebModule(settings));
                 builder.RegisterModule(new DbModule(settings));
                 builder.RegisterModule(new BusinessModule(settings));
@@ -260,6 +262,17 @@ namespace WebAuth
                 app.UseStaticFiles();
 
                 app.UseMvc();
+
+                app.UseSwagger(c =>
+                {
+                    c.PreSerializeFilters.Add((swagger, httpReq) => swagger.Host = httpReq.Host.Value);
+                });
+
+                app.UseSwaggerUI(x =>
+                {
+                    x.RoutePrefix = "swagger/ui";
+                    x.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+                });
 
                 appLifetime.ApplicationStarted.Register(StartApplication);
                 appLifetime.ApplicationStopped.Register(CleanUp);

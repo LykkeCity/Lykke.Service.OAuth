@@ -25,6 +25,7 @@ namespace WebAuth.Controllers
             _personalDataService = personalDataService;
         }
 
+        [HttpPost]
         public ActionResult Index()
         {
             return View();

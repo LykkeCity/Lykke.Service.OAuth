@@ -35,7 +35,7 @@
     <PackageReference Include="Lykke.SettingsReader" Version="4.1.1" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.5" />
     <PackageReference Include="Lykke.SlackNotifications" Version="2.0.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.4.1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.5.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" Version="2.1.1" />
@@ -54,6 +54,7 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
     <PackageReference Include="NWebsec.AspNetCore.Middleware" Version="2.0.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.0.513" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="1.2.0" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="BundlerMinifier.Core" Version="2.2.301" />
