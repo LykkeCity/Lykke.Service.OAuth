@@ -101,16 +101,6 @@ namespace WebAuth
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
-                services.AddAuthorization(options =>
-                {
-                    // Policy that is allowed only for users signed in through Lykke.
-                    options.AddPolicy(OpenIdConnectConstantsExt.Policies.OnlyLykkeSignIn, policyBuilder =>
-                    {
-                        policyBuilder.AddAuthenticationSchemes(OpenIdConnectConstantsExt.Auth.DefaultScheme, IdentityServerAuthenticationDefaults.AuthenticationScheme);
-                        policyBuilder.AddRequirements(new ClaimsAuthorizationRequirement(OpenIdConnectConstantsExt.Claims.SignInProvider, new List<string>{OpenIdConnectConstantsExt.Providers.Lykke}));
-                    });
-                });
-
                 services.AddAuthentication(options =>
                     {
                         options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
