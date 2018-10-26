@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using Core.Extensions;
+﻿using System.Collections.Generic;
 using Core.ExternalProvider;
+using Core.ExternalProvider.Exceptions;
+using JetBrains.Annotations;
 
 namespace Lykke.Service.OAuth.Services.ExternalProvider
 {
     /// <inheritdoc/>
+    [UsedImplicitly]
     public class ExternalProviderService : IExternalProviderService
     {
         private static readonly Dictionary<string, ExternalIdentityProvider> ExternalProviders =

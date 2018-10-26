@@ -65,7 +65,7 @@ namespace WebAuth.Controllers
 
             Dictionary<string, string> parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
 
-            var isExternalAuth = parameters.TryGetValue(CommonConstants.IdentityProviderParameter,
+            var isExternalAuth = parameters.TryGetValue(OpenIdConnectConstants.Parameters.IdentityProvider,
                 out var externalProviderScheme);
             string redirectUrl;
 
@@ -85,7 +85,7 @@ namespace WebAuth.Controllers
                     {
                         RedirectUri = Url.Action("AfterExternalLoginCallback", "External"),
                         // We need to save original redirectUrl, later get it in AfterExternalLoginCallback and redirect back to it.
-                        Items = {{CommonConstants.AfterExternalLoginReturnUrl, externalRedirectUrl}}
+                        Items = {{OpenIdConnectConstantsExt.Parameters.AfterExternalLoginCallback, externalRedirectUrl}}
                     };
 
                     return Challenge(properties, externalProviderScheme);
@@ -100,7 +100,7 @@ namespace WebAuth.Controllers
                 parameters.Add("request_id", identifier);
 
                 // this parameter added for authentification on login page with PartnerId
-                parameters.TryGetValue(CommonConstants.PartnerIdParameter, out var partnerId);
+                parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerIdParameter, out var partnerId);
 
                 var authenticationProperties = new AuthenticationProperties
                 {
@@ -108,7 +108,7 @@ namespace WebAuth.Controllers
                 };
 
                 if (!string.IsNullOrWhiteSpace(partnerId))
-                    authenticationProperties.Parameters.Add(CommonConstants.PartnerIdParameter, partnerId);
+                    authenticationProperties.Parameters.Add(OpenIdConnectConstantsExt.Parameters.PartnerIdParameter, partnerId);
 
                 return Challenge(authenticationProperties);
             }

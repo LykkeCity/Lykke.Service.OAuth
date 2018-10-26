@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Core.ExternalProvider
+namespace Core.ExternalProvider.Exceptions
 {
     public class ExternalProviderNotFoundException : Exception
     {

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
@@ -12,6 +9,7 @@ using AzureStorage.Blob;
 using Common;
 using Common.Log;
 using Core.Extensions;
+using Core.ExternalProvider;
 using IdentityModel;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
@@ -23,9 +21,7 @@ using Lykke.SettingsReader;
 using Lykke.SettingsReader.ReloadingManager;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -35,8 +31,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
@@ -101,7 +95,7 @@ namespace WebAuth
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
-                services.AddAuthentication(options =>
+                var authenticationBuilder = services.AddAuthentication(options =>
                     {
                         options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
                     })
@@ -118,49 +112,11 @@ namespace WebAuth
                         options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                         options.EventsType = typeof(CustomCookieAuthenticationEvents);
                     })
+                    // This cookie is used for external provider authentication.
                     .AddCookie(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme, options =>
                     {
                         options.Cookie.HttpOnly = true;
                         options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
-                    })
-
-                    .AddOpenIdConnect(OpenIdConnectConstantsExt.Auth.VmoolaAuthenticationScheme, OpenIdConnectConstantsExt.Providers.vMoola, options =>
-                    {
-                        options.SignInScheme = OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme;
-
-                        var vmoolaSettings =
-                                _settings.OAuth.ExternalProvidersSettings.ExternalIdentityProviders.FirstOrDefault(
-                                    provider => provider.Id == OpenIdConnectConstantsExt.Providers.vMoola);
-                        if (vmoolaSettings == null)
-                        {
-                            throw new InvalidOperationException($"Configuration not found for provider: {OpenIdConnectConstantsExt.Providers.vMoola}");
-                        }
-                        options.Authority = vmoolaSettings.Authority;
-                        options.ClientId = vmoolaSettings.ClientId;
-                        options.ClientSecret = vmoolaSettings.ClientSecret;
-                        options.ResponseType = vmoolaSettings.ResponseType;
-                        options.TokenValidationParameters.ValidIssuers = new List<string>(vmoolaSettings.ValidIssuers);
-                        
-                        options.SaveTokens = true;
-                        options.DisableTelemetry = true;
-
-                        // Allow issuer and audience to be available as claims.
-                        options.ClaimActions.Remove(JwtClaimTypes.Issuer);
-                        options.ClaimActions.Remove(JwtClaimTypes.Audience);
-
-                        foreach (var map in vmoolaSettings.ClaimsMapping)
-                        {
-                            var from = map.Key;
-                            var to = map.Value;
-
-                            options.ClaimActions.Remove(from);
-                            options.ClaimActions.Remove(to);
-                            options.ClaimActions.MapUniqueJsonKey(to, from);
-                        }
-
-                        //Get claims from user info to map them.
-                        options.GetClaimsFromUserInfoEndpoint = true;
-                        options.EventsType = typeof(ExternalOpenIdConnectEvents);
                     })
 
                     .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
@@ -188,6 +144,17 @@ namespace WebAuth
                         options.RefreshTokenLifetime = _settings.OAuth.LifetimeSettings.RefreshTokenLifetime;
                         options.UseSlidingExpiration = true;
                     });
+
+                // Add external identity providers dynamically.
+                var externalIdentityProviders =
+                    _settings?.OAuth?.ExternalProvidersSettings?.ExternalIdentityProviders?.Where(provider =>
+                        provider != null);
+                if (externalIdentityProviders != null)
+                    foreach (var externalIdentityProvider in externalIdentityProviders)
+                        authenticationBuilder.AddOpenIdConnect(
+                            externalIdentityProvider.AuthenticationScheme,
+                            externalIdentityProvider.Id,
+                            options => { FillOpenIdConnectOptionsForExternalProvider(externalIdentityProvider, options); });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
 
@@ -339,8 +306,6 @@ namespace WebAuth
             }
         }
 
-
-
         private void CleanUp()
         {
             try
@@ -369,6 +334,49 @@ namespace WebAuth
                 new OperationContext()).GetAwaiter().GetResult();
 
             return storageAccount;
+        }
+
+        private void FillOpenIdConnectOptionsForExternalProvider(
+            ExternalIdentityProvider externalIdentityProvider,
+            OpenIdConnectOptions options)
+        {
+            if (externalIdentityProvider == null)
+            {
+                throw new ArgumentNullException(nameof(externalIdentityProvider));
+            }
+
+            // One cookie is used as authentication scheme for all external providers.
+            options.SignInScheme = OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme;
+
+            // Set unique callback path for every provider to eliminate intersection.
+            options.CallbackPath = $"/signin-oidc-{externalIdentityProvider.Id}";
+
+            options.Authority = externalIdentityProvider.Authority;
+            options.ClientId = externalIdentityProvider.ClientId;
+            options.ClientSecret = externalIdentityProvider.ClientSecret;
+            options.ResponseType = externalIdentityProvider.ResponseType;
+            options.TokenValidationParameters.ValidIssuers = externalIdentityProvider.ValidIssuers;
+            options.GetClaimsFromUserInfoEndpoint = externalIdentityProvider.GetClaimsFromUserInfoEndpoint;
+
+            options.DisableTelemetry = true;
+
+            // Allow issuer and audience to be available as claims.
+            options.ClaimActions.Remove(JwtClaimTypes.Issuer);
+            options.ClaimActions.Remove(JwtClaimTypes.Audience);
+
+            // Map Claims based on configuration.
+            foreach (var map in externalIdentityProvider.ClaimsMapping)
+            {
+                var from = map.Key;
+                var to = map.Value;
+
+                options.ClaimActions.Remove(from);
+                options.ClaimActions.Remove(to);
+                options.ClaimActions.MapUniqueJsonKey(to, from);
+            }
+
+            //Get claims from user info to map them.
+            options.EventsType = typeof(ExternalOpenIdConnectEvents);
         }
     }
 }

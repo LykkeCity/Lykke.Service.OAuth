@@ -19,7 +19,7 @@
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.6.0" />
-    <PackageReference Include="Lykke.Common" Version="7.1.0" />
+    <PackageReference Include="Lykke.Common" Version="7.3.0" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.10.2" />
     <PackageReference Include="Lykke.Logs" Version="6.0.1" />
     <PackageReference Include="Lykke.Messages" Version="1.9.0" />
@@ -27,7 +27,7 @@
     <PackageReference Include="Lykke.Service.ConfirmationCodes.Client" Version="1.1.0" />
     <PackageReference Include="Lykke.Service.GoogleAnalyticsWrapper.Client" Version="2.2.0" />
     <PackageReference Include="Lykke.Service.IpGeoLocation" Version="1.1.2" />
-    <PackageReference Include="Lykke.Service.PersonalData" Version="2.0.3" />
+    <PackageReference Include="Lykke.Service.PersonalData" Version="2.0.10" />
     <PackageReference Include="Lykke.Service.Registration" Version="3.1.0" />
     <PackageReference Include="Lykke.Service.Registration.Contract" Version="1.2.0" />
     <PackageReference Include="Lykke.Service.Session.Client" Version="3.0.0" />
