@@ -18,6 +18,7 @@ namespace Core.Services
         /// <exception cref="ArgumentNullException">Thrown when either email or hash is null or empty</exception>
         /// <exception cref="EmailHashInvalidException">Thrown if hash is not valid for the source</exception>
         /// <exception cref="BCryptWorkFactorInvalidException">Thrown if hash was calculated with different work factor than it is required</exception>
+        /// <exception cref="BCryptInternalException">Thrown when there is an exception raised by BCrypt library</exception>
         Task<bool> IsEmailTakenAsync(string email, string hash);
     }
 }

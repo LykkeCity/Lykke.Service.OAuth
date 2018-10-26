@@ -303,7 +303,7 @@ namespace WebAuth.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <response code="200">Validation result</response>
-        /// <response code="400">Email hash is invalid, BCrypt work factor is invalid</response>
+        /// <response code="400">Email hash is invalid, BCrypt work factor is invalid, BCrypt internal exception occured</response>
         [HttpPost]
         [Route("~/registration/email")]
         [SwaggerOperation("ValidateEmail")]
@@ -329,6 +329,13 @@ namespace WebAuth.Controllers
                 _log.Warning("BCrypt invalid work factor", e, $"workFactor = {e.WorkFactor}");
 
                 return BadRequest(ErrorResponse.Create(e.Message));
+            }
+            catch (BCryptInternalException e)
+            {
+                _log.Warning("BCrypt internal exception", e.InnerException,
+                    $"email = {request.Email}, hash = {request.Hash}");
+
+                return BadRequest(ErrorResponse.Create(e.InnerException?.Message));
             }
         }
 

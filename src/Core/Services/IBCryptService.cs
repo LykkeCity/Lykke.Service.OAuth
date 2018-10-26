@@ -1,4 +1,5 @@
-﻿using Core.Exceptions;
+﻿using System;
+using Core.Exceptions;
 
 namespace Core.Services
 {
@@ -14,6 +15,8 @@ namespace Core.Services
         /// <param name="hash">Source string bcrypt hash</param>
         /// <exception cref="EmailHashInvalidException">Thrown if hash is not valid for the source</exception>
         /// <exception cref="BCryptWorkFactorInvalidException">Thrown if hash was calculated with different work factor than it is required</exception>
+        /// <exception cref="BCryptInternalException">Thrown when there is an exception raised by BCrypt library</exception>
+        /// <exception cref="ArgumentNullException">Thrown when arguments are null or empty</exception>
         void Verify(string source, string hash);
     }
 }
