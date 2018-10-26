@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Common;
@@ -8,10 +9,14 @@ using Common.Log;
 using Common.PasswordTools;
 using Core;
 using Core.Email;
+using Core.Exceptions;
 using Core.Extensions;
 using Core.Recaptcha;
+using Core.Services;
 using Core.VerificationCodes;
+using JetBrains.Annotations;
 using Lykke.Common;
+using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
@@ -29,10 +34,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
 using WebAuth.Settings.ServiceSettings;
+using WebAuth.Validation;
 
 namespace WebAuth.Controllers
 {
@@ -56,19 +63,22 @@ namespace WebAuth.Controllers
         };
         private readonly IIpGeoLocationClient _geoLocationClient;
         private readonly IEnumerable<CountryItem> _countries;
+        private readonly IEmailValidationService _emailValidationService;
 
         public AuthenticationController(
-            IRegistrationServiceClient registrationClient,
-            IVerificationCodesService verificationCodesService,
-            IEmailFacadeService emailFacadeService,
-            ProfileActionHandler profileActionHandler,
-            IUserManager userManager,
-            IClientAccountClient clientAccountClient,
-            IRecaptchaService recaptchaService,
-            SecuritySettings securitySettings,
-            IConfirmationCodesClient confirmationCodesClient,
-            IIpGeoLocationClient geoLocationClient,
-            ILogFactory logFactory, IClientSessionsClient clientSessionsClient)
+            [NotNull] IRegistrationServiceClient registrationClient,
+            [NotNull] IVerificationCodesService verificationCodesService,
+            [NotNull] IEmailFacadeService emailFacadeService,
+            [NotNull] ProfileActionHandler profileActionHandler,
+            [NotNull] IUserManager userManager,
+            [NotNull] IClientAccountClient clientAccountClient,
+            [NotNull] IRecaptchaService recaptchaService,
+            [NotNull] SecuritySettings securitySettings,
+            [NotNull] IConfirmationCodesClient confirmationCodesClient,
+            [NotNull] IIpGeoLocationClient geoLocationClient,
+            [NotNull] ILogFactory logFactory,
+            [NotNull] IClientSessionsClient clientSessionsClient, 
+            [NotNull] IEmailValidationService emailValidationService)
         {
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -82,8 +92,8 @@ namespace WebAuth.Controllers
             _geoLocationClient = geoLocationClient;
             _log = logFactory.CreateLog(this);
             _clientSessionsClient = clientSessionsClient;
-            var codes = new CountryPhoneCodes();
-            _countries = codes.GetCountries();
+            _emailValidationService = emailValidationService;
+            _countries = new CountryPhoneCodes().GetCountries();
         }
 
         [HttpGet("~/signin/{platform?}")]
@@ -286,6 +296,40 @@ namespace WebAuth.Controllers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Check if email is already registered
+        /// </summary>
+        /// <param name="model"></param>
+        /// <response code="200">Validation result</response>
+        /// <response code="400">Email hash is invalid, BCrypt work factor is invalid</response>
+        [HttpPost]
+        [Route("~/registration/email")]
+        [SwaggerOperation("ValidateEmail")]
+        [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(EmailValidationResult), (int) HttpStatusCode.OK)]
+        [ValidateModel]
+        public async Task<IActionResult> ValidateEmail([FromBody] ValidateEmailModel model)
+        {
+            try
+            {
+                bool isEmailTaken = await _emailValidationService.IsEmailTakenAsync(model.Email, model.Hash);
+
+                return Ok(new EmailValidationResult {IsEmailTaken = isEmailTaken});
+            }
+            catch (EmailHashInvalidException e)
+            {
+                _log.Warning("Invalid hash has been provided for email", e, $"email = {e.Email}");
+
+                return BadRequest(ErrorResponse.Create(e.Message));
+            }
+            catch (BCryptWorkFactorInvalidException e)
+            {
+                _log.Warning("BCrypt invalid work factor", e, $"workFactor = {e.WorkFactor}");
+
+                return BadRequest(ErrorResponse.Create(e.Message));
+            }
         }
 
         [HttpPost("~/signup/resendCode")]

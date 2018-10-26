@@ -9,6 +9,7 @@ using AzureStorage.Blob;
 using Common;
 using Common.Log;
 using Core.Extensions;
+using Core.Services;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
@@ -51,6 +52,18 @@ namespace WebAuth
         private const string AnySource = "*";
         private const string DataProtectionContainerName = "data-protection-container-name";
         private IHealthNotifier HealthNotifier { get; set; }
+
+        private static CultureInfo[] _supportedCultures =
+        {
+            new CultureInfo("en-US"),
+            new CultureInfo("en-AU"),
+            new CultureInfo("en-GB"),
+            new CultureInfo("en"),
+            new CultureInfo("ru-RU"),
+            new CultureInfo("ru"),
+            new CultureInfo("fr-FR"),
+            new CultureInfo("fr")
+        };
 
         public Startup(IHostingEnvironment env)
         {
@@ -172,7 +185,7 @@ namespace WebAuth
                 builder.RegisterModule(new DbModule(settings));
                 builder.RegisterModule(new BusinessModule(settings));
                 builder.RegisterModule(new ClientServiceModule(settings));
-                builder.RegisterModule(new ServiceModule());
+                builder.RegisterModule(new ServiceModule(settings.CurrentValue.OAuth.Security.BCryptWorkFactor));
 
 
                 builder.Populate(services);
@@ -194,29 +207,15 @@ namespace WebAuth
         {
             try
             {
-                if (env.IsDevelopment())
-                    app.UseDeveloperExceptionPage();
-                else
-                    app.UseExceptionHandler("/Home/Error");
+                app.UseLykkeMiddleware(ex => new { message = "Technical problem" });
 
                 app.UseLykkeForwardedHeaders();
-                var supportedCultures = new[]
-                {
-                    new CultureInfo("en-US"),
-                    new CultureInfo("en-AU"),
-                    new CultureInfo("en-GB"),
-                    new CultureInfo("en"),
-                    new CultureInfo("ru-RU"),
-                    new CultureInfo("ru"),
-                    new CultureInfo("fr-FR"),
-                    new CultureInfo("fr")
-                };
 
                 app.UseRequestLocalization(new RequestLocalizationOptions
                 {
                     DefaultRequestCulture = new RequestCulture("en-GB"),
-                    SupportedCultures = supportedCultures,
-                    SupportedUICultures = supportedCultures
+                    SupportedCultures = _supportedCultures,
+                    SupportedUICultures = _supportedCultures
                 });
 
                 app.UseCors("Lykke");
@@ -288,6 +287,7 @@ namespace WebAuth
         {
             try
             {
+                ApplicationContainer.Resolve<IStartupManager>().Start();
 
                 HealthNotifier.Notify($"Env: {Program.EnvInfo}", "Started");
             }
@@ -297,8 +297,6 @@ namespace WebAuth
                 throw;
             }
         }
-
-
 
         private void CleanUp()
         {
@@ -316,7 +314,6 @@ namespace WebAuth
                 throw;
             }
         }
-
 
         private static CloudStorageAccount SetupDataProtectionStorage(string dbDataProtectionConnString)
         {
