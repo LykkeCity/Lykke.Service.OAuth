@@ -5,7 +5,13 @@ namespace Core.Exceptions
 {
     public class BCryptWorkFactorInconsistencyException : Exception
     {
+        public int WorkFactor { get; }
+
         public BCryptWorkFactorInconsistencyException()
+        {
+        }
+
+        public BCryptWorkFactorInconsistencyException(string message) : base(message)
         {
         }
 
@@ -21,7 +27,5 @@ namespace Core.Exceptions
         protected BCryptWorkFactorInconsistencyException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
-
-        public int WorkFactor { get; set; }
     }
 }

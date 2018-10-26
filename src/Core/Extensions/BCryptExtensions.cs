@@ -2,8 +2,14 @@
 
 namespace Core.Extensions
 {
+    /// <summary>
+    /// Extensions methods for bcrypt stuff
+    /// </summary>
     public static class BCryptExtensions
     {
+        /// <summary>
+        /// BCrypt hash tokens separator
+        /// </summary>
         public static char BCryptTokenSeparator = '$';
 
         /// <summary>
@@ -11,7 +17,7 @@ namespace Core.Extensions
         /// </summary>
         /// <param name="src">The hash string</param>
         /// <returns>Work factor value</returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentNullException">Thrown when hash is null or empty</exception>
         public static int ExtractWorkFactor(this string src)
         {
             if (string.IsNullOrWhiteSpace(src))

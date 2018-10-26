@@ -5,7 +5,7 @@ namespace Lykke.Service.OAuth.Models
     /// <summary>
     /// Email validation request model
     /// </summary>
-    public class ValidateEmailModel
+    public class ValidateEmailRequest
     {
         /// <summary>
         /// Email address

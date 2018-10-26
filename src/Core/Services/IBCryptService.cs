@@ -2,6 +2,9 @@
 
 namespace Core.Services
 {
+    /// <summary>
+    /// BCrypt related stuff service interface
+    /// </summary>
     public interface IBCryptService
     {
         /// <summary>

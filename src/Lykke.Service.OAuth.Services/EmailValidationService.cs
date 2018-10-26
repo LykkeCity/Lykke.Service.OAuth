@@ -7,6 +7,7 @@ using Lykke.Service.ClientAccount.Client.Models;
 
 namespace Lykke.Service.OAuth.Services
 {
+    /// <inheritdoc />
     public class EmailValidationService : IEmailValidationService
     {
         private readonly IClientAccountClient _clientAccountClient;
@@ -19,14 +20,8 @@ namespace Lykke.Service.OAuth.Services
             _clientAccountClient = clientAccountClient;
             _bCryptService = bCryptService;
         }
-
-        /// <summary>
-        /// Checks if email already used
-        /// </summary>
-        /// <param name="email"></param>
-        /// <param name="hash"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        
+        /// <inheritdoc />
         public async Task<bool> IsEmailTakenAsync(string email, string hash)
         {
             if (string.IsNullOrWhiteSpace(email))

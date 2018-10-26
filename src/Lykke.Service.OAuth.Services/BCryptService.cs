@@ -4,6 +4,7 @@ using Core.Services;
 
 namespace Lykke.Service.OAuth.Services
 {
+    /// <inheritdoc />
     public class BCryptService : IBCryptService
     {
         private readonly int _bCryptWorkFactorSettings;
@@ -13,6 +14,7 @@ namespace Lykke.Service.OAuth.Services
             _bCryptWorkFactorSettings = bCryptWorkFactorSettings;
         }
 
+        /// <inheritdoc />
         public void Verify(string source, string hash)
         {
             if (!BCrypt.Net.BCrypt.Verify(source, hash))

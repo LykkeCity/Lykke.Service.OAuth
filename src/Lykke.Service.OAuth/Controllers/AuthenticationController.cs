@@ -301,20 +301,20 @@ namespace WebAuth.Controllers
         /// <summary>
         /// Check if email is already registered
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="request"></param>
         /// <response code="200">Validation result</response>
         /// <response code="400">Email hash is invalid, BCrypt work factor is invalid</response>
         [HttpPost]
         [Route("~/registration/email")]
         [SwaggerOperation("ValidateEmail")]
-        [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(EmailValidationResult), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
         [ValidateModel]
-        public async Task<IActionResult> ValidateEmail([FromBody] ValidateEmailModel model)
+        public async Task<IActionResult> ValidateEmail([FromBody] ValidateEmailRequest request)
         {
             try
             {
-                bool isEmailTaken = await _emailValidationService.IsEmailTakenAsync(model.Email, model.Hash);
+                bool isEmailTaken = await _emailValidationService.IsEmailTakenAsync(request.Email, request.Hash);
 
                 return Ok(new EmailValidationResult {IsEmailTaken = isEmailTaken});
             }

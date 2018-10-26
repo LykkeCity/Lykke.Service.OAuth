@@ -5,11 +5,13 @@ namespace Core.Exceptions
 {
     public class EmailHashInvalidException : Exception
     {
+        public string Email { get; }
+
         public EmailHashInvalidException()
         {
         }
 
-        public EmailHashInvalidException(string email) : base("Hash is invalid")
+        public EmailHashInvalidException(string email, string message = null) : base(message ?? "Hash is invalid")
         {
             Email = email;
         }
@@ -21,7 +23,5 @@ namespace Core.Exceptions
         protected EmailHashInvalidException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
-
-        public string Email { get; set; }
     }
 }
