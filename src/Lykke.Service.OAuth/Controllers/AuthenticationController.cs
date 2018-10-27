@@ -17,6 +17,7 @@ using Core.VerificationCodes;
 using JetBrains.Annotations;
 using Lykke.Common;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Common.ApiLibrary.Validation;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
@@ -39,7 +40,6 @@ using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
 using WebAuth.Settings.ServiceSettings;
-using WebAuth.Validation;
 
 namespace WebAuth.Controllers
 {
