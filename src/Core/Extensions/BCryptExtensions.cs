@@ -1,4 +1,5 @@
 ﻿using System;
+using Core.Exceptions;
 
 namespace Core.Extensions
 {
@@ -18,12 +19,20 @@ namespace Core.Extensions
         /// <param name="src">The hash string</param>
         /// <returns>Work factor value</returns>
         /// <exception cref="ArgumentNullException">Thrown when hash is null or empty</exception>
+        /// <exception cref="BCryptHashFormatException">Thrown when hash string can't be parsed</exception>
         public static int ExtractWorkFactor(this string src)
         {
             if (string.IsNullOrWhiteSpace(src))
                 throw new ArgumentNullException(nameof(src));
 
-            return Convert.ToInt16(src.Split(BCryptTokenSeparator)[2]);
+            try
+            {
+                return Convert.ToInt16(src.Split(BCryptTokenSeparator)[2]);
+            }
+            catch (Exception)
+            {
+                throw new BCryptHashFormatException(src);
+            }
         }
     }
 }

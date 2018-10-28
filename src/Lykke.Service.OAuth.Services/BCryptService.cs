@@ -31,6 +31,11 @@ namespace Lykke.Service.OAuth.Services
             if (string.IsNullOrWhiteSpace(hash))
                 throw new ArgumentNullException(nameof(hash));
 
+            int workFactor = hash.ExtractWorkFactor();
+
+            if (workFactor < _bCryptWorkFactorSettings)
+                throw new BCryptWorkFactorOutOfRangeException(workFactor);
+
             bool verified;
 
             try
@@ -46,11 +51,6 @@ namespace Lykke.Service.OAuth.Services
 
             if (!verified)
                 throw new EmailHashInvalidException(source);
-
-            int workFactor = hash.ExtractWorkFactor();
-
-            if (workFactor < _bCryptWorkFactorSettings)
-                throw new BCryptWorkFactorInvalidException(workFactor);
         }
     }
 }

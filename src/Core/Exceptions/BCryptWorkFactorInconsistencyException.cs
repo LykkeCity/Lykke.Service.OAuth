@@ -15,7 +15,7 @@ namespace Core.Exceptions
         {
         }
 
-        public BCryptWorkFactorInconsistencyException(int workFactor) : base("BCrypt work factor value is invalid")
+        public BCryptWorkFactorInconsistencyException(int workFactor) : base("Work factor value is invalid")
         {
             WorkFactor = workFactor;
         }

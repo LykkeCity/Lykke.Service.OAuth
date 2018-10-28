@@ -14,9 +14,10 @@ namespace Core.Services
         /// <param name="source">Source string</param>
         /// <param name="hash">Source string bcrypt hash</param>
         /// <exception cref="EmailHashInvalidException">Thrown if hash is not valid for the source</exception>
-        /// <exception cref="BCryptWorkFactorInvalidException">Thrown if hash was calculated with different work factor than it is required</exception>
+        /// <exception cref="BCryptWorkFactorOutOfRangeException">Thrown if hash was calculated with different work factor than it is required</exception>
         /// <exception cref="BCryptInternalException">Thrown when there is an exception raised by BCrypt library</exception>
         /// <exception cref="ArgumentNullException">Thrown when arguments are null or empty</exception>
+        /// <exception cref="BCryptHashFormatException">Thrown when hash string can't be parsed</exception>
         void Verify(string source, string hash);
     }
 }
