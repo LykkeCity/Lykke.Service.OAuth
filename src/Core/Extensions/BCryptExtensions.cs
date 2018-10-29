@@ -31,7 +31,7 @@ namespace Core.Extensions
             }
             catch (Exception)
             {
-                throw new BCryptHashFormatException(src);
+                throw new BCryptHashFormatException(hash: src);
             }
         }
     }

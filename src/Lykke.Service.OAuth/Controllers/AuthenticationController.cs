@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Common;
@@ -9,15 +8,11 @@ using Common.Log;
 using Common.PasswordTools;
 using Core;
 using Core.Email;
-using Core.Exceptions;
 using Core.Extensions;
 using Core.Recaptcha;
-using Core.Services;
 using Core.VerificationCodes;
 using JetBrains.Annotations;
 using Lykke.Common;
-using Lykke.Common.Api.Contract.Responses;
-using Lykke.Common.ApiLibrary.Validation;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
@@ -35,7 +30,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
@@ -64,7 +58,6 @@ namespace WebAuth.Controllers
         };
         private readonly IIpGeoLocationClient _geoLocationClient;
         private readonly IEnumerable<CountryItem> _countries;
-        private readonly IEmailValidationService _emailValidationService;
 
         public AuthenticationController(
             [NotNull] IRegistrationServiceClient registrationClient,
@@ -78,8 +71,7 @@ namespace WebAuth.Controllers
             [NotNull] IConfirmationCodesClient confirmationCodesClient,
             [NotNull] IIpGeoLocationClient geoLocationClient,
             [NotNull] ILogFactory logFactory,
-            [NotNull] IClientSessionsClient clientSessionsClient, 
-            [NotNull] IEmailValidationService emailValidationService)
+            [NotNull] IClientSessionsClient clientSessionsClient)
         {
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -93,7 +85,6 @@ namespace WebAuth.Controllers
             _geoLocationClient = geoLocationClient;
             _log = logFactory.CreateLog(this);
             _clientSessionsClient = clientSessionsClient;
-            _emailValidationService = emailValidationService;
             _countries = new CountryPhoneCodes().GetCountries();
         }
 
@@ -297,53 +288,6 @@ namespace WebAuth.Controllers
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Check if email is already registered
-        /// </summary>
-        /// <param name="request"></param>
-        /// <response code="200">Validation result</response>
-        /// <response code="400">Email hash is invalid, BCrypt work factor is invalid, BCrypt internal exception occured, BCrypt hash format is invalid</response>
-        [HttpPost]
-        [Route("~/registration/email")]
-        [SwaggerOperation("ValidateEmail")]
-        [ProducesResponseType(typeof(EmailValidationResult), (int) HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
-        [ValidateModel]
-        public async Task<IActionResult> ValidateEmail([FromBody] ValidateEmailRequest request)
-        {
-            try
-            {
-                bool isEmailTaken = await _emailValidationService.IsEmailTakenAsync(request.Email, request.Hash);
-
-                return Ok(new EmailValidationResult {IsEmailTaken = isEmailTaken});
-            }
-            catch (EmailHashInvalidException e)
-            {
-                _log.Warning("Invalid hash has been provided for email", e, $"email = {e.Email}");
-
-                return BadRequest(ErrorResponse.Create(e.Message));
-            }
-            catch (BCryptWorkFactorOutOfRangeException e)
-            {
-                _log.Warning("BCrypt work factor is out of range", e, $"workFactor = {e.WorkFactor}");
-
-                return BadRequest(ErrorResponse.Create(e.Message));
-            }
-            catch (BCryptInternalException e)
-            {
-                _log.Warning("BCrypt internal exception", e.InnerException,
-                    $"email = {request.Email}, hash = {request.Hash}");
-
-                return BadRequest(ErrorResponse.Create(e.InnerException?.Message));
-            }
-            catch (BCryptHashFormatException e)
-            {
-                _log.Warning(e.Message, e, $"hash = {e.Hash}");
-
-                return BadRequest(ErrorResponse.Create(e.Message));
-            }
         }
 
         [HttpPost("~/signup/resendCode")]

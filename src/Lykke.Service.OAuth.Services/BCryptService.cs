@@ -50,7 +50,7 @@ namespace Lykke.Service.OAuth.Services
             }
 
             if (!verified)
-                throw new EmailHashInvalidException(source);
+                throw new EmailHashInvalidException(email: source);
         }
     }
 }
