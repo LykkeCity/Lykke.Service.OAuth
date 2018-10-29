@@ -21,40 +21,24 @@ namespace Core.Registration
             _registrationExpiration = registrationExpiration;
         }
 
-        public async Task<string> AddAsync(RegistrationInternalEntity entity)
+        public async Task<string> AddAsync(RegistrationModel entity)
         {
-            var registrationKey = CreateRegistrationKey();
-
-            var redisKey = ToRedisKey(registrationKey);
+            var redisKey = ToRedisKey(entity.RegistrationId);
             var value = MessagePackSerializer.Serialize(entity);
             await _database.StringSetAsync(redisKey, value, _registrationExpiration);
 
-            return registrationKey;
+            return entity.RegistrationId;
         }
 
-        private static string CreateRegistrationKey()
+        public async Task<RegistrationModel> GetAsync(string registrationId)
         {
-            var guid = Guid.NewGuid();
-            string enc = Convert.ToBase64String(guid.ToByteArray());
-            enc = enc.Replace("/", "_");
-            enc = enc.Replace("+", "-");
-            return enc.Substring(0, 22);
-        }
-
-        private static string ToRedisKey(string registrationKey)
-        {
-            return RedisPrefix + registrationKey;
-        }
-
-        public async Task<RegistrationInternalEntity> GetAsync(string registrationKey)
-        {
-            var redisKey = ToRedisKey(registrationKey);
+            var redisKey = ToRedisKey(registrationId);
             try
             {
                 var data = await _database.StringGetAsync(redisKey);
                 if (data.IsNull) throw new RegistrationKeyNotFoundException();
 
-                var value = MessagePackSerializer.Deserialize<RegistrationInternalEntity>(data);
+                var value = MessagePackSerializer.Deserialize<RegistrationModel>(data);
 
                 return value;
             }
@@ -62,6 +46,11 @@ namespace Core.Registration
             {
                 throw new RegistrationKeyNotFoundException(ex);
             }
+        }
+
+        private static string ToRedisKey(string registrationId)
+        {
+            return RedisPrefix + registrationId;
         }
     }
 }

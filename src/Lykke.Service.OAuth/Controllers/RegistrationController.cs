@@ -16,6 +16,9 @@ using WebAuth.Models;
 
 namespace WebAuth.Controllers
 {
+    /// <summary>
+    /// Registration-related stuff
+    /// </summary>
     [Route("api/[controller]")]
     public class RegistrationController : Controller
     {
@@ -23,6 +26,12 @@ namespace WebAuth.Controllers
         private readonly IEmailValidationService _emailValidationService;
         private readonly ILog _log;
 
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="registrationRepository"></param>
+        /// <param name="emailValidationService"></param>
+        /// <param name="logFactory"></param>
         public RegistrationController(
             [NotNull] IRegistrationRepository registrationRepository, 
             [NotNull] IEmailValidationService emailValidationService,
@@ -33,37 +42,61 @@ namespace WebAuth.Controllers
             _log = logFactory.CreateLog(this);
         }
 
+        /// <summary>
+        /// Starts registration proccess of the user
+        /// </summary>
+        /// <param name="registrationRequestModel"></param>
+        /// <response code="200">The id of the registration has been started</response>
+        /// <response code="400">Request validation failed</response>
+        /// <returns></returns>
         [HttpPost]
         [SwaggerOperation("Register")]
         [ProducesResponseType(typeof(RegistrationResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
         [ValidateModel]
-        public async Task<IActionResult> Register(RegistrationModel registrationModel)
+        public async Task<IActionResult> Register([FromBody]RegistrationRequestModel registrationRequestModel)
         {
-            var registrationEntity = new RegistrationInternalEntity(registrationModel);
+            var registrationModel = new RegistrationModel(registrationRequestModel.ToDomain());
 
-            var registrationToken = await _registrationRepository.AddAsync(registrationEntity);
+            //todo: @mkobzev add one more time validation of existing email and the check for pwned passwords
+            var isValid = true;
+            if (isValid)
+            {
+                registrationModel.SetInitialInfoAsValid();
 
-            return Json(new RegistrationResponse(registrationToken));
+                var registrationId = await _registrationRepository.AddAsync(registrationModel);
+
+                return Json(new RegistrationResponse(registrationId));
+            }
+
+            return BadRequest();
         }
 
+        /// <summary>
+        /// Returns the status of registration by a provided key
+        /// </summary>
+        /// <param name="registrationId">The id of registration</param>
+        /// <response code="200">The current state of registration</response>
+        /// <response code="400">Request validation failed</response>
+        /// <response code="404">Registration with such an id was not fount</response>
+        /// <returns></returns>
         [HttpGet]
-        [SwaggerOperation("Step")]
-        [ProducesResponseType(typeof(RegistrationStepResponse), (int)HttpStatusCode.OK)]
+        [SwaggerOperation("Status")]
+        [ProducesResponseType(typeof(RegistrationStatusResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.NotFound)]
-        [Route("step/{key}")]
+        [Route("status/{registrationId}")]
         [ValidateModel]
-        public async Task<IActionResult> Step([Required]string key)
+        public async Task<IActionResult> Status([Required]string registrationId)
         {
             try
             {
-                var registrationModel = await _registrationRepository.GetAsync(key);
+                var registrationModel = await _registrationRepository.GetAsync(registrationId);
                 return Json(registrationModel.RegistrationStep);
             }
             catch (RegistrationKeyNotFoundException)
             {
-                return NotFound(key);
+                return NotFound(registrationId);
             }
         }
 

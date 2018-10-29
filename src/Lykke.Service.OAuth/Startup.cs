@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -182,7 +184,12 @@ namespace WebAuth
 
                 services.AddSwaggerGen(opt =>
                 {
+                    var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                    var commentsFileName = Assembly.GetExecutingAssembly().GetName().Name + ".XML";
+                    var commentsFile = Path.Combine(baseDirectory, commentsFileName);
+
                     opt.DefaultLykkeConfiguration("v1", "Lykke OAuth Server");
+                    opt.IncludeXmlComments(commentsFile);
                 });
 
                 builder.RegisterModule(new WebModule(settings));
