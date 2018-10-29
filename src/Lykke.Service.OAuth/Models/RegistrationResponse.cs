@@ -1,12 +1,22 @@
-﻿namespace WebAuth.Controllers
+﻿namespace WebAuth.Models
 {
+    /// <summary>
+    /// Registration responce
+    /// </summary>
     public class RegistrationResponse
     {
-        public RegistrationResponse(string registrationState)
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="registrationId"></param>
+        public RegistrationResponse(string registrationId)
         {
-            RegistrationState = registrationState;
+            RegistrationId = registrationId;
         }
 
-        public string RegistrationState { get; }
+        /// <summary>
+        /// Id. Can be used for progress tracking
+        /// </summary>
+        public string RegistrationId { get; }
     }
 }

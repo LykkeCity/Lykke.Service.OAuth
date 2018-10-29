@@ -3,8 +3,14 @@ using Core.Registration;
 
 namespace WebAuth.Models
 {
-    public class RegistrationStepResponse
+    /// <summary>
+    /// Registration status response
+    /// </summary>
+    public class RegistrationStatusResponse
     {
+        /// <summary>
+        /// The current step of registration
+        /// </summary>
         [EnumDataType(typeof(RegistrationStep))]
         public RegistrationStep RegistrationStep { get; set; }
     }

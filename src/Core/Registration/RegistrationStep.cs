@@ -6,8 +6,13 @@ namespace Core.Registration
     [JsonConverter(typeof(StringEnumConverter))]
     public enum RegistrationStep
     {
-        InitialInfo = 0,
-        AccountInformation,
-        Pin
+        /// <summary>
+        /// Waiting for account info
+        /// </summary>
+        AccountInformation = 0,
+        /// <summary>
+        /// Waiting for pin
+        /// </summary>
+        Pin = 1
     }
 }
