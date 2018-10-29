@@ -6,6 +6,7 @@ namespace WebAuth.Controllers
     {
         [ApiExplorerSettings(IgnoreApi = true)]
         [Route("tolocal")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public ActionResult RedirectToLocal(string url)
         {
             if (Url.IsLocalUrl(url))

@@ -3,6 +3,7 @@ using BusinessService;
 using BusinessService.Email;
 using Core.Email;
 using Core.Recaptcha;
+using Core.Registration;
 using Core.VerificationCodes;
 using Lykke.SettingsReader;
 using WebAuth.Settings;
@@ -29,6 +30,12 @@ namespace WebAuth.Modules
             builder.RegisterType<VerificationCodesService>()
                 .As<IVerificationCodesService>()
                 .WithParameter(TypedParameter.From(_settings.CurrentValue.OAuth.Cache.VerificationCodeExpiration))
+                .SingleInstance();     
+            
+            //todo @mkobzev: use ILifetimeSettings
+            builder.RegisterType<RegistrationRedisRepository>()
+                .As<IRegistrationRepository>()
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.OAuth.Cache.RegistrationExpiration))
                 .SingleInstance();
         }
     }

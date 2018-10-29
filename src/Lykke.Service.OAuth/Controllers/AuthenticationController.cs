@@ -43,6 +43,7 @@ using WebAuth.Settings.ServiceSettings;
 
 namespace WebAuth.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class AuthenticationController : BaseController
     {
         private readonly IRegistrationServiceClient _registrationClient;

@@ -37,6 +37,7 @@ using WebAuth.Providers;
 using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
+using Lykke.Common.ApiLibrary.Swagger;
 
 namespace WebAuth
 {
@@ -179,7 +180,10 @@ namespace WebAuth
                         SetupDataProtectionStorage(_settings.OAuth.Db.DataProtectionConnString),
                         $"{DataProtectionContainerName}/cookie-keys/keys.xml");
 
-                services.AddSwaggerGen(opt => opt.DefaultLykkeConfiguration("v1", "Lykke OAuth Server"));
+                services.AddSwaggerGen(opt =>
+                {
+                    opt.DefaultLykkeConfiguration("v1", "Lykke OAuth Server");
+                });
 
                 builder.RegisterModule(new WebModule(settings));
                 builder.RegisterModule(new DbModule(settings));
@@ -266,7 +270,6 @@ namespace WebAuth
                 {
                     c.PreSerializeFilters.Add((swagger, httpReq) => swagger.Host = httpReq.Host.Value);
                 });
-
                 app.UseSwaggerUI(x =>
                 {
                     x.RoutePrefix = "swagger/ui";

@@ -22,6 +22,7 @@ using OpenIdConnectMessage = Microsoft.IdentityModel.Protocols.OpenIdConnect.Ope
 
 namespace WebAuth.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class AuthorizationController : Controller
     {
         private readonly IApplicationRepository _applicationRepository;

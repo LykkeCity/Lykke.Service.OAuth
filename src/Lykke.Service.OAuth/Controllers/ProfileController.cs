@@ -10,6 +10,7 @@ using WebAuth.Models;
 
 namespace WebAuth.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     [Authorize]
     [Route("[controller]")]
     public class ProfileController : BaseController
