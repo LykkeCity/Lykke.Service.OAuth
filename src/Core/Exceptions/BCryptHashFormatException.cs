@@ -11,6 +11,10 @@ namespace Core.Exceptions
         {
         }
 
+        public BCryptHashFormatException(string message): base(message)
+        {
+        }
+
         public BCryptHashFormatException(string hash, string message = null) : base(message ?? "Hash has invalid format")
         {
             Hash = hash;

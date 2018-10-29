@@ -11,6 +11,11 @@ namespace Core.Exceptions
         {
         }
 
+        public EmailHashInvalidException(string message) : base(message)
+        {
+            
+        }
+
         public EmailHashInvalidException(string email, string message = null) : base(message ?? "Hash is invalid")
         {
             Email = email;
