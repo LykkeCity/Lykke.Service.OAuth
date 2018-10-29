@@ -4,6 +4,7 @@ namespace WebAuth.Controllers
 {
     public class BaseController : Controller
     {
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("tolocal")]
         public ActionResult RedirectToLocal(string url)
         {

@@ -4,6 +4,7 @@
     {
         public string RecaptchaKey { get; set; }
         public string RecaptchaSecrect { get; set; }
+        public int BCryptWorkFactor { get; set; }
     }
 }
 
