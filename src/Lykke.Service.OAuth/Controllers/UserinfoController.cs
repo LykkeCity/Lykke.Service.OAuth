@@ -19,6 +19,7 @@ using WebAuth.Models;
 
 namespace WebAuth.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class UserinfoController : Controller
     {
         private readonly ILog _log;

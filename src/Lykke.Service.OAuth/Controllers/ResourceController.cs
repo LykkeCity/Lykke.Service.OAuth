@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebAuth.Controllers {
     [Route("api")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class ResourceController : Controller {
         [Authorize, HttpGet, Route("message")]
         public IActionResult GetMessage() {
