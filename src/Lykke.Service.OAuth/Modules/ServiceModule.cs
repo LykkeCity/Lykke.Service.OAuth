@@ -1,6 +1,9 @@
 ﻿using Autofac;
+using Core.PasswordValidation;
 using Core.Services;
 using Lykke.Service.OAuth.Services;
+using Lykke.Service.OAuth.Services.PasswordValidation;
+using Lykke.Service.OAuth.Services.PasswordValidation.Validators;
 
 namespace Lykke.Service.OAuth.Modules
 {
@@ -30,6 +33,11 @@ namespace Lykke.Service.OAuth.Modules
                 .WithParameter(TypedParameter.From(_bCryptWorkFactor))
                 .As<IStartupManager>()
                 .SingleInstance();
+
+            #region PasswordValidators
+            builder.RegisterType<PwnedPasswordsValidator>().As<IPasswordValidator>().SingleInstance();
+            builder.RegisterType<PasswordValidationService>().As<IPasswordValidationService>().SingleInstance();
+            #endregion
         }
     }
 }
