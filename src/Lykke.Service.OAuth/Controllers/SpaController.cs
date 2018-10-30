@@ -2,6 +2,7 @@
 
 namespace Lykke.Service.OAuth.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class SpaController : Controller
     {
         [HttpGet("~/registration")]

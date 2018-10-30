@@ -17,6 +17,6 @@ namespace Core.Registration
         /// <summary>
         /// Waiting for pin
         /// </summary>
-        Pin = 1
+        Pin = 2
     }
 }
