@@ -1,9 +1,7 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks;
-using Lykke.Common.Log;
-using Lykke.Service.OAuth.Extensions.PasswordValidation;
-using Lykke.Service.OAuth.Services.PasswordValidation;
-using Microsoft.Extensions.DependencyInjection;
+﻿using System.Threading.Tasks;
+using Core.PasswordValidation;
+using FluentAssertions;
+using Lykke.Service.OAuth.Services.PasswordValidation.Validators;
 using NSubstitute;
 using Xunit;
 
@@ -11,47 +9,55 @@ namespace WebAuth.Tests.PasswordValidation
 {
     public class PwnedPasswordsValidatorTests
     {
-        private const string Skip = "Manual testing only";
+        private readonly IPasswordValidator _pwnedPasswordsValidator;
+        private readonly IPwnedPasswordsClient _pwnedPasswordsClient;
 
-        [Fact(Skip = Skip)]
-        public async Task HasPasswordBeenPwned_WhenStrongPassword_ReturnsFalse()
+        public PwnedPasswordsValidatorTests()
         {
-            var service = GetClient();
-
-            const string safePassword = "657ed4b7-954a-4777-92d7-eb887eb8025eaa43e773-9f62-42f6-b717-a15e6fef8751";
-
-            var isPwned = await service.HasPasswordBeenPwnedAsync(safePassword);
-
-            Assert.False(isPwned, "Checking for safe password should return false");
+            _pwnedPasswordsClient = Substitute.For<IPwnedPasswordsClient>();
+            _pwnedPasswordsValidator = new PwnedPasswordsValidator(_pwnedPasswordsClient);
         }
 
-        [Fact(Skip = Skip)]
-        public async Task HasPasswordBeenPwned_WhenWeakPassword_ReturnsTrue()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task ValidateAsync_PasswordIsNullOrWhitespace_ReturnsFalse(string password)
         {
-            var service = GetClient();
+            // Arrange
+            _pwnedPasswordsClient.HasPasswordBeenPwnedAsync("").ReturnsForAnyArgs(Task.FromResult(false));
 
-            const string pwnedPassword = "password";
+            // Act
+            var isPwned = await _pwnedPasswordsValidator.ValidateAsync(password);
 
-            var isPwned = await service.HasPasswordBeenPwnedAsync(pwnedPassword);
-
-            Assert.True(isPwned, "Checking for Pwned password should return true");
+            //Assert
+            isPwned.Should().BeFalse();
         }
 
-        private static PwnedPasswordsClient GetClient()
+        [Fact]
+        public async Task ValidateAsync_PasswordHasBeenPwned_ReturnsFalse()
         {
-            var services = new ServiceCollection();
+            // Arrange
+            _pwnedPasswordsClient.HasPasswordBeenPwnedAsync("").ReturnsForAnyArgs(Task.FromResult(true));
 
-            services.AddPwnedPasswordHttpClient();
+            // Act
+            var isPwned = await _pwnedPasswordsValidator.ValidateAsync("123");
 
-            var provider = services.BuildServiceProvider();
+            //Assert
+            isPwned.Should().BeFalse();
+        }
 
-            var logFactory = Substitute.For<ILogFactory>();
+        [Fact]
+        public async Task ValidateAsync_PasswordHasNotBeenPwned_ReturnsTrue()
+        {
+            // Arrange
+            _pwnedPasswordsClient.HasPasswordBeenPwnedAsync("").ReturnsForAnyArgs(Task.FromResult(false));
 
-            var service = new PwnedPasswordsClient(
-                logFactory,
-                provider.GetService<IHttpClientFactory>().CreateClient(PwnedPasswordsClient.HttpClientName));
+            // Act
+            var isPwned = await _pwnedPasswordsValidator.ValidateAsync("123");
 
-            return service;
+            //Assert
+            isPwned.Should().BeTrue();
         }
     }
 }

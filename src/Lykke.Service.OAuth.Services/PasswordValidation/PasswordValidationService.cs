@@ -2,18 +2,16 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Core.PasswordValidation;
-using JetBrains.Annotations;
 
 namespace Lykke.Service.OAuth.Services.PasswordValidation
 {
     /// <inheritdoc />
-    [UsedImplicitly]
     public class PasswordValidationService : IPasswordValidationService
     {
         private readonly IEnumerable<IPasswordValidator> _passwordValidators;
 
         public PasswordValidationService(
-            [NotNull] IEnumerable<IPasswordValidator> passwordValidators)
+            IEnumerable<IPasswordValidator> passwordValidators)
         {
             _passwordValidators = passwordValidators;
         }

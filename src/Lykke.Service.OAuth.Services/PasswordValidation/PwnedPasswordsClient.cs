@@ -6,16 +6,15 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Common;
 using Common.Log;
 using Core.PasswordValidation;
-using JetBrains.Annotations;
 using Lykke.Common.Log;
 using Lykke.Service.OAuth.Services.PasswordValidation.Validators;
 
 namespace Lykke.Service.OAuth.Services.PasswordValidation
 {
     /// <inheritdoc />
-    [UsedImplicitly]
     public class PwnedPasswordsClient : IPwnedPasswordsClient
     {
         public const string HttpClientName = nameof(PwnedPasswordsValidator);
@@ -55,10 +54,10 @@ namespace Lykke.Service.OAuth.Services.PasswordValidation
             }
             catch (Exception ex)
             {
-                _log.Error(ex, "Error calling Pwned Password API. Assuming password is not pwned");
+                _log.Error(ex, "Error calling Pwned Password API. Assuming password is pwned!");
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -72,24 +71,7 @@ namespace Lykke.Service.OAuth.Services.PasswordValidation
 
             var hashBytes = Sha1.ComputeHash(bytes);
 
-            return HexStringFromBytes(hashBytes);
-        }
-
-        /// <summary>
-        ///     Convert an array of bytes to a string of hex digits
-        /// </summary>
-        /// <param name="bytes">array of bytes</param>
-        /// <returns>String of hex digits</returns>
-        private static string HexStringFromBytes(IEnumerable<byte> bytes)
-        {
-            var sb = new StringBuilder();
-            foreach (var b in bytes)
-            {
-                var hex = b.ToString("X2");
-                sb.Append(hex);
-            }
-
-            return sb.ToString();
+            return hashBytes.ToHexString();
         }
 
         /// <summary>

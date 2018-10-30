@@ -13,7 +13,10 @@ namespace Core.PasswordValidation
         /// </summary>
         /// <param name="password">The password to check</param>
         /// <param name="cancellationToken">An optional cancellation token</param>
-        /// <returns></returns>
+        /// <returns>
+        /// Returns True is password has been compromised.
+        /// Returns False if password is strong and has not been compromised.
+        /// </returns>
         Task<bool> HasPasswordBeenPwnedAsync(string password, CancellationToken cancellationToken = default);
     }
 }
