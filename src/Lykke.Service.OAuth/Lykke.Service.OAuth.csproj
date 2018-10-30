@@ -9,10 +9,10 @@
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>Lykke.Service.OAuth.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp2.1\Lykke.Service.OAuth.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>Lykke.Service.OAuth.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netcoreapp2.1\Lykke.Service.OAuth.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <None Update="wwwroot\**\*;Views\**\*;Areas\**\Views;Messages\**\*;Dockerfile">
@@ -79,13 +79,16 @@
     <None Update="appsettings.dev.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Lykke.Service.OAuth.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <Target Name="AddGeneratedContentItems" BeforeTargets="AssignTargetPaths" DependsOnTargets="PrepareForPublish">
     <ItemGroup>
       <Content Include="wwwroot/**" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);@(Content)" />
     </ItemGroup>
+  </Target>
+  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
+    <ItemGroup>
+      <DocFile Include="$(OutputPath)$(AssemblyName).xml" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DocFile)" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="false" />
   </Target>
 </Project>
