@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 
 namespace WebAuth.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     [Route("api/[controller]")]
     public class IsAlive : Controller
     {
