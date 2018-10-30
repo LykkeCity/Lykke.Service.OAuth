@@ -9,5 +9,10 @@
         /// Indicates whether email has already been taken
         /// </summary>
         public bool IsEmailTaken { get; set; }
+
+        /// <summary>
+        /// The id of the registration
+        /// </summary>
+        public string RegistrationId { get; set; }
     }
 }

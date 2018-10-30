@@ -6,5 +6,6 @@ namespace Core.Registration
     {
         Task<string> AddAsync(RegistrationModel registrationModel);
         Task<RegistrationModel> GetAsync(string registrationId);
+        Task<string> UpdateAsync(RegistrationModel registrationModel);
     }
 }

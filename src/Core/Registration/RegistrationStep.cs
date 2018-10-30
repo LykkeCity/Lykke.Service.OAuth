@@ -7,9 +7,13 @@ namespace Core.Registration
     public enum RegistrationStep
     {
         /// <summary>
+        /// Waiting for initial info
+        /// </summary>
+        InitialInfo = 0,
+        /// <summary>
         /// Waiting for account info
         /// </summary>
-        AccountInformation = 0,
+        AccountInformation = 1,
         /// <summary>
         /// Waiting for pin
         /// </summary>

@@ -22,12 +22,18 @@ namespace Lykke.Service.OAuth.Models
         public string Password { get; set; }
 
         /// <summary>
-        /// Client Id of the client which is used for registration
+        /// Id of the client app which is used by a user for registration
         /// </summary>
         [Required]
         public string ClientId { get; set; }
 
-        public RegistrationDto ToDomain()
+        /// <summary>
+        /// The Id of registration. Obtained while email verification
+        /// </summary>
+        [Required]
+        public string RegistrationId { get; set; }
+
+        public RegistrationDto ToDto()
         {
             return new RegistrationDto
             {
