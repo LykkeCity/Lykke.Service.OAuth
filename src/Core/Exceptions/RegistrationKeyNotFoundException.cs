@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Core.Registration
+namespace Core.Exceptions
 {
     public class RegistrationKeyNotFoundException : Exception
     {

@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Core.Exceptions;
+using Core.Registration;
 using MessagePack;
 using StackExchange.Redis;
 
-namespace Core.Registration
+namespace BusinessService
 {
     public class RegistrationRedisRepository : IRegistrationRepository
     {
@@ -41,6 +42,25 @@ namespace Core.Registration
                 var value = MessagePackSerializer.Deserialize<RegistrationModel>(data);
 
                 return value;
+            }
+            catch (Exception ex)
+            {
+                throw new RegistrationKeyNotFoundException(ex);
+            }
+        }
+
+        public async Task<string> UpdateAsync(RegistrationModel registrationModel)
+        {
+            var redisKey = ToRedisKey(registrationModel.RegistrationId);
+            try
+            {
+                var data = await _database.StringGetAsync(redisKey);
+                if (data.IsNull) throw new RegistrationKeyNotFoundException();
+
+                var value = MessagePackSerializer.Serialize(registrationModel);
+                await _database.StringSetAsync(redisKey, value, _registrationExpiration);
+
+                return registrationModel.RegistrationId;
             }
             catch (Exception ex)
             {

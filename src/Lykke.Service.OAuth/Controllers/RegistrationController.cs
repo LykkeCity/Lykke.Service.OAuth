@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
@@ -14,13 +15,13 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebAuth.Models;
 
-namespace WebAuth.Controllers
+namespace Lykke.Service.OAuth.Controllers
 {
     /// <summary>
     /// Registration-related stuff
     /// </summary>
     [Route("api/[controller]")]
-    public class RegistrationController : Controller
+    public class RegistrationController : ControllerBase
     {
         private readonly IRegistrationRepository _registrationRepository;
         private readonly IEmailValidationService _emailValidationService;
@@ -43,33 +44,44 @@ namespace WebAuth.Controllers
         }
 
         /// <summary>
-        /// Starts registration proccess of the user
+        /// Submits initial info of the user
         /// </summary>
         /// <param name="registrationRequestModel"></param>
         /// <response code="200">The id of the registration has been started</response>
         /// <response code="400">Request validation failed</response>
+        /// <response code="404">Registration id not found</response>
         /// <returns></returns>
         [HttpPost]
-        [SwaggerOperation("Register")]
-        [ProducesResponseType(typeof(RegistrationResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
+        [SwaggerOperation("InitialInfo")]
+        [ProducesResponseType(typeof(RegistrationResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [Route("initialInfo")]
         [ValidateModel]
-        public async Task<IActionResult> Register([FromBody]RegistrationRequestModel registrationRequestModel)
+        public async Task<IActionResult> InitialInfo([FromBody] RegistrationRequestModel registrationRequestModel)
         {
-            var registrationModel = new RegistrationModel(registrationRequestModel.ToDomain());
-
-            //todo: @mkobzev add one more time validation of existing email and the check for pwned passwords
-            var isValid = true;
-            if (isValid)
+            try
             {
-                registrationModel.SetInitialInfoAsValid();
+                var registrationModel = await _registrationRepository.GetAsync(registrationRequestModel.RegistrationId);
 
-                var registrationId = await _registrationRepository.AddAsync(registrationModel);
+                registrationModel.SetInitialInfo(registrationRequestModel.ToDto());
 
-                return Json(new RegistrationResponse(registrationId));
+                var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
+
+                return new JsonResult(new RegistrationResponse(registrationId));
             }
-
-            return BadRequest();
+            catch (RegistrationKeyNotFoundException)
+            {
+                return NotFound(ErrorResponse.Create(registrationRequestModel.RegistrationId));
+            }
+            catch (PasswordIsPwndException)
+            {
+                return BadRequest(ErrorResponse.Create("Please, try to choose another password. This one is unsafe."));
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(ErrorResponse.Create(e.Message));
+            }
         }
 
         /// <summary>
@@ -78,13 +90,13 @@ namespace WebAuth.Controllers
         /// <param name="registrationId">The id of registration</param>
         /// <response code="200">The current state of registration</response>
         /// <response code="400">Request validation failed</response>
-        /// <response code="404">Registration with such an id was not fount</response>
+        /// <response code="404">Registration id not found</response>
         /// <returns></returns>
         [HttpGet]
         [SwaggerOperation("Status")]
         [ProducesResponseType(typeof(RegistrationStatusResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [Route("status/{registrationId}")]
         [ValidateModel]
         public async Task<IActionResult> Status([Required]string registrationId)
@@ -92,11 +104,11 @@ namespace WebAuth.Controllers
             try
             {
                 var registrationModel = await _registrationRepository.GetAsync(registrationId);
-                return Json(registrationModel.RegistrationStep);
+                return new JsonResult(registrationModel.RegistrationStep);
             }
             catch (RegistrationKeyNotFoundException)
             {
-                return NotFound(registrationId);
+                return NotFound(ErrorResponse.Create(registrationId));
             }
         }
 
@@ -116,9 +128,16 @@ namespace WebAuth.Controllers
         {
             try
             {
-                bool isEmailTaken = await _emailValidationService.IsEmailTakenAsync(request.Email, request.Hash);
+                var isEmailTaken = await _emailValidationService.IsEmailTakenAsync(request.Email, request.Hash);
 
-                return Ok(new EmailValidationResult { IsEmailTaken = isEmailTaken });
+                if (!isEmailTaken)
+                {
+                    var registrationModel = new RegistrationModel(request.Email);
+                    var registrationId = await _registrationRepository.AddAsync(registrationModel);
+                    return Ok(new EmailValidationResult { IsEmailTaken = false, RegistrationId = registrationId });
+                }
+
+                return Ok(new EmailValidationResult { IsEmailTaken = true });
             }
             catch (EmailHashInvalidException e)
             {

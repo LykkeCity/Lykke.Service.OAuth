@@ -15,7 +15,7 @@
         }
 
         /// <summary>
-        /// Id. Can be used for progress tracking
+        /// Id. Should be used for progress tracking
         /// </summary>
         public string RegistrationId { get; }
     }
