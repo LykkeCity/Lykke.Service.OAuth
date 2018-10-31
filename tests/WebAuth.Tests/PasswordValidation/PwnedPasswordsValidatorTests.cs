@@ -11,6 +11,7 @@ namespace WebAuth.Tests.PasswordValidation
     {
         private readonly IPasswordValidator _pwnedPasswordsValidator;
         private readonly IPwnedPasswordsClient _pwnedPasswordsClient;
+        private const string TestPassword = "TestPassword";
 
         public PwnedPasswordsValidatorTests()
         {
@@ -25,23 +26,24 @@ namespace WebAuth.Tests.PasswordValidation
         public async Task ValidateAsync_PasswordIsNullOrWhitespace_ReturnsFalse(string password)
         {
             // Arrange
-            _pwnedPasswordsClient.HasPasswordBeenPwnedAsync("").ReturnsForAnyArgs(Task.FromResult(false));
+            _pwnedPasswordsClient.HasPasswordBeenPwnedAsync(password).Returns(Task.FromResult(false));
 
             // Act
             var isPwned = await _pwnedPasswordsValidator.ValidateAsync(password);
 
             //Assert
             isPwned.Should().BeFalse();
+            await _pwnedPasswordsClient.DidNotReceive().HasPasswordBeenPwnedAsync(password);
         }
 
         [Fact]
         public async Task ValidateAsync_PasswordHasBeenPwned_ReturnsFalse()
         {
             // Arrange
-            _pwnedPasswordsClient.HasPasswordBeenPwnedAsync("").ReturnsForAnyArgs(Task.FromResult(true));
+            _pwnedPasswordsClient.HasPasswordBeenPwnedAsync(TestPassword).Returns(Task.FromResult(true));
 
             // Act
-            var isPwned = await _pwnedPasswordsValidator.ValidateAsync("123");
+            var isPwned = await _pwnedPasswordsValidator.ValidateAsync(TestPassword);
 
             //Assert
             isPwned.Should().BeFalse();
@@ -51,13 +53,24 @@ namespace WebAuth.Tests.PasswordValidation
         public async Task ValidateAsync_PasswordHasNotBeenPwned_ReturnsTrue()
         {
             // Arrange
-            _pwnedPasswordsClient.HasPasswordBeenPwnedAsync("").ReturnsForAnyArgs(Task.FromResult(false));
+            _pwnedPasswordsClient.HasPasswordBeenPwnedAsync(TestPassword).Returns(Task.FromResult(false));
 
             // Act
-            var isPwned = await _pwnedPasswordsValidator.ValidateAsync("123");
+            var isPwned = await _pwnedPasswordsValidator.ValidateAsync(TestPassword);
 
             //Assert
             isPwned.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task ValidateAsync_PasswordIsPassedToPasswordHasNotBeenPwned()
+        {
+            // Act
+            await _pwnedPasswordsValidator.ValidateAsync(TestPassword);
+
+            // Assert
+            await _pwnedPasswordsClient.Received(1).HasPasswordBeenPwnedAsync(TestPassword);
+            await _pwnedPasswordsClient.DidNotReceive().HasPasswordBeenPwnedAsync(Arg.Is<string>(x => !string.Equals(x, TestPassword)));
         }
     }
 }

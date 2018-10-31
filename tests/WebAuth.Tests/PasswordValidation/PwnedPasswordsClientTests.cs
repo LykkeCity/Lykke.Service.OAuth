@@ -16,7 +16,8 @@ namespace WebAuth.Tests.PasswordValidation
     {
         private readonly ILogFactory _fakeLogFactory;
         private readonly HttpTest _httpTest;
-        private const string Skip = "Manual testing only";
+        private const string SkipReason = "Manual testing only";
+        private const string TestPassword = "TestPassword";
 
         public PwnedPasswordsClientTests()
         {
@@ -33,12 +34,12 @@ namespace WebAuth.Tests.PasswordValidation
             using (var fakeHttpClient = new HttpClient(new FakeHttpMessageHandler()))
             {
                 fakeHttpClient.BaseAddress = new Uri("http://localhost");
-                _httpTest.RespondWith("123", 404);
+                _httpTest.RespondWith("", 404);
 
                 var service = new PwnedPasswordsClient(_fakeLogFactory, fakeHttpClient);
 
                 // Act
-                var isPwned = await service.HasPasswordBeenPwnedAsync("123");
+                var isPwned = await service.HasPasswordBeenPwnedAsync(TestPassword);
 
                 // Assert
                 isPwned.Should().BeTrue();
@@ -56,14 +57,14 @@ namespace WebAuth.Tests.PasswordValidation
                 var service = new PwnedPasswordsClient(_fakeLogFactory, fakeHttpClient);
 
                 // Act
-                var isPwned = await service.HasPasswordBeenPwnedAsync("123");
+                var isPwned = await service.HasPasswordBeenPwnedAsync(TestPassword);
 
                 // Assert
                 isPwned.Should().BeTrue();
             }
         }
 
-        [Fact(Skip = Skip)]
+        [Fact(Skip = SkipReason)]
         public async Task HasPasswordBeenPwned_WhenStrongPassword_ReturnsFalse()
         {
             var service = GetClient();
@@ -75,7 +76,7 @@ namespace WebAuth.Tests.PasswordValidation
             Assert.False(isPwned, "Checking for safe password should return false");
         }
 
-        [Fact(Skip = Skip)]
+        [Fact(Skip = SkipReason)]
         public async Task HasPasswordBeenPwned_WhenWeakPassword_ReturnsTrue()
         {
             var service = GetClient();

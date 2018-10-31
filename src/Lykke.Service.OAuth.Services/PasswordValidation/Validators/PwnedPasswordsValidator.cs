@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Core.PasswordValidation;
-using JetBrains.Annotations;
 
 namespace Lykke.Service.OAuth.Services.PasswordValidation.Validators
 {
