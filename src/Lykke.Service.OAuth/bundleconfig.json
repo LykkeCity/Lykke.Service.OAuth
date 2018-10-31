@@ -76,9 +76,6 @@
   {
     "outputFileName": "wwwroot/dist/spa.min.js",
     "inputFiles": [
-      "wwwroot/js/vendor/jquery.min.js",
-      "wwwroot/js/vendor/angular.js",
-      "wwwroot/js/vendor/ui-carousel.min.js",
       "wwwroot/js/app/app.module.js"
     ],
     "minify": {
@@ -92,6 +89,7 @@
     "inputFiles": [
       "wwwroot/js/app/components/signup/signup.controller.js",
       "wwwroot/js/app/components/signup/signup.service.js",
+      "wwwroot/js/app/components/shared/inputPassword/inputPassword.controller.js",
       "wwwroot/js/app/components/shared/inputPassword/inputPassword.directive.js",
       "wwwroot/js/app/components/shared/terms/terms.directive.js"
     ],

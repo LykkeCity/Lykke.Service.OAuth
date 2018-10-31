@@ -8,6 +8,7 @@
     signupService.$inject = ['$http'];
 
     function signupService() {
+        // TODO: Add API calls
         return {};
     }
 })();
