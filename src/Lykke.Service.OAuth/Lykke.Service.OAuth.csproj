@@ -7,6 +7,7 @@
     <PackageId>WebAuth</PackageId>
     <Version>1.0.0</Version>
     <LangVersion>7.3</LangVersion>
+    <DefaultItemExcludes>wwwroot/node_modules/**;$(DefaultItemExcludes)</DefaultItemExcludes>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile></DocumentationFile>
