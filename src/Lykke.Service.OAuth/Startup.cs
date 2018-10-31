@@ -40,6 +40,7 @@ using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Common.ApiLibrary.Swagger;
+using Lykke.Service.OAuth.Extensions.PasswordValidation;
 
 namespace WebAuth
 {
@@ -181,6 +182,8 @@ namespace WebAuth
                     .PersistKeysToAzureBlobStorage(
                         SetupDataProtectionStorage(_settings.OAuth.Db.DataProtectionConnString),
                         $"{DataProtectionContainerName}/cookie-keys/keys.xml");
+                
+                services.AddPwnedPasswordHttpClient();
 
                 services.AddSwaggerGen(opt =>
                 {
