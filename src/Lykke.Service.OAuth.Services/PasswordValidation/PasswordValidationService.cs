@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.PasswordValidation;
@@ -17,16 +18,20 @@ namespace Lykke.Service.OAuth.Services.PasswordValidation
         }
 
         /// <inheritdoc />
-        public async Task<bool> ValidateAsync(string password)
+        public async Task<PasswordValidationResult> ValidateAsync(string password)
         {
             if (_passwordValidators == null || !_passwordValidators.Any())
-                return false;
+                throw new ArgumentException(nameof(_passwordValidators));
 
-            var validationResults = _passwordValidators.Select(validator => validator.ValidateAsync(password));
+            var tasks = _passwordValidators.Select(validator => validator.ValidateAsync(password));
 
-            var validationValues = await Task.WhenAll(validationResults);
+            var validationResults = await Task.WhenAll(tasks);
 
-            return validationValues.All(isValid => isValid);
+            var errors = validationResults.SelectMany(result => result.Errors).Distinct().ToList();
+
+            return errors.Any()
+                ? PasswordValidationResult.Fail(errors)
+                : PasswordValidationResult.Success();
         }
     }
 }

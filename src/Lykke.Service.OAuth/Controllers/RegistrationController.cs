@@ -4,12 +4,15 @@ using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
 using Core.Exceptions;
+using Core.PasswordValidation;
 using Core.Registration;
 using Core.Services;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
-using Lykke.Common.ApiLibrary.Validation;
+using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Common.Log;
+using Lykke.Service.OAuth.ApiErrorCodes;
+using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -25,6 +28,7 @@ namespace Lykke.Service.OAuth.Controllers
     {
         private readonly IRegistrationRepository _registrationRepository;
         private readonly IEmailValidationService _emailValidationService;
+        private readonly IPasswordValidationService _passwordValidationService;
         private readonly ILog _log;
 
         /// <summary>
@@ -32,14 +36,17 @@ namespace Lykke.Service.OAuth.Controllers
         /// </summary>
         /// <param name="registrationRepository"></param>
         /// <param name="emailValidationService"></param>
+        /// <param name="passwordValidationService"></param>
         /// <param name="logFactory"></param>
         public RegistrationController(
             [NotNull] IRegistrationRepository registrationRepository, 
             [NotNull] IEmailValidationService emailValidationService,
+            IPasswordValidationService passwordValidationService,
             [NotNull] ILogFactory logFactory)
         {
             _registrationRepository = registrationRepository;
             _emailValidationService = emailValidationService;
+            _passwordValidationService = passwordValidationService;
             _log = logFactory.CreateLog(this);
         }
 
@@ -57,12 +64,21 @@ namespace Lykke.Service.OAuth.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [Route("initialInfo")]
-        [ValidateModel]
+        [ValidateApiModel]
         public async Task<IActionResult> InitialInfo([FromBody] RegistrationRequestModel registrationRequestModel)
         {
             try
             {
+                var passwordValidationResult = await _passwordValidationService.ValidateAsync(registrationRequestModel.Password);
+                                
+                if (!passwordValidationResult.IsValid)
+                {
+                    var apiError = PasswordValidationApiErrorCodes.GetApiErrorByValidationErrorCode(passwordValidationResult.Error);
+                    throw LykkeApiErrorException.BadRequest(apiError);
+                }
+
                 var registrationModel = await _registrationRepository.GetAsync(registrationRequestModel.RegistrationId);
+
 
                 registrationModel.SetInitialInfo(registrationRequestModel.ToDto());
 
@@ -98,7 +114,7 @@ namespace Lykke.Service.OAuth.Controllers
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
         [Route("status/{registrationId}")]
-        [ValidateModel]
+        [ValidateApiModel]
         public async Task<IActionResult> Status([Required]string registrationId)
         {
             try
@@ -123,7 +139,7 @@ namespace Lykke.Service.OAuth.Controllers
         [SwaggerOperation("ValidateEmail")]
         [ProducesResponseType(typeof(EmailValidationResult), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        [ValidateModel]
+        [ValidateApiModel]
         public async Task<IActionResult> ValidateEmail([FromBody] ValidateEmailRequest request)
         {
             try

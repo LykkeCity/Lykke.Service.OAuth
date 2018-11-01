@@ -12,16 +12,18 @@ namespace Lykke.Service.OAuth.Services.PasswordValidation.Validators
         {
             _passwordsClient = passwordsClient;
         }
-        
+
         /// <inheritdoc />
-        public async Task<bool> ValidateAsync(string password)
+        public async Task<PasswordValidationResult> ValidateAsync(string password)
         {
             if (string.IsNullOrWhiteSpace(password))
-                return false;
+                return PasswordValidationResult.Fail(PasswordValidationErrorCode.PasswordIsEmpty);
 
             var isPwned = await _passwordsClient.HasPasswordBeenPwnedAsync(password);
-            
-            return !isPwned;
+
+            return isPwned
+                ? PasswordValidationResult.Fail(PasswordValidationErrorCode.PasswordIsPwned)
+                : PasswordValidationResult.Success();
         }
     }
 }
