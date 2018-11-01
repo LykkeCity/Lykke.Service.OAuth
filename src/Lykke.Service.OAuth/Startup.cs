@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -39,7 +37,6 @@ using WebAuth.Providers;
 using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
-using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
 
 namespace WebAuth
