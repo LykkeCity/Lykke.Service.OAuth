@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 ie7"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9 ie8"> <![endif]-->
+<!--[if IE 9]>         <html class="no-js ie9"> <![endif]-->
+<!--[if gt IE 9]><!-->
+<html class="no-js">
+<!--<![endif]-->
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Lykke OAuth Server</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="manifest.json">
+    <link rel="mask-icon" href="safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="theme-color" content="#ffffff">
+
+    <environment names="Development">
+        <link rel="stylesheet" href="~/styles/bootstrap-custom.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/styles/style.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/styles/ui-carousel.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/styles/style-sass.css" asp-append-version="true" />
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="~/dist/site.min.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/dist/spa.min.css" asp-append-version="true" />
+    </environment>
+
+    <!--[if lte IE 9]>
+        <script type="text/javascript" src="/js/vendor/html5shiv.js"></script>
+    <![endif]-->
+    <!-- Google Tag Manager -->
+    <script>
+        (function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({
+                'gtm.start':
+                new Date().getTime(), event: 'gtm.js'
+            }); var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-K5Q43JZ');
+    </script>
+    <!-- End Google Tag Manager -->
+
+</head>
+<body data-ng-app="app">
+    @await Component.InvokeAsync("GaUserId")
+    <!-- Google Tag Manager (noscript) -->
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K5Q43JZ"
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    @RenderBody()
+
+    <environment names="Development">
+        <script src="/js/vendor/jquery.min.js"></script>
+        <script src="/js/vendor/angular.js"></script>
+        <script src="/js/vendor/ui-carousel.min.js"></script>
+        <script src="/js/app/app.module.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="/js/vendor/jquery.min.js"></script>
+        <script src="/js/vendor/angular.min.js"></script>
+        <script src="/js/vendor/ui-carousel.min.js"></script>
+        <script src="~/dist/spa.min.js" asp-append-version="true"></script>
+    </environment>
+
+    @RenderSection("scripts", false)
+
+</body>
+</html>

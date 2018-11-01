@@ -1,0 +1,133 @@
+@import 'variables.scss';
+
+.signup-page {
+  display: flex;
+
+  .ui-carousel {
+    width: 46.875vh;
+    margin-bottom: 0;
+
+    &_loading {
+      opacity: 0;
+    }
+
+    .carousel-dots {
+      bottom: 46px;
+
+      li button:before {
+        color: $white;
+        opacity: 1;
+      }
+
+      li.carousel-active button:before {
+        color: $azure;
+      }
+    }
+
+    .carousel-item {
+      &__logo {
+        position: absolute;
+        padding: 32px;
+      }
+
+      &__image {
+        height: 100vh;
+      }
+
+      &__text {
+        width: 46.875vh;
+        position: absolute;
+        bottom: 5%;
+        font-size: 20px;
+        padding: 48px;
+        line-height: 1.6;
+        color: $white;
+      }
+    }
+
+    @media all and (max-width: $screen-landscape) {
+      display: none;
+    }
+  }
+
+  &__form {
+    width: 100%;
+    padding: 25px 40px;
+  }
+
+  &__signin-link {
+    font-size: 16px;
+    line-height: 1.63;
+    color: $gray;
+    float: right;
+
+    @media all and (max-width: $screen-mobile) {
+      display: none;
+    }
+
+    &_mobile {
+      display: none;
+      text-align: center;
+      float: none;
+      margin-top: 68px;
+
+      @media all and (max-width: $screen-mobile) {
+        display: block;
+      }
+    }
+  }
+
+  &__mobile-logo {
+    position: fixed;
+    top: 32px;
+    left: 32px;
+    display: none;
+
+    @media all and (max-width: $screen-landscape) {
+      display: block;
+    }
+
+    @media all and (max-width: $screen-mobile) {
+      margin: 0 auto;
+      position: absolute;
+      left: 0;
+      width: 100%;
+      text-align: center;
+    }
+  }
+
+  .signup-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    width: 480px;
+    margin: 0 auto;
+    text-align: center;
+
+    .lykke-page-title {
+      margin-bottom: 18px;
+    }
+
+    .lykke-page-subtitle {
+      margin-bottom: 32px;
+    }
+
+    .lykke-button_colored {
+      margin: 32px auto 19px;
+    }
+
+    @media all and (max-width: $screen-tablet) {
+      width: 350px;
+    }
+
+    @media all and (max-width: $screen-landscape) {
+      width: 480px;
+      margin-top: 100px;
+    }
+
+    @media all and (max-width: $screen-mobile) {
+      width: 350px;
+    }
+  }
+}

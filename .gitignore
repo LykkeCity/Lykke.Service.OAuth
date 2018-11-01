@@ -225,3 +225,5 @@ ModelManifest.xml
 **/docker-compose.dev.yml
 **/launchSettings.json
 /src/Lykke.Service.OAuth/wwwroot/dist
+
+**/.DS_Store
