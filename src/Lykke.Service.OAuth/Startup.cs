@@ -40,7 +40,6 @@ using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Common.ApiLibrary.Swagger;
-using Newtonsoft.Json.Serialization;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
 
 namespace WebAuth
@@ -169,7 +168,6 @@ namespace WebAuth
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                     .AddViewLocalization()
                     .AddDataAnnotationsLocalization()
-                    .AddJsonOptions(options => options.SerializerSettings.ContractResolver = new DefaultContractResolver())
                     .AddMvcOptions(o => { o.Filters.Add(typeof(UnhandledExceptionFilter)); });
 
                 services.AddAutoMapper();
