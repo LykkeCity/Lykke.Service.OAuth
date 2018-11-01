@@ -4,12 +4,14 @@
     var app = angular.module('app');
 
     app
-    .controller('inputPasswordController', ['$scope', function ($scope) {
+    .constant('inputPasswordController', function () {
+        var vm = this;
+
         function toggle() {
-            $scope.isHidden = !$scope.isHidden;
+            vm.isHidden = !vm.isHidden;
         }
 
-        $scope.toggle = toggle;
-        $scope.isHidden = true;
-    }]);
+        vm.toggle = toggle;
+        vm.isHidden = true;
+    });
 })();

@@ -89,8 +89,10 @@
     "inputFiles": [
       "wwwroot/js/app/components/signup/signup.controller.js",
       "wwwroot/js/app/components/signup/signup.service.js",
+      "wwwroot/js/app/components/signup/signupStep.constant.js",
       "wwwroot/js/app/components/shared/inputPassword/inputPassword.controller.js",
       "wwwroot/js/app/components/shared/inputPassword/inputPassword.directive.js",
+      "wwwroot/js/app/components/shared/accessibleForm/accessibleForm.directive.js",
       "wwwroot/js/app/components/shared/terms/terms.directive.js"
     ],
     "minify": {

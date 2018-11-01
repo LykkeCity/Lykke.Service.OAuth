@@ -22,12 +22,22 @@ body {
   @media all and (max-width: $screen-landscape) {
     @include rem(font-size, 32px);
   }
+
+  @media all and (max-width: $screen-mobile-tiny) {
+    font-size: 20px;
+    line-height: 1.2;
+  }
 }
 
 .lykke-page-subtitle {
   font-size: 17px;
   line-height: 1.29;
   color: $battleship-gray;
+
+  @media all and (max-width: $screen-mobile-tiny) {
+    font-size: 16px;
+    line-height: 1.38;
+  }
 }
 
 .lykke-form-group {
@@ -42,6 +52,14 @@ body {
   color: $heading;
 }
 
+.lykke-error-label {
+  position: absolute;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.54;
+  color: $orangey-red;
+}
+
 .lykke-input {
   font-size: 16px;
   padding: 13px 20px;
@@ -50,6 +68,10 @@ body {
   width: 100%;
   height: 50px;
   color: $text;
+
+  &.ng-touched.ng-invalid, &_error {
+    border-color: $orangey-red;
+  }
 
   @include inputPlaceholder() {
     color: $light-grey-blue;
@@ -97,6 +119,10 @@ body {
   &_colored {
     background-image: linear-gradient(to right, #ff9100, #ff0029 50%, #ab00ff);
   }
+
+  @media all and (max-width: $screen-mobile-tiny) {
+    width: 100%;
+  }
 }
 
 .lykke-terms {
@@ -108,4 +134,14 @@ body {
     text-decoration: underline;
     color: $slate;
   }
+}
+
+.initial-spinner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: $white;
+  padding-top: 45vh;
 }
