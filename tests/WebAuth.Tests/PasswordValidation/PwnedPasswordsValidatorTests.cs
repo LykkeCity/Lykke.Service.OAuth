@@ -29,10 +29,10 @@ namespace WebAuth.Tests.PasswordValidation
             _pwnedPasswordsClient.HasPasswordBeenPwnedAsync(password).Returns(Task.FromResult(false));
 
             // Act
-            var isPwned = await _pwnedPasswordsValidator.ValidateAsync(password);
+            var result = await _pwnedPasswordsValidator.ValidateAsync(password);
 
             //Assert
-            isPwned.Should().BeFalse();
+            result.IsValid.Should().BeFalse();
             await _pwnedPasswordsClient.DidNotReceive().HasPasswordBeenPwnedAsync(password);
         }
 
@@ -43,10 +43,10 @@ namespace WebAuth.Tests.PasswordValidation
             _pwnedPasswordsClient.HasPasswordBeenPwnedAsync(TestPassword).Returns(Task.FromResult(true));
 
             // Act
-            var isPwned = await _pwnedPasswordsValidator.ValidateAsync(TestPassword);
+            var result = await _pwnedPasswordsValidator.ValidateAsync(TestPassword);
 
             //Assert
-            isPwned.Should().BeFalse();
+            result.IsValid.Should().BeFalse();
         }
 
         [Fact]
@@ -56,10 +56,10 @@ namespace WebAuth.Tests.PasswordValidation
             _pwnedPasswordsClient.HasPasswordBeenPwnedAsync(TestPassword).Returns(Task.FromResult(false));
 
             // Act
-            var isPwned = await _pwnedPasswordsValidator.ValidateAsync(TestPassword);
+            var result = await _pwnedPasswordsValidator.ValidateAsync(TestPassword);
 
             //Assert
-            isPwned.Should().BeTrue();
+            result.IsValid.Should().BeTrue();
         }
 
         [Fact]

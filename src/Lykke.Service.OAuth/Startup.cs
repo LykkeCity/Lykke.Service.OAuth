@@ -215,6 +215,8 @@ namespace WebAuth
             {
                 app.UseLykkeMiddleware(ex => new { message = "Technical problem" });
 
+                app.UseMiddleware<LykkeApiErrorMiddleware>();
+
                 app.UseLykkeForwardedHeaders();
 
                 app.UseRequestLocalization(new RequestLocalizationOptions

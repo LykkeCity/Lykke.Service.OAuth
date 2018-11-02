@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Core.PasswordValidation;
 using FluentAssertions;
@@ -17,7 +18,7 @@ namespace WebAuth.Tests.PasswordValidation
         {
             // Arrange
             var trueValidator = Substitute.For<IPasswordValidator>();
-            trueValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(true));
+            trueValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(PasswordValidationResult.Success()));
 
             var validators = new List<IPasswordValidator>
             {
@@ -32,7 +33,7 @@ namespace WebAuth.Tests.PasswordValidation
             var result = await validationService.ValidateAsync(TestPassword);
 
             // Assert
-            result.Should().BeTrue();
+            result.IsValid.Should().BeTrue();
         }
 
         [Fact]
@@ -40,10 +41,10 @@ namespace WebAuth.Tests.PasswordValidation
         {
             // Arrange
             var trueValidator = Substitute.For<IPasswordValidator>();
-            trueValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(true));         
+            trueValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(PasswordValidationResult.Success()));         
             
             var falseValidator = Substitute.For<IPasswordValidator>();
-            falseValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(false));
+            falseValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(PasswordValidationResult.Fail(PasswordValidationErrorCode.PasswordIsEmpty)));
 
             var validators = new List<IPasswordValidator>
             {
@@ -57,33 +58,33 @@ namespace WebAuth.Tests.PasswordValidation
             var result = await validationService.ValidateAsync(TestPassword);
 
             // Assert
-            result.Should().BeFalse();
+            result.IsValid.Should().BeFalse();
         }
 
         [Fact]
-        public async Task ValidateAsync_ValidatorsAreEmptyList_ReturnsFalse()
+        public void ValidateAsync_ValidatorsAreEmptyList_ThrowsArgumentException()
         {
             // Arrange
             var validationService = new PasswordValidationService(new List<IPasswordValidator>());
 
             // Act
-            var result = await validationService.ValidateAsync(TestPassword);
+            Func<Task> action = () => validationService.ValidateAsync(TestPassword);
 
             // Assert
-            result.Should().BeFalse();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
-        public async Task ValidateAsync_ValidatorsAreNull_ReturnsFalse()
+        public void ValidateAsync_ValidatorsAreNull_ThrowsArgumentException()
         {
             // Arrange
             var validationService = new PasswordValidationService(null);
 
             // Act
-            var result = await validationService.ValidateAsync(TestPassword);
+            Func<Task> action = () => validationService.ValidateAsync(TestPassword);
 
             // Assert
-            result.Should().BeFalse();
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -91,10 +92,10 @@ namespace WebAuth.Tests.PasswordValidation
         {
             // Arrange
             var trueValidator = Substitute.For<IPasswordValidator>();
-            trueValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(true));         
+            trueValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(PasswordValidationResult.Success()));         
             
             var falseValidator = Substitute.For<IPasswordValidator>();
-            falseValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(false));
+            falseValidator.ValidateAsync(TestPassword).Returns(Task.FromResult(PasswordValidationResult.Fail(PasswordValidationErrorCode.PasswordIsEmpty)));
 
             var validators = new List<IPasswordValidator>
             {

@@ -12,9 +12,9 @@ namespace Core.PasswordValidation
         /// </summary>
         /// <param name="password">The password to check.</param>
         /// <returns>
-        ///     True if password is valid.
-        ///     False otherwise.
+        ///     <see cref="PasswordValidationResult"/> with no errors if password is valid.
+        ///     <see cref="PasswordValidationResult"/> with errors otherwise.
         /// </returns>
-        Task<bool> ValidateAsync(string password);
+        Task<PasswordValidationResult> ValidateAsync(string password);
     }
 }
