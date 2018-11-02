@@ -2,6 +2,7 @@
 using Common;
 using Common.PasswordTools;
 using Core.Exceptions;
+using Core.PasswordValidation;
 using MessagePack;
 
 namespace Core.Registration
@@ -46,9 +47,7 @@ namespace Core.Registration
             if (registrationDto.Email != Email)
                 throw new ArgumentException("Email doesn't match to verified one.");
             if (!IsPasswordComplex(registrationDto.Password))
-                throw new ArgumentException(
-                    @"Minimum 8 characters and must include 1 uppercase letter, 1 lowercase letter and 1 special character."
-                );
+                throw new PasswordIsNotComplexException();
 
             ClientId = registrationDto.ClientId;
             this.SetPassword(registrationDto.Password);

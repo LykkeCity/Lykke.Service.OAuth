@@ -21,11 +21,18 @@ namespace Lykke.Service.OAuth.ApiErrorCodes
         public static readonly ILykkeApiErrorCode PasswordIsPwned =
             new LykkeApiErrorCode(nameof(PasswordIsPwned), "Password have been exposed in data breaches.");
 
+        /// <summary>
+        ///     Password was compromised earlier.
+        /// </summary>
+        public static readonly ILykkeApiErrorCode PasswordIsNotComplex =
+            new LykkeApiErrorCode(nameof(PasswordIsNotComplex), "Password is not complex enough.");
+
         private static readonly IDictionary<PasswordValidationErrorCode, ILykkeApiErrorCode> ApiErrorCodesMap =
             new Dictionary<PasswordValidationErrorCode, ILykkeApiErrorCode>
             {
                 {PasswordValidationErrorCode.PasswordIsEmpty, PasswordIsEmpty},
-                {PasswordValidationErrorCode.PasswordIsPwned, PasswordIsPwned}
+                {PasswordValidationErrorCode.PasswordIsPwned, PasswordIsPwned},
+                {PasswordValidationErrorCode.PasswordIsNotComplex, PasswordIsNotComplex}
             };
 
         /// <summary>
