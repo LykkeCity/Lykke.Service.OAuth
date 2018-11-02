@@ -1,17 +1,24 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 using Common.Log;
+using Core.Constants;
 using Core.Exceptions;
 using Core.Registration;
 using Core.Services;
 using JetBrains.Annotations;
 using Lykke.Common.Api.Contract.Responses;
+using Lykke.Common.ApiLibrary.Contract;
+using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Common.ApiLibrary.Validation;
 using Lykke.Common.Log;
 using Lykke.Service.OAuth.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebAuth.Models;
 
@@ -72,15 +79,15 @@ namespace Lykke.Service.OAuth.Controllers
             }
             catch (RegistrationKeyNotFoundException)
             {
-                return NotFound(ErrorResponse.Create(registrationRequestModel.RegistrationId));
+                throw LykkeApiErrorException.NotFound(LykkeApiErrorCodes.RegistrationNotFound);
             }
             catch (PasswordIsPwndException)
             {
-                return BadRequest(ErrorResponse.Create("Please, try to choose another password. This one is unsafe."));
+                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.UnsafePassword);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
-                return BadRequest(ErrorResponse.Create(e.Message));
+                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.InvalidInput);
             }
         }
 
@@ -108,7 +115,7 @@ namespace Lykke.Service.OAuth.Controllers
             }
             catch (RegistrationKeyNotFoundException)
             {
-                return NotFound(ErrorResponse.Create(registrationId));
+                throw LykkeApiErrorException.NotFound(LykkeApiErrorCodes.RegistrationNotFound);
             }
         }
 
@@ -143,26 +150,26 @@ namespace Lykke.Service.OAuth.Controllers
             {
                 _log.Warning("Invalid hash has been provided for email", e, $"email = {e.Email}");
 
-                return BadRequest(ErrorResponse.Create(e.Message));
+                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.InvalidBCryptHash);
             }
             catch (BCryptWorkFactorOutOfRangeException e)
             {
                 _log.Warning("BCrypt work factor is out of range", e, $"workFactor = {e.WorkFactor}");
 
-                return BadRequest(ErrorResponse.Create(e.Message));
+                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.BCryptWorkFactorOutOfRange);
             }
             catch (BCryptInternalException e)
             {
                 _log.Warning("BCrypt internal exception", e.InnerException,
                     $"email = {request.Email}, hash = {request.Hash}");
 
-                return BadRequest(ErrorResponse.Create(e.InnerException?.Message));
+                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.BCryptInternalError);
             }
             catch (BCryptHashFormatException e)
             {
                 _log.Warning(e.Message, e, $"hash = {e.Hash}");
 
-                return BadRequest(ErrorResponse.Create(e.Message));
+                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.InvalidBCryptHashFormat);
             }
         }
     }
