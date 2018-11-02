@@ -9,7 +9,7 @@
 
     function signupService($http, env, $q) {
         var bCryptWorkFactor;
-        var registrationId;
+        var verifiedEmailIds = {};
 
         function init() {
             getSettings().then(function (data) {
@@ -19,6 +19,13 @@
 
         function validateEmail(email) {
             var deferred = $q.defer();
+
+            if (angular.isDefined(verifiedEmailIds[email])) {
+                var isEmailTaken = !verifiedEmailIds[email];
+                deferred.resolve(isEmailTaken);
+                return deferred.promise;
+            }
+
             var bcrypt = dcodeIO.bcrypt;
             bcrypt.hash(email, bCryptWorkFactor, function (err, hash) {
                 if (err) {
@@ -26,7 +33,7 @@
                 }
 
                 checkEmailTaken(email, hash).then(function (data) {
-                    registrationId = data.registrationId;
+                    verifiedEmailIds[email] = data.registrationId;
                     deferred.resolve(data.isEmailTaken);
                 })
             });
@@ -46,7 +53,7 @@
                 .post('/api/registration/initialInfo', {
                     email: email,
                     password: password,
-                    registrationId: registrationId,
+                    registrationId: verifiedEmailIds[email],
                     clientId: env.clientId
                 })
                 .then(function (response) {
@@ -54,8 +61,8 @@
                 });
         }
 
-        function getRegistrationId() {
-            return registrationId;
+        function getRegistrationId(email) {
+            return verifiedEmailIds[email];
         }
 
         function getSettings() {
