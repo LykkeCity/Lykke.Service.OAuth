@@ -1,27 +1,19 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 using Common.Log;
-using Core.Constants;
 using Core.Exceptions;
 using Core.PasswordValidation;
 using Core.Registration;
 using Core.Services;
 using JetBrains.Annotations;
-using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.ApiLibrary.Contract;
 using Lykke.Common.ApiLibrary.Exceptions;
-using Lykke.Common.ApiLibrary.Validation;
 using Lykke.Common.Log;
 using Lykke.Service.OAuth.ApiErrorCodes;
 using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebAuth.Models;
 
@@ -64,27 +56,29 @@ namespace Lykke.Service.OAuth.Controllers
         /// <response code="200">The id of the registration has been started</response>
         /// <response code="400">Request validation failed</response>
         /// <response code="404">Registration id not found</response>
-        /// <returns></returns>
         [HttpPost]
         [SwaggerOperation("InitialInfo")]
         [ProducesResponseType(typeof(RegistrationResponse), (int) HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ErrorResponse), (int) HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
         [Route("initialInfo")]
         [ValidateApiModel]
         public async Task<IActionResult> InitialInfo([FromBody] RegistrationRequestModel registrationRequestModel)
         {
             try
             {
-                var passwordValidationResult = await _passwordValidationService.ValidateAsync(registrationRequestModel.Password);
-                                
+                var registrationModel = await _registrationRepository.GetAsync(registrationRequestModel.RegistrationId);
+
+                var passwordValidationResult =
+                    await _passwordValidationService.ValidateAsync(registrationRequestModel.Password);
+
                 if (!passwordValidationResult.IsValid)
                 {
-                    var apiError = PasswordValidationApiErrorCodes.GetApiErrorCodeByValidationErrorCode(passwordValidationResult.Error);
+                    var apiError =
+                        PasswordValidationApiErrorCodes.GetApiErrorCodeByValidationErrorCode(passwordValidationResult
+                            .Error);
                     throw LykkeApiErrorException.BadRequest(apiError);
                 }
-
-                var registrationModel = await _registrationRepository.GetAsync(registrationRequestModel.RegistrationId);
 
                 registrationModel.SetInitialInfo(registrationRequestModel.ToDto());
 
@@ -94,16 +88,14 @@ namespace Lykke.Service.OAuth.Controllers
             }
             catch (RegistrationKeyNotFoundException)
             {
-                throw LykkeApiErrorException.NotFound(LykkeApiErrorCodes.RegistrationNotFound);
+                throw LykkeApiErrorException.NotFound(RegistrationErrorCodes.RegistrationNotFound);
             }
             catch (PasswordIsNotComplexException)
             {
-                var apiError = PasswordValidationApiErrorCodes.GetApiErrorCodeByValidationErrorCode(PasswordValidationErrorCode.PasswordIsNotComplex);
+                var apiError = PasswordValidationApiErrorCodes.GetApiErrorCodeByValidationErrorCode(
+                    PasswordValidationErrorCode.PasswordIsNotComplex);
+
                 throw LykkeApiErrorException.BadRequest(apiError);
-            }
-            catch (ArgumentException)
-            {
-                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.InvalidInput);
             }
         }
 
@@ -114,15 +106,14 @@ namespace Lykke.Service.OAuth.Controllers
         /// <response code="200">The current state of registration</response>
         /// <response code="400">Request validation failed</response>
         /// <response code="404">Registration id not found</response>
-        /// <returns></returns>
         [HttpGet]
         [SwaggerOperation("Status")]
-        [ProducesResponseType(typeof(RegistrationStatusResponse), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(void), (int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(RegistrationStatusResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(void), (int) HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
         [Route("status/{registrationId}")]
         [ValidateApiModel]
-        public async Task<IActionResult> Status([Required]string registrationId)
+        public async Task<IActionResult> Status([Required] string registrationId)
         {
             try
             {
@@ -131,7 +122,7 @@ namespace Lykke.Service.OAuth.Controllers
             }
             catch (RegistrationKeyNotFoundException)
             {
-                throw LykkeApiErrorException.NotFound(LykkeApiErrorCodes.RegistrationNotFound);
+                throw LykkeApiErrorException.NotFound(RegistrationErrorCodes.RegistrationNotFound);
             }
         }
 
@@ -144,8 +135,8 @@ namespace Lykke.Service.OAuth.Controllers
         [HttpPost]
         [Route("email")]
         [SwaggerOperation("ValidateEmail")]
-        [ProducesResponseType(typeof(EmailValidationResult), (int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(EmailValidationResult), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.BadRequest)]
         [ValidateApiModel]
         public async Task<IActionResult> ValidateEmail([FromBody] ValidateEmailRequest request)
         {
@@ -157,35 +148,35 @@ namespace Lykke.Service.OAuth.Controllers
                 {
                     var registrationModel = new RegistrationModel(request.Email);
                     var registrationId = await _registrationRepository.AddAsync(registrationModel);
-                    return Ok(new EmailValidationResult { IsEmailTaken = false, RegistrationId = registrationId });
+                    return Ok(new EmailValidationResult {IsEmailTaken = false, RegistrationId = registrationId});
                 }
 
-                return Ok(new EmailValidationResult { IsEmailTaken = true });
+                return Ok(new EmailValidationResult {IsEmailTaken = true});
             }
             catch (EmailHashInvalidException e)
             {
                 _log.Warning("Invalid hash has been provided for email", e, $"email = {e.Email}");
 
-                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.InvalidBCryptHash);
+                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.InvalidBCryptHash);
             }
             catch (BCryptWorkFactorOutOfRangeException e)
             {
                 _log.Warning("BCrypt work factor is out of range", e, $"workFactor = {e.WorkFactor}");
 
-                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.BCryptWorkFactorOutOfRange);
+                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.BCryptWorkFactorOutOfRange);
             }
             catch (BCryptInternalException e)
             {
                 _log.Warning("BCrypt internal exception", e.InnerException,
                     $"email = {request.Email}, hash = {request.Hash}");
 
-                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.BCryptInternalError);
+                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.BCryptInternalError);
             }
             catch (BCryptHashFormatException e)
             {
                 _log.Warning(e.Message, e, $"hash = {e.Hash}");
 
-                throw LykkeApiErrorException.BadRequest(LykkeApiErrorCodes.InvalidBCryptHashFormat);
+                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.InvalidBCryptHashFormat);
             }
         }
     }
