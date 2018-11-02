@@ -17,11 +17,19 @@ body {
     .lykke-page-title {
       font-size: 32px;
       font-size: 2rem; } }
+  @media all and (max-width: 480px) {
+    .lykke-page-title {
+      font-size: 20px;
+      line-height: 1.2; } }
 
 .lykke-page-subtitle {
   font-size: 17px;
   line-height: 1.29;
   color: #657180; }
+  @media all and (max-width: 480px) {
+    .lykke-page-subtitle {
+      font-size: 16px;
+      line-height: 1.38; } }
 
 .lykke-form-group {
   text-align: left;
@@ -33,6 +41,13 @@ body {
   line-height: 1.56;
   color: #111; }
 
+.lykke-error-label {
+  position: absolute;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.54;
+  color: #ff3e2e; }
+
 .lykke-input {
   font-size: 16px;
   padding: 13px 20px;
@@ -41,6 +56,8 @@ body {
   width: 100%;
   height: 50px;
   color: #333; }
+  .lykke-input.ng-touched.ng-invalid, .lykke-input_error {
+    border-color: #ff3e2e; }
   .lykke-input::-moz-placeholder {
     color: #b2b8bf; }
   .lykke-input::-webkit-input-placeholder {
@@ -80,6 +97,9 @@ body {
     letter-spacing: normal; }
   .lykke-button_colored {
     background-image: linear-gradient(to right, #ff9100, #ff0029 50%, #ab00ff); }
+  @media all and (max-width: 480px) {
+    .lykke-button {
+      width: 100%; } }
 
 .lykke-terms {
   font-size: 14px;
@@ -89,10 +109,20 @@ body {
     text-decoration: underline;
     color: #3f4d60; }
 
+.initial-spinner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  padding-top: 45vh; }
+
 .signup-page {
   display: flex; }
   .signup-page .ui-carousel {
     width: 46.875vh;
+    max-width: 46.875vmin;
     margin-bottom: 0; }
     .signup-page .ui-carousel_loading {
       opacity: 0; }
@@ -110,6 +140,7 @@ body {
       height: 100vh; }
     .signup-page .ui-carousel .carousel-item__text {
       width: 46.875vh;
+      max-width: 46.875vmin;
       position: absolute;
       bottom: 5%;
       font-size: 20px;
@@ -119,9 +150,15 @@ body {
     @media all and (max-width: 767px) {
       .signup-page .ui-carousel {
         display: none; } }
+    @media all and (max-height: 480px) {
+      .signup-page .ui-carousel {
+        display: none; } }
   .signup-page__form {
     width: 100%;
     padding: 25px 40px; }
+    @media all and (max-width: 480px) {
+      .signup-page__form {
+        padding: 25px 32px; } }
   .signup-page__signin-link {
     font-size: 16px;
     line-height: 1.63;
@@ -139,7 +176,7 @@ body {
         .signup-page__signin-link_mobile {
           display: block; } }
   .signup-page__mobile-logo {
-    position: fixed;
+    position: absolute;
     top: 32px;
     left: 32px;
     display: none; }
@@ -177,3 +214,6 @@ body {
     @media all and (max-width: 543px) {
       .signup-page .signup-form {
         width: 350px; } }
+    @media all and (max-width: 480px) {
+      .signup-page .signup-form {
+        width: 100%; } }
