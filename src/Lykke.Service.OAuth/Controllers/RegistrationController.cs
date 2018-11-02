@@ -54,7 +54,7 @@ namespace Lykke.Service.OAuth.Controllers
         /// </summary>
         /// <param name="registrationRequestModel"></param>
         /// <response code="200">The id of the registration has been started</response>
-        /// <response code="400">Request validation failed. Error codes: PasswordIsEmpty, PasswordIsPwned, PasswordIsNotComplex</response>
+        /// <response code="400">Request validation failed. Error codes: PasswordIsPwned, PasswordIsNotComplex</response>
         /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
         [HttpPost]
         [SwaggerOperation("InitialInfo")]
