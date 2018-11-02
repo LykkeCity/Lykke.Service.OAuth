@@ -3,10 +3,11 @@
 
     angular.module('app').controller('signupController', signupController);
 
-    signupController.$inject = ['signupService', 'signupStep', '$timeout', '$q'];
+    signupController.$inject = ['signupService', 'signupStep', '$timeout'];
 
-    function signupController(signupService, signupStep, $timeout, $q) {
+    function signupController(signupService, signupStep, $timeout) {
         var vm = this;
+        var currentStep = signupStep.initialInfo;
 
         function handleCarouselLoaded() {
             if (vm.data.isCarouselRendered) {
@@ -19,54 +20,32 @@
             }
         }
 
-        function validateEmail() {
-            var deferred = $q.defer();
-            var bcrypt = dcodeIO.bcrypt;
-            bcrypt.hash(vm.data.model.email, vm.data.bCryptWorkFactor, function (err, hash) {
-                if (err) {
-                    deferred.reject();
-                }
+        function isInitialInfoVisible() {
+            return currentStep === signupStep.initialInfo;
+        }
 
-                signupService.checkEmailTaken(vm.data.model.email, hash).then(function (data) {
-                    vm.data.registrationId = data.registrationId;
-                    deferred.resolve(data.isEmailTaken);
-                })
-            });
-            return deferred.promise;
+        function isAccountInfoVisible() {
+            return currentStep === signupStep.accountInformation;
         }
 
         function handleSubmit() {
             if (!vm.data.isSubmitting) {
                 vm.data.isSubmitting = true;
-                vm.data.isEmailTaken = false;
 
-                validateEmail().then(function (isEmailTaken) {
-                    if (isEmailTaken) {
-                        vm.data.isSubmitting = false;
-                        vm.data.isEmailTaken = isEmailTaken;
-                        return;
-                    }
-
-                    signupService.sendInitialInfo(
-                        vm.data.model.email,
-                        vm.data.model.password,
-                        vm.data.registrationId
-                    ).then(function (data) {
-                        vm.data.currentStep = signupStep.accountInformation;
-                    });
+                signupService.sendInitialInfo(
+                    vm.data.model.email,
+                    vm.data.model.password
+                ).then(function (data) {
+                    vm.data.isSubmitting = false;
+                    currentStep = signupStep.accountInformation;
                 });
             }
         }
 
         vm.data = {
-            steps: signupStep,
-            bCryptWorkFactor: 0,
             isCarouselRendered: false,
             loaded: false,
             isSubmitting: false,
-            isEmailTaken: false,
-            currentStep: signupStep.initialInfo,
-            registrationId: '',
             model: {
                 email: '',
                 password: ''
@@ -80,17 +59,16 @@
                     imageSrc: '/images/carousel/rectangle-3.png',
                     text: 'Thank-you very much for your support... The service by Lykke is incredible. 👍🏻'
                 }
-            ],
-            countries: []
+            ]
         };
 
         vm.handlers = {
             handleCarouselLoaded: handleCarouselLoaded,
-            handleSubmit: handleSubmit
+            handleSubmit: handleSubmit,
+            isInitialInfoVisible: isInitialInfoVisible,
+            isAccountInfoVisible: isAccountInfoVisible
         };
 
-        signupService.getSettings().then(function (data) {
-            vm.data.bCryptWorkFactor = data.bCryptWorkFactor;
-        });
+        signupService.init();
     }
 })();

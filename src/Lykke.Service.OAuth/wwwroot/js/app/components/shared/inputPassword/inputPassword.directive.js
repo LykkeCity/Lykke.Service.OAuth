@@ -4,7 +4,18 @@
     var app = angular.module('app');
 
     app
-    .directive('inputPassword', ['inputPasswordController', function (inputPasswordController) {
+    .directive('inputPassword', function () {
+        function inputPasswordController() {
+            var vm = this;
+
+            function toggle() {
+                vm.isHidden = !vm.isHidden;
+            }
+
+            vm.toggle = toggle;
+            vm.isHidden = true;
+        }
+
         return {
             restrict: 'E',
             scope: {
@@ -17,5 +28,5 @@
             controller: inputPasswordController,
             templateUrl: '/js/app/components/shared/inputPassword/inputPassword.template.html'
         }
-    }]);
+    });
 })();

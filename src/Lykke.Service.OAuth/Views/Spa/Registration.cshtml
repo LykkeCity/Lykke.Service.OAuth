@@ -26,7 +26,7 @@
                 name="signupForm"
                 novalidate
                 autocomplete="off"
-                data-ng-show="vm.data.currentStep === vm.data.steps.initialInfo"
+                data-ng-show="vm.handlers.isInitialInfoVisible()"
                 data-ng-submit="signupForm.$valid && vm.handlers.handleSubmit()"
                 accessible-form
             >
@@ -38,7 +38,7 @@
                         name="email"
                         id="email"
                         type="email"
-                        data-ng-class="{'lykke-input': true, 'lykke-input_error': vm.data.isEmailTaken}"
+                        data-ng-class="{'lykke-input': true, 'lykke-input_error': signupForm.email.$error.emailTaken}"
                         placeholder="Enter your email"
                         required
                         email-taken
@@ -47,7 +47,7 @@
                     />
                     <div class="lykke-error-label" data-ng-show="signupForm.email.$error.required && signupForm.email.$touched">This field is mandatory</div>
                     <div class="lykke-error-label" data-ng-show="signupForm.email.$error.email && signupForm.email.$touched">Wrong email format</div>
-                    <div class="lykke-error-label" data-ng-show="vm.data.isEmailTaken && signupForm.email.$touched">This Email is taken</div>
+                    <div class="lykke-error-label" data-ng-show="signupForm.email.$error.emailTaken && signupForm.email.$touched">This Email is taken</div>
                 </div>
                 <div class="lykke-form-group">
                     <label class="lykke-label">Password*</label>
@@ -58,18 +58,18 @@
                     ></input-password>
                     <div class="lykke-error-label" data-ng-show="signupForm.password.$error.required && signupForm.password.$touched">This field is mandatory</div>
                 </div>
-                <div data-ng-show="vm.data.isSubmitting" class="spinner_container">
+                <div data-ng-show="vm.data.isSubmitting || signupForm.email.$pending.emailTaken" class="spinner_container">
                     <div class="spinner">
                         <div class="spinner__inside"></div>
                     </div>
                 </div>
-                <input data-ng-hide="vm.data.isSubmitting" type="submit" class="lykke-button lykke-button_colored" value="Register" />
+                <input data-ng-hide="vm.data.isSubmitting || signupForm.email.$pending.emailTaken" type="submit" class="lykke-button lykke-button_colored" value="Register" />
                 <terms></terms>
                 <div class="signup-page__signin-link signup-page__signin-link_mobile">
                     Already have an account? <a href="#">Sign In</a>
                 </div>
             </form>
-            <div data-ng-show="vm.data.currentStep === vm.data.steps.accountInformation">
+            <div data-ng-show="vm.handlers.isAccountInfoVisible()">
                 TODO: Step 2
             </div>
         </div>
@@ -88,9 +88,9 @@
         <script src="/js/app/components/signup/signup.service.js"></script>
         <script src="/js/app/components/signup/signup.controller.js"></script>
         <script src="/js/app/components/signup/signupStep.constant.js"></script>
-        <script src="/js/app/components/shared/inputPassword/inputPassword.controller.js"></script>
         <script src="/js/app/components/shared/inputPassword/inputPassword.directive.js"></script>
         <script src="/js/app/components/shared/accessibleForm/accessibleForm.directive.js"></script>
+        <script src="/js/app/components/shared/emailTaken/emailTaken.directive.js"></script>
         <script src="/js/app/components/shared/terms/terms.directive.js"></script>
     </environment>
     <environment names="Staging,Production">
