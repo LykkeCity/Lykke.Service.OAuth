@@ -1,4 +1,5 @@
 ﻿using System;
+using Common;
 using Common.PasswordTools;
 using Core.Exceptions;
 using MessagePack;
@@ -44,17 +45,19 @@ namespace Core.Registration
         {
             if (registrationDto.Email != Email)
                 throw new ArgumentException("Email doesn't match to verified one.");
-            if (IsPasswordPwnd())
-                throw new PasswordIsPwndException();
+            if (!IsPasswordComplex(registrationDto.Password))
+                throw new ArgumentException(
+                    @"Minimum 8 characters and must include 1 uppercase letter, 1 lowercase letter and 1 special character."
+                );
+
             ClientId = registrationDto.ClientId;
             this.SetPassword(registrationDto.Password);
             RegistrationStep = RegistrationStep.AccountInformation;
         }
 
-        private bool IsPasswordPwnd()
+        private bool IsPasswordComplex(string password)
         {
-            //todo: use verification service
-            return false;
+            return password.IsPasswordComplex(8, 128, true, false);
         }
     }
 }

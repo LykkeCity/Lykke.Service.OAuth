@@ -8,6 +8,8 @@ namespace WebAuth.Tests.Registration
     public class RegistrationModelTests
     {
         private const string ValidEmail = "test@test.com";
+        private const string ComplexPassword = "QWEqwe123!";
+
         [Theory]
         [InlineData(ValidEmail)]
         [InlineData("invalid_email")]
@@ -56,7 +58,7 @@ namespace WebAuth.Tests.Registration
             var registrationDto = new RegistrationDto
             {
                 Email = ValidEmail,
-                Password = "123",
+                Password = ComplexPassword,
                 ClientId = "123"
             };
 
@@ -72,11 +74,14 @@ namespace WebAuth.Tests.Registration
             var registrationDto = new RegistrationDto
             {
                 Email = "email2@test.com",
-                Password = "123",
+                Password = ComplexPassword,
                 ClientId = "123"
             };
 
-            Assert.Throws<ArgumentException>(() => model.SetInitialInfo(registrationDto));
+            Action initialInfo = () => model.SetInitialInfo(registrationDto);
+
+            initialInfo.Should().Throw<ArgumentException>()
+                .WithMessage("Email doesn't match to verified one.");
         }
 
         [Fact]
@@ -87,7 +92,7 @@ namespace WebAuth.Tests.Registration
             var registrationDto = new RegistrationDto
             {
                 Email = ValidEmail,
-                Password = "321",
+                Password = ComplexPassword,
                 ClientId = clientId
             };
 
@@ -100,7 +105,7 @@ namespace WebAuth.Tests.Registration
         public void SetInitialInfo_WhenPasswordIsPassed_FillsSaltAndHash()
         {
             var model = new RegistrationModel(ValidEmail);
-            var password = "123";
+            var password = ComplexPassword;
             var registrationDto = new RegistrationDto
             {
                 Email = ValidEmail,
@@ -112,6 +117,52 @@ namespace WebAuth.Tests.Registration
 
             model.Salt.Should().NotBeEmpty();
             model.Hash.Should().NotBe(password);
+        }
+
+        [Theory]
+        [InlineData("qweQWE123!")]
+        [InlineData("12345%aA")]
+        [InlineData("aA1!zzzz")]
+        [InlineData("5FD924625F6AB16A19CC9807C7C506AE1813490E4BA675F843D5A10E0BAACDb!")]
+        public void InitialInfo_WhenPasswordIsComplex_ShouldWork(string password)
+        {
+            var model = new RegistrationModel(ValidEmail);
+
+            var registrationDto = new RegistrationDto
+            {
+                Email = ValidEmail,
+                Password = password,
+                ClientId = "321"
+            };
+
+            model.SetInitialInfo(registrationDto);
+
+            model.Should().NotBeNull();
+        }
+
+        [Theory]
+        [InlineData("12345678")]
+        [InlineData("1234567a")]
+        [InlineData("123456aA")]
+        [InlineData("aA1!")]
+        [InlineData("aA1!zxc")]
+        [InlineData("")]
+        [InlineData(null)]
+        public void InitialInfo_WhenPasswordIsNotComplex_ShouldThrowException(string password)
+        {
+            var model = new RegistrationModel(ValidEmail);
+
+            var registrationDto = new RegistrationDto
+            {
+                Email = ValidEmail,
+                Password = password,
+                ClientId = "321"
+            };
+
+            Action initialInfo = () => model.SetInitialInfo(registrationDto);
+
+            initialInfo.Should().Throw<ArgumentException>()
+                .WithMessage("Minimum 8 characters and must include 1 uppercase letter, 1 lowercase letter and 1 special character.");
         }
     }
 }
