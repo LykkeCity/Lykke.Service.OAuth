@@ -38,7 +38,7 @@ namespace Lykke.Service.OAuth.Controllers
         /// <param name="passwordValidationService"></param>
         /// <param name="logFactory"></param>
         public RegistrationController(
-            [NotNull] IRegistrationRepository registrationRepository, 
+            [NotNull] IRegistrationRepository registrationRepository,
             [NotNull] IEmailValidationService emailValidationService,
             IPasswordValidationService passwordValidationService,
             [NotNull] ILogFactory logFactory)
@@ -54,8 +54,8 @@ namespace Lykke.Service.OAuth.Controllers
         /// </summary>
         /// <param name="registrationRequestModel"></param>
         /// <response code="200">The id of the registration has been started</response>
-        /// <response code="400">Request validation failed</response>
-        /// <response code="404">Registration id not found</response>
+        /// <response code="400">Request validation failed. Error codes: PasswordIsEmpty, PasswordIsPwned, PasswordIsNotComplex</response>
+        /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
         [HttpPost]
         [SwaggerOperation("InitialInfo")]
         [ProducesResponseType(typeof(RegistrationResponse), (int) HttpStatusCode.OK)]
@@ -105,7 +105,7 @@ namespace Lykke.Service.OAuth.Controllers
         /// <param name="registrationId">The id of registration</param>
         /// <response code="200">The current state of registration</response>
         /// <response code="400">Request validation failed</response>
-        /// <response code="404">Registration id not found</response>
+        /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
         [HttpGet]
         [SwaggerOperation("Status")]
         [ProducesResponseType(typeof(RegistrationStatusResponse), (int) HttpStatusCode.OK)]
@@ -131,7 +131,7 @@ namespace Lykke.Service.OAuth.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <response code="200">Validation result</response>
-        /// <response code="400">Email hash is invalid, BCrypt work factor is invalid, BCrypt internal exception occured, BCrypt hash format is invalid</response>
+        /// <response code="400">Email hash is invalid, BCrypt work factor is invalid, BCrypt internal exception occured, BCrypt hash format is invalid. Error codes: InvalidBCryptHash, BCryptWorkFactorOutOfRange, BCryptInternalError, InvalidBCryptHashFormat </response>
         [HttpPost]
         [Route("email")]
         [SwaggerOperation("ValidateEmail")]
