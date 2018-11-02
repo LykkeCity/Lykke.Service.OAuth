@@ -5,6 +5,7 @@
 
   .ui-carousel {
     width: 46.875vh;
+    max-width: 46.875vmin;
     margin-bottom: 0;
 
     &_loading {
@@ -36,6 +37,7 @@
 
       &__text {
         width: 46.875vh;
+        max-width: 46.875vmin;
         position: absolute;
         bottom: 5%;
         font-size: 20px;
@@ -48,11 +50,19 @@
     @media all and (max-width: $screen-landscape) {
       display: none;
     }
+
+    @media all and (max-height: $screen-mobile-tiny) {
+      display: none;
+    }
   }
 
   &__form {
     width: 100%;
     padding: 25px 40px;
+
+    @media all and (max-width: $screen-mobile-tiny) {
+      padding: 25px 32px;
+    }
   }
 
   &__signin-link {
@@ -78,7 +88,7 @@
   }
 
   &__mobile-logo {
-    position: fixed;
+    position: absolute;
     top: 32px;
     left: 32px;
     display: none;
@@ -128,6 +138,10 @@
 
     @media all and (max-width: $screen-mobile) {
       width: 350px;
+    }
+
+    @media all and (max-width: $screen-mobile-tiny) {
+      width: 100%;
     }
   }
 }
