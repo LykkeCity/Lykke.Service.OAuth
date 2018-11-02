@@ -73,12 +73,11 @@ namespace Lykke.Service.OAuth.Controllers
                                 
                 if (!passwordValidationResult.IsValid)
                 {
-                    var apiError = PasswordValidationApiErrorCodes.GetApiErrorByValidationErrorCode(passwordValidationResult.Error);
+                    var apiError = PasswordValidationApiErrorCodes.GetApiErrorCodeByValidationErrorCode(passwordValidationResult.Error);
                     throw LykkeApiErrorException.BadRequest(apiError);
                 }
 
                 var registrationModel = await _registrationRepository.GetAsync(registrationRequestModel.RegistrationId);
-
 
                 registrationModel.SetInitialInfo(registrationRequestModel.ToDto());
 
@@ -90,9 +89,10 @@ namespace Lykke.Service.OAuth.Controllers
             {
                 return NotFound(ErrorResponse.Create(registrationRequestModel.RegistrationId));
             }
-            catch (PasswordIsPwndException)
+            catch (PasswordIsNotComplexException)
             {
-                return BadRequest(ErrorResponse.Create("Please, try to choose another password. This one is unsafe."));
+                var apiError = PasswordValidationApiErrorCodes.GetApiErrorCodeByValidationErrorCode(PasswordValidationErrorCode.PasswordIsNotComplex);
+                throw LykkeApiErrorException.BadRequest(apiError);
             }
             catch (ArgumentException e)
             {

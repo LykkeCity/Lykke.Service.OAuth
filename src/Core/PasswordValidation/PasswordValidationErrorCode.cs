@@ -13,6 +13,11 @@
         /// <summary>
         ///     Password was compromised earlier.
         /// </summary>
-        PasswordIsPwned
+        PasswordIsPwned,
+
+        /// <summary>
+        /// Password is not complex enough.
+        /// </summary>
+        PasswordIsNotComplex
     }
 }
