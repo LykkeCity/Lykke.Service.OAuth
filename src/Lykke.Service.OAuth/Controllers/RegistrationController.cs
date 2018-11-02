@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
+using Core.Application;
 using Core.Exceptions;
 using Core.PasswordValidation;
 using Core.Registration;
@@ -30,6 +31,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IEmailValidationService _emailValidationService;
         private readonly IPasswordValidationService _passwordValidationService;
         private readonly ILog _log;
+        private readonly IApplicationRepository _applicationRepository;
 
         /// <summary>
         /// Ctor
@@ -39,11 +41,13 @@ namespace Lykke.Service.OAuth.Controllers
         /// <param name="passwordValidationService"></param>
         /// <param name="logFactory"></param>
         public RegistrationController(
-            [NotNull] IRegistrationRepository registrationRepository, 
-            [NotNull] IEmailValidationService emailValidationService,
+            IRegistrationRepository registrationRepository, 
+            IEmailValidationService emailValidationService,
             IPasswordValidationService passwordValidationService,
-            [NotNull] ILogFactory logFactory)
+            ILogFactory logFactory,
+            IApplicationRepository applicationRepository)
         {
+            _applicationRepository = applicationRepository;
             _registrationRepository = registrationRepository;
             _emailValidationService = emailValidationService;
             _passwordValidationService = passwordValidationService;
@@ -69,6 +73,10 @@ namespace Lykke.Service.OAuth.Controllers
         {
             try
             {
+                var client = _applicationRepository.GetByIdAsync(registrationRequestModel.ClientId);
+                if (client == null)
+                    throw LykkeApiErrorException.NotFound(OAuthErrorCodes.ClientNotFound);
+
                 var passwordValidationResult = await _passwordValidationService.ValidateAsync(registrationRequestModel.Password);
                                 
                 if (!passwordValidationResult.IsValid)
