@@ -7,7 +7,6 @@
 
     function signupController(signupService, signupStep, $timeout) {
         var vm = this;
-        var currentStep = signupStep.initialInfo;
 
         function handleCarouselLoaded() {
             if (vm.data.isCarouselRendered) {
@@ -20,14 +19,6 @@
             }
         }
 
-        function isInitialInfoVisible() {
-            return currentStep === signupStep.initialInfo;
-        }
-
-        function isAccountInfoVisible() {
-            return currentStep === signupStep.accountInformation;
-        }
-
         function handleSubmit() {
             if (!vm.data.isSubmitting) {
                 vm.data.isSubmitting = true;
@@ -37,7 +28,7 @@
                     vm.data.model.password
                 ).then(function (data) {
                     vm.data.isSubmitting = false;
-                    currentStep = signupStep.accountInformation;
+                    vm.data.currentStep = signupStep.accountInformation;
                 });
             }
         }
@@ -46,6 +37,7 @@
             isCarouselRendered: false,
             loaded: false,
             isSubmitting: false,
+            currentStep: signupStep.initialInfo,
             model: {
                 email: '',
                 password: ''
@@ -64,9 +56,7 @@
 
         vm.handlers = {
             handleCarouselLoaded: handleCarouselLoaded,
-            handleSubmit: handleSubmit,
-            isInitialInfoVisible: isInitialInfoVisible,
-            isAccountInfoVisible: isAccountInfoVisible
+            handleSubmit: handleSubmit
         };
 
         signupService.init();
