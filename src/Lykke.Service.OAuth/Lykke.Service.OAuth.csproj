@@ -10,10 +10,14 @@
     <DefaultItemExcludes>wwwroot/node_modules/**;$(DefaultItemExcludes)</DefaultItemExcludes>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp2.0\Lykke.Service.OAuth.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
+    <DocumentationFile>bin\Release\netcoreapp2.0\Lykke.Service.OAuth.xml</DocumentationFile>
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Update="wwwroot\**\*;Views\**\*;Areas\**\Views;Messages\**\*;Dockerfile">
