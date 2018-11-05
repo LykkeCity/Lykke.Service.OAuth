@@ -2,7 +2,6 @@
 using Common;
 using Common.PasswordTools;
 using Core.Exceptions;
-using Core.PasswordValidation;
 using MessagePack;
 
 namespace Core.Registration
@@ -10,7 +9,7 @@ namespace Core.Registration
     [MessagePackObject(keyAsPropertyName: true)]
     public class RegistrationModel : IPasswordKeeping
     {
-        public string RegistrationId { get; }
+        public string RegistrationId { get; private set; }
         public string Hash { get; set; }
         public string Salt { get; set; }
         public string Email { get; }
@@ -57,6 +56,11 @@ namespace Core.Registration
         private bool IsPasswordComplex(string password)
         {
             return password.IsPasswordComplex(8, 128, true, false);
+        }
+
+        public void SetRegistrationId(string registrationId)
+        {
+            RegistrationId = registrationId;
         }
     }
 }
