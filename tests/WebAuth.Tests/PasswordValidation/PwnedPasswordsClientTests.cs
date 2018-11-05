@@ -28,7 +28,7 @@ namespace WebAuth.Tests.PasswordValidation
         //public async Task HasPasswordBeenPwned_ClientThrowsException_ReturnsTrue()
 
         [Fact]
-        public async Task HasPasswordBeenPwned_ClientReturnsNot200StatusCode_ReturnsTrue()
+        public async Task HasPasswordBeenPwned_ClientReturnsNot200StatusCode_ReturnsFalse()
         {
             // Arrange
             using (var fakeHttpClient = new HttpClient(new FakeHttpMessageHandler()))
@@ -42,12 +42,12 @@ namespace WebAuth.Tests.PasswordValidation
                 var isPwned = await service.HasPasswordBeenPwnedAsync(TestPassword);
 
                 // Assert
-                isPwned.Should().BeTrue();
+                isPwned.Should().BeFalse();
             }
         }
 
         [Fact]
-        public async Task HasPasswordBeenPwned_ExceptionThrown_ReturnsTrue()
+        public async Task HasPasswordBeenPwned_ExceptionThrown_ReturnsFalse()
         {
             // Arrange
             using (var fakeHttpClient = new HttpClient(new ThrowExceptionMessageHandler()))
@@ -60,7 +60,7 @@ namespace WebAuth.Tests.PasswordValidation
                 var isPwned = await service.HasPasswordBeenPwnedAsync(TestPassword);
 
                 // Assert
-                isPwned.Should().BeTrue();
+                isPwned.Should().BeFalse();
             }
         }
 
