@@ -1,4 +1,5 @@
 ﻿using System;
+using Core.Exceptions;
 using Core.Registration;
 using FluentAssertions;
 using Xunit;
@@ -161,8 +162,7 @@ namespace WebAuth.Tests.Registration
 
             Action initialInfo = () => model.SetInitialInfo(registrationDto);
 
-            initialInfo.Should().Throw<ArgumentException>()
-                .WithMessage("Minimum 8 characters and must include 1 uppercase letter, 1 lowercase letter and 1 special character.");
+            initialInfo.Should().Throw<PasswordIsNotComplexException>();
         }
     }
 }
