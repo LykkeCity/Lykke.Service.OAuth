@@ -3,15 +3,21 @@
 
     angular.module('app').controller('signupController', signupController);
 
-    signupController.$inject = ['signupService', 'signupStep', '$timeout'];
+    signupController.$inject = ['signupService', 'signupStep', '$timeout', '$window'];
 
-    function signupController(signupService, signupStep, $timeout) {
+    function signupController(signupService, signupStep, $timeout, $window) {
         var vm = this;
+
+        function reInitCarousel() {
+            vm.data.isCarouselRendered = false;
+        }
 
         function handleCarouselLoaded() {
             if (vm.data.isCarouselRendered) {
                 vm.data.loaded = true;
+                angular.element($window).on('resize', reInitCarousel);
             } else {
+                angular.element($window).off('resize', reInitCarousel);
                 $timeout(function () {
                     vm.data.isCarouselRendered = true;
                     window.dispatchEvent(new Event('resize'));
