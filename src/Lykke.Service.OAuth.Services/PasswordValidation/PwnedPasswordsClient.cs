@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -50,14 +49,14 @@ namespace Lykke.Service.OAuth.Services.PasswordValidation
                     return isPwned;
                 }
 
-                _log.Warning($"Unexepected response from API: {response.StatusCode}");
+                _log.Warning($"Error calling Pwned Password API. Unexepected response from API: {response.StatusCode}. Assuming password is NOT pwned!");
             }
             catch (Exception ex)
             {
-                _log.Error(ex, "Error calling Pwned Password API. Assuming password is pwned!");
+                _log.Error(ex, "Error calling Pwned Password API. Assuming password is NOT pwned!");
             }
 
-            return true;
+            return false;
         }
 
         /// <summary>
