@@ -71,7 +71,7 @@ namespace Lykke.Service.OAuth.Controllers
         {
             try
             {
-                var client = _applicationRepository.GetByIdAsync(registrationRequestModel.ClientId);
+                var client = await _applicationRepository.GetByIdAsync(registrationRequestModel.ClientId);
                 if (client == null)
                     throw LykkeApiErrorException.NotFound(OAuthErrorCodes.ClientNotFound);
                     
