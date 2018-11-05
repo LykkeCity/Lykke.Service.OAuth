@@ -9,6 +9,13 @@ body {
   display: none !important;
 }
 
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+
 .lykke-page-title {
   @include rem(font-size, 32px);
   font-weight: $fw-semi;
@@ -83,6 +90,12 @@ body {
 
   &:disabled {
     background-color: $gray-5;
+  }
+}
+
+.ng-submitted {
+  .ng-invalid, .lykke-input_error {
+    border-color: $orangey-red;
   }
 }
 
