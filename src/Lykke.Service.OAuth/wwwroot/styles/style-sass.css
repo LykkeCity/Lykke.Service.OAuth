@@ -4,6 +4,12 @@ body {
 [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
   display: none !important; }
 
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0; }
+
 .lykke-page-title {
   font-size: 32px;
   font-size: 2rem;
@@ -13,7 +19,7 @@ body {
   @media all and (max-width: 991px) {
     .lykke-page-title {
       font-size: 28px; } }
-  @media all and (max-width: 767px) {
+  @media all and (max-width: 768px) {
     .lykke-page-title {
       font-size: 32px;
       font-size: 2rem; } }
@@ -70,6 +76,9 @@ body {
     border-color: #0da7fc; }
   .lykke-input:disabled {
     background-color: #f5f6f7; }
+
+.ng-submitted .ng-invalid, .ng-submitted .lykke-input_error {
+  border-color: #ff3e2e; }
 
 .lykke-input-password {
   position: relative; }
@@ -147,7 +156,7 @@ body {
       padding: 48px;
       line-height: 1.6;
       color: #fff; }
-    @media all and (max-width: 767px) {
+    @media all and (max-width: 768px) {
       .signup-page .ui-carousel {
         display: none; } }
     @media all and (max-height: 480px) {
@@ -180,7 +189,7 @@ body {
     top: 32px;
     left: 32px;
     display: none; }
-    @media all and (max-width: 767px) {
+    @media all and (max-width: 768px) {
       .signup-page__mobile-logo {
         display: block; } }
     @media all and (max-width: 543px) {
@@ -190,14 +199,20 @@ body {
         left: 0;
         width: 100%;
         text-align: center; } }
+  .signup-page .current-step {
+    height: 100%; }
   .signup-page .signup-form {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    position: relative;
     height: 100%;
     width: 480px;
     margin: 0 auto;
     text-align: center; }
+    .signup-page .signup-form .spinner_container {
+      padding-top: 32px;
+      padding-bottom: 19px; }
     .signup-page .signup-form .lykke-page-title {
       margin-bottom: 18px; }
     .signup-page .signup-form .lykke-page-subtitle {
@@ -207,7 +222,7 @@ body {
     @media all and (max-width: 991px) {
       .signup-page .signup-form {
         width: 350px; } }
-    @media all and (max-width: 767px) {
+    @media all and (max-width: 768px) {
       .signup-page .signup-form {
         width: 480px;
         margin-top: 100px; } }

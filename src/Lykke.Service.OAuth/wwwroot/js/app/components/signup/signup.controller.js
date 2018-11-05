@@ -29,14 +29,28 @@
                 ).then(function (data) {
                     vm.data.isSubmitting = false;
                     vm.data.currentStep = signupStep.accountInformation;
+                }).catch(function (error) {
+                    var passwordIsPwnedError = 'PasswordIsPwned';
+                    vm.data.isSubmitting = false;
+                    vm.data.isPasswordPwned = passwordIsPwnedError === error.data.error;
                 });
             }
+        }
+
+        function handleEmailKeydown(form) {
+            form.$setPristine();
+            form.email.$setUntouched();
+        }
+
+        function handlePasswordKeydown() {
+            vm.data.isPasswordPwned = false;
         }
 
         vm.data = {
             isCarouselRendered: false,
             loaded: false,
             isSubmitting: false,
+            isPasswordPwned: false,
             currentStep: signupStep.initialInfo,
             model: {
                 email: '',
@@ -56,7 +70,9 @@
 
         vm.handlers = {
             handleCarouselLoaded: handleCarouselLoaded,
-            handleSubmit: handleSubmit
+            handleSubmit: handleSubmit,
+            handleEmailKeydown: handleEmailKeydown,
+            handlePasswordKeydown: handlePasswordKeydown
         };
 
         signupService.init();

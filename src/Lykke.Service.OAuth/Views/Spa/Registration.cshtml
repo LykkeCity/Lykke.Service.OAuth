@@ -21,7 +21,7 @@
             <div class="signup-page__signin-link">
                 Already have an account? <a href="#">Sign In</a>
             </div>
-            <div data-ng-switch="vm.data.currentStep">
+            <div class="current-step" data-ng-switch="vm.data.currentStep">
                 <form 
                     class="signup-form"
                     name="signupForm"
@@ -43,21 +43,26 @@
                             placeholder="Enter your email"
                             required
                             email-taken
+                            data-ng-keydown="vm.handlers.handleEmailKeydown(signupForm)"
                             data-ng-model="vm.data.model.email"
                             data-ng-model-options="{ updateOn: 'blur' }"
                         />
-                        <div class="lykke-error-label" data-ng-show="signupForm.email.$error.required && signupForm.email.$touched">This field is mandatory</div>
-                        <div class="lykke-error-label" data-ng-show="signupForm.email.$error.email && signupForm.email.$touched">Wrong email format</div>
-                        <div class="lykke-error-label" data-ng-show="signupForm.email.$error.emailTaken && signupForm.email.$touched">This Email is taken</div>
+                        <div class="lykke-error-label" data-ng-show="signupForm.email.$error.required && (signupForm.email.$touched || signupForm.$submitted)">This field is mandatory</div>
+                        <div class="lykke-error-label" data-ng-show="signupForm.email.$error.email && (signupForm.email.$touched || signupForm.$submitted)">Wrong email format</div>
+                        <div class="lykke-error-label" data-ng-show="signupForm.email.$error.emailTaken && (signupForm.email.$touched || signupForm.$submitted)">Email is already taken</div>
                     </div>
                     <div class="lykke-form-group">
                         <label class="lykke-label">Password*</label>
                         <input-password
                             placeholder="Minimum 8 characters"
                             data-ng-model="vm.data.model.password"
+                            data-ng-keydown="vm.handlers.handlePasswordKeydown()"
+                            data-has-error="vm.data.isPasswordPwned"
                             name="password"
                         ></input-password>
-                        <div class="lykke-error-label" data-ng-show="signupForm.password.$error.required && signupForm.password.$touched">This field is mandatory</div>
+                        <div class="lykke-error-label" data-ng-show="signupForm.password.$error.required && (signupForm.password.$touched || signupForm.$submitted)">This field is mandatory</div>
+                        <div class="lykke-error-label" data-ng-show="signupForm.password.$error.strongPassword && (signupForm.password.$touched || signupForm.$submitted)">Password should contain minimum 8 characters, 1 lowecase, 1 uppercase and 1 special character</div>
+                        <div class="lykke-error-label" data-ng-show="vm.data.isPasswordPwned && (signupForm.password.$touched || signupForm.$submitted)">Password have been exposed in data breaches</div>
                     </div>
                     <div data-ng-show="vm.data.isSubmitting || signupForm.email.$pending.emailTaken" class="spinner_container">
                         <div class="spinner">
@@ -93,6 +98,7 @@
         <script src="/js/app/components/shared/inputPassword/inputPassword.directive.js"></script>
         <script src="/js/app/components/shared/accessibleForm/accessibleForm.directive.js"></script>
         <script src="/js/app/components/shared/emailTaken/emailTaken.directive.js"></script>
+        <script src="/js/app/components/shared/strongPassword/strongPassword.directive.js"></script>
         <script src="/js/app/components/shared/terms/terms.directive.js"></script>
     </environment>
     <environment names="Staging,Production">

@@ -93,6 +93,7 @@
       "wwwroot/js/app/components/shared/inputPassword/inputPassword.directive.js",
       "wwwroot/js/app/components/shared/accessibleForm/accessibleForm.directive.js",
       "wwwroot/js/app/components/shared/emailTaken/emailTaken.directive.js",
+      "wwwroot/js/app/components/shared/strongPassword/strongPassword.directive.js",
       "wwwroot/js/app/components/shared/terms/terms.directive.js"
     ],
     "minify": {

@@ -20,6 +20,7 @@
             restrict: 'E',
             scope: {
                 ngModel: '=',
+                hasError: '=',
                 placeholder: '@',
                 name: '@'
             },
