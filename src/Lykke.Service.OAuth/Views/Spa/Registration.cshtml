@@ -28,7 +28,7 @@
                     novalidate
                     autocomplete="off"
                     data-ng-switch-when="InitialInfo"
-                    data-ng-submit="signupForm.$valid && vm.handlers.handleSubmit()"
+                    data-ng-submit="vm.handlers.handleSubmit(signupForm)"
                     accessible-form
                 >
                     <div class="lykke-page-title">Create your Lykke Account</div>
@@ -62,14 +62,14 @@
                         ></input-password>
                         <div class="lykke-error-label" data-ng-show="signupForm.password.$error.required && (signupForm.password.$touched || signupForm.$submitted)">This field is mandatory</div>
                         <div class="lykke-error-label" data-ng-show="signupForm.password.$error.strongPassword && (signupForm.password.$touched || signupForm.$submitted)">Password should contain minimum 8 characters, 1 lowecase, 1 uppercase and 1 special character</div>
-                        <div class="lykke-error-label" data-ng-show="vm.data.isPasswordPwned && (signupForm.password.$touched || signupForm.$submitted)">Password have been exposed in data breaches</div>
+                        <div class="lykke-error-label" data-ng-show="vm.data.isPasswordPwned && (signupForm.password.$touched || signupForm.$submitted)">It seems password you used has a history of being hacked. Please choose another one.</div>
                     </div>
-                    <div data-ng-show="vm.data.isSubmitting || signupForm.email.$pending.emailTaken" class="spinner_container">
+                    <div data-ng-show="vm.data.isSubmitting" class="spinner_container">
                         <div class="spinner">
                             <div class="spinner__inside"></div>
                         </div>
                     </div>
-                    <input data-ng-hide="vm.data.isSubmitting || signupForm.email.$pending.emailTaken" type="submit" class="lykke-button lykke-button_colored" value="Register" />
+                    <input data-ng-hide="vm.data.isSubmitting" type="submit" class="lykke-button lykke-button_colored" value="Register" />
                     <terms></terms>
                     <div class="signup-page__signin-link signup-page__signin-link_mobile">
                         Already have an account? <a href="#">Sign In</a>

@@ -206,7 +206,7 @@ input::-webkit-credentials-auto-fill-button {
     flex-direction: column;
     justify-content: center;
     position: relative;
-    height: 100%;
+    height: 99%;
     width: 480px;
     margin: 0 auto;
     text-align: center; }
