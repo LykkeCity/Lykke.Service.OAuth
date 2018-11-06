@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Core.Registration;
 using Core.Services;
-using JetBrains.Annotations;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 
@@ -12,11 +12,14 @@ namespace Lykke.Service.OAuth.Services
     {
         private readonly IClientAccountClient _clientAccountClient;
         private readonly IBCryptService _bCryptService;
+        private readonly IRegistrationRepository _registrationRepository;
 
         public EmailValidationService(
-            [NotNull] IClientAccountClient clientAccountClient, 
-            [NotNull] IBCryptService bCryptService)
+            IClientAccountClient clientAccountClient, 
+            IBCryptService bCryptService,
+            IRegistrationRepository registrationRepository)
         {
+            _registrationRepository = registrationRepository;
             _clientAccountClient = clientAccountClient;
             _bCryptService = bCryptService;
         }
@@ -31,6 +34,9 @@ namespace Lykke.Service.OAuth.Services
                 throw new ArgumentNullException(nameof(hash));
 
            _bCryptService.Verify(email, hash);
+
+            var isEmailUsedInRegistration = await _registrationRepository.IsEmailTaken(email);
+            if (isEmailUsedInRegistration) return true;
 
             AccountExistsModel accountExistsModel =
                 await _clientAccountClient.IsTraderWithEmailExistsAsync(email, null);

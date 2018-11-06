@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Core.Registration;
 using Core.Services;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.OAuth.Services;
@@ -18,7 +19,7 @@ namespace WebAuth.Tests.Services
         {
             InitMocks();
 
-            _service = new EmailValidationService(_clientAccountClientMock.Object, _bCryptServiceMock.Object);
+            _service = new EmailValidationService(_clientAccountClientMock.Object, _bCryptServiceMock.Object, new Mock<IRegistrationRepository>().Object);
         }
 
         [Theory]

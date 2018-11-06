@@ -10,6 +10,7 @@ using Core;
 using Core.Email;
 using Core.Extensions;
 using Core.Recaptcha;
+using Core.Registration;
 using Core.VerificationCodes;
 using JetBrains.Annotations;
 using Lykke.Common;
@@ -58,21 +59,24 @@ namespace WebAuth.Controllers
         };
         private readonly IIpGeoLocationClient _geoLocationClient;
         private readonly IEnumerable<CountryItem> _countries;
+        private readonly IRegistrationRepository _registrationRepository;
 
         public AuthenticationController(
-            [NotNull] IRegistrationServiceClient registrationClient,
-            [NotNull] IVerificationCodesService verificationCodesService,
-            [NotNull] IEmailFacadeService emailFacadeService,
-            [NotNull] ProfileActionHandler profileActionHandler,
-            [NotNull] IUserManager userManager,
-            [NotNull] IClientAccountClient clientAccountClient,
-            [NotNull] IRecaptchaService recaptchaService,
-            [NotNull] SecuritySettings securitySettings,
-            [NotNull] IConfirmationCodesClient confirmationCodesClient,
-            [NotNull] IIpGeoLocationClient geoLocationClient,
-            [NotNull] ILogFactory logFactory,
-            [NotNull] IClientSessionsClient clientSessionsClient)
+            IRegistrationServiceClient registrationClient,
+            IVerificationCodesService verificationCodesService,
+            IEmailFacadeService emailFacadeService,
+            ProfileActionHandler profileActionHandler,
+            IUserManager userManager,
+            IClientAccountClient clientAccountClient,
+            IRecaptchaService recaptchaService,
+            SecuritySettings securitySettings,
+            IConfirmationCodesClient confirmationCodesClient,
+            IIpGeoLocationClient geoLocationClient,
+            ILogFactory logFactory,
+            IClientSessionsClient clientSessionsClient,
+            IRegistrationRepository registrationRepository)
         {
+            _registrationRepository = registrationRepository;
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
             _emailFacadeService = emailFacadeService;
@@ -184,37 +188,7 @@ namespace WebAuth.Controllers
                 if (!ModelState.IsValid)
                     return View(viewName, model);
 
-                var authResult = await _registrationClient.LoginApi.AuthenticateAsync(new AuthenticateModel
-                {
-                    Email = model.Username,
-                    Password = model.Password,
-                    Ip = HttpContext.GetIp(),
-                    UserAgent = HttpContext.GetUserAgent(),
-                    PartnerId = model.PartnerId,
-                    Ttl = GetSessionTtl(platform)
-                });
-
-                if (authResult == null)
-                {
-                    ModelState.AddModelError("", "Technical problems during authorization.");
-                    return View(viewName, model);
-                }
-
-                if (authResult.Status == AuthenticationStatus.Error)
-                {
-                    ModelState.AddModelError("", "The username or password you entered is incorrect");
-                    return View(viewName, model);
-                }
-                var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, model.Username, authResult.Account.PartnerId, authResult.Token, false);
-
-                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
-
-                return RedirectToAction("Afterlogin",
-                    new RouteValueDictionary(new
-                    {
-                        platform = platform,
-                        returnUrl = model.ReturnUrl
-                    }));
+                return await HandleAuthenticationAsync(model, platform, viewName);
             }
 
             ModelState.ClearValidationState(nameof(model.Username));
@@ -246,6 +220,54 @@ namespace WebAuth.Controllers
             await _emailFacadeService.SendVerifyCode(model.Email, code.Code, url);
 
             return RedirectToAction("Signup", new { key = code.Key });
+        }
+
+        private async Task<ActionResult> HandleAuthenticationAsync(LoginViewModel model, string platform, string viewName)
+        {
+            var userModel = await _registrationRepository.GetAsync(model.Username, model.Password);
+            if (userModel != null)
+            {
+                if (platform == "android" || platform == "ios")
+                return new JsonResult(new AuthenticationResponseModel
+                {
+                    RegistrationId = userModel.RegistrationId
+                });
+
+                RedirectToAction("Registration", "Spa", userModel.RegistrationId);
+            }
+
+            var authResult = await _registrationClient.LoginApi.AuthenticateAsync(new AuthenticateModel
+            {
+                Email = model.Username,
+                Password = model.Password,
+                Ip = HttpContext.GetIp(),
+                UserAgent = HttpContext.GetUserAgent(),
+                PartnerId = model.PartnerId,
+                Ttl = GetSessionTtl(platform)
+            });
+
+            if (authResult == null)
+            {
+                ModelState.AddModelError("", "Technical problems during authorization.");
+                return View(viewName, model);
+            }
+
+            if (authResult.Status == AuthenticationStatus.Error)
+            {
+                ModelState.AddModelError("", "The username or password you entered is incorrect");
+                return View(viewName, model);
+            }
+            var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email,
+                model.Username, authResult.Account.PartnerId, authResult.Token, false);
+
+            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+
+            return RedirectToAction("Afterlogin",
+                new RouteValueDictionary(new
+                {
+                    platform = platform,
+                    returnUrl = model.ReturnUrl
+                }));
         }
 
         [HttpGet("~/signup/{key}")]
@@ -477,5 +499,10 @@ namespace WebAuth.Controllers
                         return null;
             }
         }
+    }
+
+    public class AuthenticationResponseModel
+    {
+        public string RegistrationId { get; set; }
     }
 }
