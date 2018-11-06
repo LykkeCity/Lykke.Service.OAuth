@@ -5,7 +5,7 @@ namespace Lykke.Service.OAuth.Models
     /// <summary>
     ///     Country model
     /// </summary>
-    public class RegistrationCountryViewModel
+    public class RegistrationCountryModel
     {
         /// <summary>
         ///     Iso2 country code.
@@ -22,7 +22,7 @@ namespace Lykke.Service.OAuth.Models
         /// </summary>
         public string PhonePrefix { get; }
 
-        public RegistrationCountryViewModel(CountryInfo countryInfo)
+        public RegistrationCountryModel(CountryInfo countryInfo)
         {
             Iso2 = countryInfo.Iso2;
             Name = countryInfo.Name;

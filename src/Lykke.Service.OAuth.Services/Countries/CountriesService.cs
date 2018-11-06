@@ -5,7 +5,6 @@ using Lykke.Common;
 
 namespace Lykke.Service.OAuth.Services.Countries
 {
-
     /// <inheritdoc />
     public class CountriesService : ICountriesService
     {
@@ -13,13 +12,13 @@ namespace Lykke.Service.OAuth.Services.Countries
         {
             var common = new CountryPhoneCodes();
             Countries = common.GetCountries().Select(item => new CountryInfo(item));
-            RestrictedCountriesOfResidenceIso2 = restrictedCountriesOfResidenceIso2;
+            RestrictedCountriesOfResidence = Countries.Where(info => restrictedCountriesOfResidenceIso2.Contains(info.Iso2));
         }
 
         /// <inheritdoc />
         public IEnumerable<CountryInfo> Countries { get; }
 
         /// <inheritdoc />
-        public IEnumerable<string> RestrictedCountriesOfResidenceIso2 { get; }
+        public IEnumerable<CountryInfo> RestrictedCountriesOfResidence { get; }
     }
 }

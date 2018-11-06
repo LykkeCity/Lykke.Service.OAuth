@@ -15,6 +15,6 @@ namespace Core.Countries
         /// <summary>
         ///     List of iso2 country codes, that are restricted as country of residence during registration process.
         /// </summary>
-        IEnumerable<string> RestrictedCountriesOfResidenceIso2 { get; }
+        IEnumerable<CountryInfo> RestrictedCountriesOfResidence { get; }
     }
 }

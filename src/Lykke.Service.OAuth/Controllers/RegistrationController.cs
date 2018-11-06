@@ -232,7 +232,7 @@ namespace Lykke.Service.OAuth.Controllers
             return new JsonResult(
                 new RegistrationCountriesResponse(
                     _countriesService.Countries,
-                    _countriesService.RestrictedCountriesOfResidenceIso2));
+                    _countriesService.RestrictedCountriesOfResidence));
         }
     }
 }
