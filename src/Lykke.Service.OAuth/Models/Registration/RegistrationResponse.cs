@@ -1,7 +1,7 @@
-﻿namespace WebAuth.Models
+﻿namespace Lykke.Service.OAuth.Models.Registration
 {
     /// <summary>
-    /// Registration responce
+    /// Registration response
     /// </summary>
     public class RegistrationResponse
     {

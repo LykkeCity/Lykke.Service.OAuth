@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Core.Registration;
 
-namespace Lykke.Service.OAuth.Models
+namespace Lykke.Service.OAuth.Models.Registration
 {
     /// <summary>
     /// The model for registration start
     /// </summary>
-    public class RegistrationRequestModel
+    public class InitialInfoRequestModel
     {
         /// <summary>
         /// User email
@@ -33,9 +33,9 @@ namespace Lykke.Service.OAuth.Models
         [Required]
         public string RegistrationId { get; set; }
 
-        public RegistrationDto ToDto()
+        public InitialInfoDto ToDto()
         {
-            return new RegistrationDto
+            return new InitialInfoDto
             {
                 Email = Email,
                 Password = Password,

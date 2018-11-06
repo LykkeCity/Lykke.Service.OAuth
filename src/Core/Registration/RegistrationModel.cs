@@ -41,7 +41,7 @@ namespace Core.Registration
             return enc.Substring(0, 22);
         }
 
-        public void SetInitialInfo(RegistrationDto registrationDto)
+        public void SetInitialInfo(InitialInfoDto registrationDto)
         {
             if (registrationDto.Email != Email)
                 throw new ArgumentException("Email doesn't match to verified one.");

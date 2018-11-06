@@ -1,6 +1,6 @@
 ﻿namespace Core.Registration
 {
-    public class RegistrationDto
+    public class InitialInfoDto
     {
         public string Email { get; set; }
         public string Password { get; set; }

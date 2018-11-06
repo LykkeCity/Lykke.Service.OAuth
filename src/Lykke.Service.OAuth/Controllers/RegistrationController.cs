@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
@@ -7,16 +8,15 @@ using Core.Exceptions;
 using Core.PasswordValidation;
 using Core.Registration;
 using Core.Services;
-using JetBrains.Annotations;
 using Lykke.Common.ApiLibrary.Contract;
 using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Common.Log;
 using Lykke.Service.OAuth.ApiErrorCodes;
 using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
+using Lykke.Service.OAuth.Models.Registration;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using WebAuth.Models;
 
 namespace Lykke.Service.OAuth.Controllers
 {
@@ -67,7 +67,7 @@ namespace Lykke.Service.OAuth.Controllers
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
         [Route("initialInfo")]
         [ValidateApiModel]
-        public async Task<IActionResult> InitialInfo([FromBody] RegistrationRequestModel registrationRequestModel)
+        public async Task<IActionResult> InitialInfo([FromBody] InitialInfoRequestModel registrationRequestModel)
         {
             try
             {
@@ -105,6 +105,23 @@ namespace Lykke.Service.OAuth.Controllers
 
                 throw LykkeApiErrorException.BadRequest(apiError);
             }
+        }
+
+        /// <summary>
+        /// Submits account information
+        /// </summary>
+        /// <param name="model"></param>
+        /// <response code="200">The id of the registration has been proceeded to the next step</response>
+        /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
+        [HttpPost]
+        [Route("accountInfo")]
+        [SwaggerOperation("AccountInfo")]
+        [ProducesResponseType(typeof(RegistrationResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
+        [ValidateApiModel]
+        public async Task<IActionResult> AccountInfo([FromBody] AccountInfoRequestModel model)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
