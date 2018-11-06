@@ -112,11 +112,13 @@ namespace Lykke.Service.OAuth.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <response code="200">The id of the registration has been proceeded to the next step</response>
+        /// <response code="400">Invalid country or phone number or phone number is already used</response>
         /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
         [HttpPost]
         [Route("accountInfo")]
         [SwaggerOperation("AccountInfo")]
         [ProducesResponseType(typeof(RegistrationResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
         [ValidateApiModel]
         public async Task<IActionResult> AccountInfo([FromBody] AccountInfoRequestModel model)
