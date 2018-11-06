@@ -12,7 +12,6 @@ using Core.Extensions;
 using Core.Recaptcha;
 using Core.Registration;
 using Core.VerificationCodes;
-using JetBrains.Annotations;
 using Lykke.Common;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
@@ -224,8 +223,8 @@ namespace WebAuth.Controllers
 
         private async Task<ActionResult> HandleAuthenticationAsync(LoginViewModel model, string platform, string viewName)
         {
-            var userModel = await _registrationRepository.GetAsync(model.Username, model.Password);
-            if (userModel != null)
+            var userModel = await _registrationRepository.GetByEmailAsync(model.Username);
+            if (userModel != null && userModel.CheckPassword(model.Password))
             {
                 if (platform == "android" || platform == "ios")
                 return new JsonResult(new AuthenticationResponseModel
@@ -499,10 +498,5 @@ namespace WebAuth.Controllers
                         return null;
             }
         }
-    }
-
-    public class AuthenticationResponseModel
-    {
-        public string RegistrationId { get; set; }
     }
 }

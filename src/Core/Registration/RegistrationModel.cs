@@ -63,9 +63,9 @@ namespace Core.Registration
             RegistrationId = registrationId;
         }
 
-        public bool IsEmailTaken()
+        public bool CanEmailBeUsed()
         {
-            return RegistrationStep != RegistrationStep.InitialInfo;
+            return RegistrationStep == RegistrationStep.InitialInfo;
         }
     }
 }

@@ -76,7 +76,7 @@ namespace Lykke.Service.OAuth.Controllers
                 if (client == null)
                     throw LykkeApiErrorException.NotFound(OAuthErrorCodes.ClientNotFound);
                     
-                var registrationModel = await _registrationRepository.GetAsync(registrationRequestModel.RegistrationId);
+                var registrationModel = await _registrationRepository.GetByIdAsync(registrationRequestModel.RegistrationId);
 
                 var passwordValidationResult =
                     await _passwordValidationService.ValidateAsync(registrationRequestModel.Password);
@@ -126,7 +126,7 @@ namespace Lykke.Service.OAuth.Controllers
         {
             try
             {
-                var registrationModel = await _registrationRepository.GetAsync(registrationId);
+                var registrationModel = await _registrationRepository.GetByIdAsync(registrationId);
                 return new JsonResult(registrationModel.RegistrationStep);
             }
             catch (RegistrationKeyNotFoundException)

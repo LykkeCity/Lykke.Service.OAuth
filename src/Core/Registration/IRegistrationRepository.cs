@@ -7,8 +7,7 @@ namespace Core.Registration
         Task<string> AddAsync(RegistrationModel registrationModel);
         Task<string> UpdateAsync(RegistrationModel registrationModel);
 
-        Task<RegistrationModel> GetAsync(string registrationId);
-        Task<RegistrationModel> GetAsync(string email, string password);
-        Task<bool> IsEmailTaken(string email);
+        Task<RegistrationModel> GetByIdAsync(string registrationId);
+        Task<RegistrationModel> GetByEmailAsync(string email);
     }
 }

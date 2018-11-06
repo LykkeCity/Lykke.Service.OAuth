@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
-using Common.PasswordTools;
 using Core.Exceptions;
 using Core.Registration;
 using Lykke.Common.Log;
@@ -43,7 +42,7 @@ namespace BusinessService
             return entity.RegistrationId;
         }
 
-        public async Task<RegistrationModel> GetAsync(string registrationId)
+        public async Task<RegistrationModel> GetByIdAsync(string registrationId)
         {
             var redisKey = ToRedisKey(registrationId);
             try
@@ -61,7 +60,7 @@ namespace BusinessService
             }
         }
 
-        public async Task<RegistrationModel> GetAsync(string email, string password)
+        public async Task<RegistrationModel> GetByEmailAsync(string email)
         {
             try
             {
@@ -76,36 +75,12 @@ namespace BusinessService
 
                 var model = MessagePackSerializer.Deserialize<RegistrationModel>(data);
 
-                return model.CheckPassword(password) ? model : null;
+                return model;
             }
             catch (Exception ex)
             {
                 _log.Error(ex);
                 return null;
-            }
-        }
-
-        public async Task<bool> IsEmailTaken(string email)
-        {
-            try
-            {
-                var emailRedisKey = GetEmailRedisKey(email);
-                var registrationId = await _database.StringGetAsync(emailRedisKey);
-                if (registrationId.IsNull)
-                    return false;
-
-                var redisKey = ToRedisKey(registrationId);
-                var data = await _database.StringGetAsync(redisKey);
-                if (data.IsNull) return false;
-
-                var model = MessagePackSerializer.Deserialize<RegistrationModel>(data);
-
-                return model.IsEmailTaken();
-            }
-            catch (Exception ex)
-            {
-                _log.Error(ex);
-                return false;
             }
         }
 
