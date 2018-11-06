@@ -62,7 +62,7 @@
                         ></input-password>
                         <div class="lykke-error-label" data-ng-show="signupForm.password.$error.required && (signupForm.password.$touched || signupForm.$submitted)">This field is mandatory</div>
                         <div class="lykke-error-label" data-ng-show="signupForm.password.$error.strongPassword && (signupForm.password.$touched || signupForm.$submitted)">Password should contain minimum 8 characters, 1 lowecase, 1 uppercase and 1 special character</div>
-                        <div class="lykke-error-label" data-ng-show="vm.data.isPasswordPwned && (signupForm.password.$touched || signupForm.$submitted)">It seams password you used has a history of being hacked. Please choose another one.</div>
+                        <div class="lykke-error-label" data-ng-show="vm.data.isPasswordPwned && (signupForm.password.$touched || signupForm.$submitted)">It seems password you used has a history of being hacked. Please choose another one.</div>
                     </div>
                     <div data-ng-show="vm.data.isSubmitting" class="spinner_container">
                         <div class="spinner">
