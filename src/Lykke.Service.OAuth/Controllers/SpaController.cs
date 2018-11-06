@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Lykke.Service.OAuth.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Lykke.Service.OAuth.Controllers
 {
@@ -6,9 +7,12 @@ namespace Lykke.Service.OAuth.Controllers
     public class SpaController : Controller
     {
         [HttpGet("~/registration")]
-        public ActionResult Registration()
+        public ActionResult Registration([FromQuery]string registrationId)
         {
-            return View("Registration");
+            return View("Registration", new RegistrationResponseModel
+            {
+                RegistrationId = registrationId
+            });
         }
     }
 }

@@ -39,6 +39,7 @@ namespace Lykke.Service.OAuth.Controllers
         /// <param name="emailValidationService"></param>
         /// <param name="passwordValidationService"></param>
         /// <param name="logFactory"></param>
+        /// <param name="applicationRepository"></param>
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
             IEmailValidationService emailValidationService,
