@@ -57,12 +57,14 @@
 
     <environment names="Development">
         <script src="/js/vendor/jquery.min.js"></script>
+        <script src="/js/vendor/event-listener.polyfill.js"></script>
         <script src="/js/vendor/angular.js"></script>
         <script src="/js/vendor/ui-carousel.min.js"></script>
         <script src="/js/app/app.module.js"></script>
     </environment>
     <environment names="Staging,Production">
         <script src="/js/vendor/jquery.min.js"></script>
+        <script src="/js/vendor/event-listener.polyfill.js"></script>
         <script src="/js/vendor/angular.min.js"></script>
         <script src="/js/vendor/ui-carousel.min.js"></script>
         <script src="~/dist/spa.min.js" asp-append-version="true"></script>

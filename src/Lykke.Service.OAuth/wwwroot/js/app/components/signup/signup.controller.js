@@ -3,9 +3,9 @@
 
     angular.module('app').controller('signupController', signupController);
 
-    signupController.$inject = ['signupService', 'signupStep', '$timeout', '$window'];
+    signupController.$inject = ['signupService', 'signupStep', '$timeout', '$window', '$scope'];
 
-    function signupController(signupService, signupStep, $timeout, $window) {
+    function signupController(signupService, signupStep, $timeout, $window, $scope) {
         var vm = this;
 
         function reInitCarousel() {
@@ -25,21 +25,36 @@
             }
         }
 
-        function handleSubmit() {
-            if (!vm.data.isSubmitting) {
+        function handleSubmit(form) {
+            if (form.$pending) {
                 vm.data.isSubmitting = true;
-
-                signupService.sendInitialInfo(
-                    vm.data.model.email,
-                    vm.data.model.password
-                ).then(function (data) {
-                    vm.data.isSubmitting = false;
-                    vm.data.currentStep = signupStep.accountInformation;
-                }).catch(function (error) {
-                    var passwordIsPwnedError = 'PasswordIsPwned';
-                    vm.data.isSubmitting = false;
-                    vm.data.isPasswordPwned = passwordIsPwnedError === error.data.error;
+                var pendingWatch = $scope.$watch(function () {
+                    return form.$pending;
+                }, function (pending) {
+                    if (!pending) {
+                        pendingWatch();
+                        handleSubmit(form);
+                    }
                 });
+            }
+            if (form.$valid) {
+                if (!vm.data.isSubmitting) {
+                    vm.data.isSubmitting = true;
+
+                    signupService.sendInitialInfo(
+                        vm.data.model.email,
+                        vm.data.model.password
+                    ).then(function (data) {
+                        vm.data.isSubmitting = false;
+                        vm.data.currentStep = signupStep.accountInformation;
+                    }).catch(function (error) {
+                        var passwordIsPwnedError = 'PasswordIsPwned';
+                        vm.data.isSubmitting = false;
+                        vm.data.isPasswordPwned = passwordIsPwnedError === error.data.error;
+                    });
+                }
+            } else {
+                vm.data.isSubmitting = false;
             }
         }
 
