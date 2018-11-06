@@ -56,7 +56,7 @@ namespace WebAuth.Tests.Registration
         public void SetInitialInfo_WhenEmailIsEqualToInitial_NoException()
         {
             var model = new RegistrationModel(ValidEmail);
-            var registrationDto = new RegistrationDto
+            var registrationDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = ComplexPassword,
@@ -72,7 +72,7 @@ namespace WebAuth.Tests.Registration
         public void SetInitialInfo_WhenEmailIsDifferetFromInitial_ArgumentExceptionIsThrown()
         {
             var model = new RegistrationModel("email1@test.com");
-            var registrationDto = new RegistrationDto
+            var registrationDto = new InitialInfoDto
             {
                 Email = "email2@test.com",
                 Password = ComplexPassword,
@@ -90,7 +90,7 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
             var clientId = "123";
-            var registrationDto = new RegistrationDto
+            var registrationDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = ComplexPassword,
@@ -107,7 +107,7 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
             var password = ComplexPassword;
-            var registrationDto = new RegistrationDto
+            var registrationDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = password,
@@ -129,7 +129,7 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
 
-            var registrationDto = new RegistrationDto
+            var registrationDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = password,
@@ -153,7 +153,7 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
 
-            var registrationDto = new RegistrationDto
+            var registrationDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = password,

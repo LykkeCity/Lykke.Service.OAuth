@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Core.Registration;
 
-namespace WebAuth.Models
+namespace Lykke.Service.OAuth.Models.Registration
 {
     /// <summary>
     /// Registration status response

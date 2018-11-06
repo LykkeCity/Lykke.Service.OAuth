@@ -1,4 +1,4 @@
-﻿namespace Lykke.Service.OAuth.Models
+﻿namespace Lykke.Service.OAuth.Models.Registration
 {
     /// <summary>
     /// Email validation result
