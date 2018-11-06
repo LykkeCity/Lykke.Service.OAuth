@@ -1,19 +1,30 @@
-﻿using Autofac;
+﻿using System.Collections.Generic;
+using Autofac;
+using Core.Countries;
 using Core.PasswordValidation;
 using Core.Services;
 using Lykke.Service.OAuth.Services;
+using Lykke.Service.OAuth.Services.Countries;
 using Lykke.Service.OAuth.Services.PasswordValidation;
 using Lykke.Service.OAuth.Services.PasswordValidation.Validators;
+using Lykke.SettingsReader;
+using WebAuth.Settings;
 
 namespace Lykke.Service.OAuth.Modules
 {
     public class ServiceModule : Module
     {
+        private readonly IReloadingManager<AppSettings> _settings;
+
         private readonly int _bCryptWorkFactor;
 
-        public ServiceModule(int bCryptWorkFactor)
+        private readonly IEnumerable<string> _restrictedCountriesOfResidenceIso2;
+
+        public ServiceModule(IReloadingManager<AppSettings> settings)
         {
-            _bCryptWorkFactor = bCryptWorkFactor;
+            _settings = settings;
+            _bCryptWorkFactor = _settings.CurrentValue.OAuth.Security.BCryptWorkFactor;
+            _restrictedCountriesOfResidenceIso2 = _settings.CurrentValue.OAuth.RegistrationProcessSettings.RestrictedCountriesOfResidenceIso2;
         }
 
         protected override void Load(ContainerBuilder builder)
@@ -21,6 +32,10 @@ namespace Lykke.Service.OAuth.Modules
             builder.RegisterType<TokenService>().As<ITokenService>().SingleInstance();
 
             builder.RegisterType<ValidationService>().As<IValidationService>().SingleInstance();
+
+            builder.RegisterType<CountriesService>()
+                .WithParameter(TypedParameter.From(_restrictedCountriesOfResidenceIso2))
+                .As<ICountriesService>().SingleInstance();
 
             builder.RegisterType<EmailValidationService>()
                 .As<IEmailValidationService>();
@@ -31,6 +46,7 @@ namespace Lykke.Service.OAuth.Modules
 
             builder.RegisterType<StartupManager>()
                 .WithParameter(TypedParameter.From(_bCryptWorkFactor))
+                .WithParameter(TypedParameter.From(_restrictedCountriesOfResidenceIso2))
                 .As<IStartupManager>()
                 .SingleInstance();
 

@@ -191,7 +191,7 @@ namespace WebAuth
                 builder.RegisterModule(new DbModule(settings));
                 builder.RegisterModule(new BusinessModule(settings));
                 builder.RegisterModule(new ClientServiceModule(settings));
-                builder.RegisterModule(new ServiceModule(settings.CurrentValue.OAuth.Security.BCryptWorkFactor));
+                builder.RegisterModule(new ServiceModule(settings));
 
 
                 builder.Populate(services);
