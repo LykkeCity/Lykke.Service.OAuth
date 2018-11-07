@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Core.Registration;
 
 namespace Lykke.Service.OAuth.Models.Registration
 {
@@ -40,5 +41,21 @@ namespace Lykke.Service.OAuth.Models.Registration
         /// </summary>
         [Required]
         public string RegistrationId { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public AccountInfoDto ToDto()
+        {
+            return new AccountInfoDto
+            {
+                PhoneNumber = PhoneNumber,
+                FirstName = FirstName,
+                LastName = LastName,
+                CountryCodeIso2 = CountryCodeIso2,
+                RegistrationId = RegistrationId
+            };
+        }
     }
 }
