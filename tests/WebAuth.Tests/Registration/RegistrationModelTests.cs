@@ -56,14 +56,14 @@ namespace WebAuth.Tests.Registration
         public void SetInitialInfo_WhenEmailIsEqualToInitial_NoException()
         {
             var model = new RegistrationModel(ValidEmail);
-            var registrationDto = new InitialInfoDto
+            var initialInfoDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = ComplexPassword,
                 ClientId = "123"
             };
 
-            model.SetInitialInfo(registrationDto);
+            model.SetInitialInfo(initialInfoDto);
 
             model.Should().NotBeNull();
         }
@@ -72,14 +72,14 @@ namespace WebAuth.Tests.Registration
         public void SetInitialInfo_WhenEmailIsDifferetFromInitial_ArgumentExceptionIsThrown()
         {
             var model = new RegistrationModel("email1@test.com");
-            var registrationDto = new InitialInfoDto
+            var initialInfoDto = new InitialInfoDto
             {
                 Email = "email2@test.com",
                 Password = ComplexPassword,
                 ClientId = "123"
             };
 
-            Action initialInfo = () => model.SetInitialInfo(registrationDto);
+            Action initialInfo = () => model.SetInitialInfo(initialInfoDto);
 
             initialInfo.Should().Throw<ArgumentException>()
                 .WithMessage("Email doesn't match to verified one.");
@@ -90,14 +90,14 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
             var clientId = "123";
-            var registrationDto = new InitialInfoDto
+            var initialInfoDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = ComplexPassword,
                 ClientId = clientId
             };
 
-            model.SetInitialInfo(registrationDto);
+            model.SetInitialInfo(initialInfoDto);
 
             model.ClientId.Should().BeEquivalentTo(clientId);
         }
@@ -107,14 +107,14 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
             var password = ComplexPassword;
-            var registrationDto = new InitialInfoDto
+            var initialInfoDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = password,
                 ClientId = "321"
             };
 
-            model.SetInitialInfo(registrationDto);
+            model.SetInitialInfo(initialInfoDto);
 
             model.Salt.Should().NotBeEmpty();
             model.Hash.Should().NotBe(password);
@@ -129,14 +129,14 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
 
-            var registrationDto = new InitialInfoDto
+            var initialInfoDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = password,
                 ClientId = "321"
             };
 
-            model.SetInitialInfo(registrationDto);
+            model.SetInitialInfo(initialInfoDto);
 
             model.Should().NotBeNull();
         }
@@ -153,14 +153,14 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
 
-            var registrationDto = new InitialInfoDto
+            var initialInfoDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = password,
                 ClientId = "321"
             };
 
-            Action initialInfo = () => model.SetInitialInfo(registrationDto);
+            Action initialInfo = () => model.SetInitialInfo(initialInfoDto);
 
             initialInfo.Should().Throw<PasswordIsNotComplexException>();
         }
@@ -170,14 +170,14 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
 
-            var registrationDto = new RegistrationDto
+            var initialInfoDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = ComplexPassword,
                 ClientId = "321"
             };
 
-            model.SetInitialInfo(registrationDto);
+            model.SetInitialInfo(initialInfoDto);
 
             model.CanEmailBeUsed().Should().BeFalse();
         }
@@ -187,7 +187,7 @@ namespace WebAuth.Tests.Registration
         {
             var model = new RegistrationModel(ValidEmail);
 
-            var registrationDto = new RegistrationDto
+            var initialInfoDto = new InitialInfoDto
             {
                 Email = ValidEmail,
                 Password = ComplexPassword,

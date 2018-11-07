@@ -41,15 +41,15 @@ namespace Core.Registration
             return enc.Substring(0, 22);
         }
 
-        public void SetInitialInfo(InitialInfoDto registrationDto)
+        public void SetInitialInfo(InitialInfoDto initialInfoDto)
         {
-            if (registrationDto.Email != Email)
+            if (initialInfoDto.Email != Email)
                 throw new ArgumentException("Email doesn't match to verified one.");
-            if (!IsPasswordComplex(registrationDto.Password))
+            if (!IsPasswordComplex(initialInfoDto.Password))
                 throw new PasswordIsNotComplexException();
 
-            ClientId = registrationDto.ClientId;
-            this.SetPassword(registrationDto.Password);
+            ClientId = initialInfoDto.ClientId;
+            this.SetPassword(initialInfoDto.Password);
             RegistrationStep = RegistrationStep.AccountInformation;
         }
 

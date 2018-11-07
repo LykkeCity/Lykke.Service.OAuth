@@ -65,7 +65,7 @@ namespace WebAuth.Tests.Services
         private static RegistrationModel CreateRegistrationModel(string email)
         {
             var registrationModel = new RegistrationModel(email);
-            registrationModel.SetInitialInfo(new RegistrationDto() {Email = email, Password = "zxcZXC123!"});
+            registrationModel.SetInitialInfo(new InitialInfoDto() {Email = email, Password = "zxcZXC123!"});
             return registrationModel;
         }
 
