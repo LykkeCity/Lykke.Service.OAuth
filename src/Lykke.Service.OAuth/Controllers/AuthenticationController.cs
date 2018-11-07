@@ -131,19 +131,6 @@ namespace WebAuth.Controllers
             }
         }
 
-        [HttpGet("~/verifyToken")]
-        public async Task<IActionResult> VerifyToken([FromQuery] string token)
-        {
-            var result = await "https://www.google.com/recaptcha/api/siteverify"
-                .PostUrlEncodedAsync(new
-                {
-                    secret = _securitySettings.RecaptchaSecrect,
-                    response = token
-                }).ReceiveJson<RecaptchaResponse>();
-
-            return Ok(result);
-        }
-
         private static string PlatformToViewName(string platform, string partnerId)
         {
             if (partnerId != null)

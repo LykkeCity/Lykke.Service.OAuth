@@ -58,10 +58,11 @@
 
     grecaptcha.ready(function() {
         grecaptcha.execute("@Model.LoginRecaptchaKey", { action: 'homepage' }).then(function(token) {
+            var urlToCall = "@Url.Action("VerifyToken", "VerifyToken")" + "?token=" + token;
             $.ajax({
-                url: "verifyToken?token=" + token,
+                url: urlToCall, //document.location.host + "/verifyToken?token=" + token,
                 type: "GET",
-                crossDomain: true,
+                crossDomain:true,
                 success: function(result) {
                     console.log(result.score);
                     $("#recaptcha_score").text("Recaptcha score: " + result.score);

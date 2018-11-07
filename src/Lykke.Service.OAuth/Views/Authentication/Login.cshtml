@@ -67,8 +67,9 @@
 
         grecaptcha.ready(function() {
             grecaptcha.execute("@Model.LoginRecaptchaKey", { action: 'homepage' }).then(function(token) {
+                var urlToCall = "@Url.Action("VerifyToken", "VerifyToken")" + "?token=" + token;
                 $.ajax({
-                    url: "verifyToken?token=" + token,
+                    url: urlToCall, //document.location.host + "/verifyToken?token=" + token,
                     type: "GET",
                     crossDomain:true,
                     success: function(result) {
