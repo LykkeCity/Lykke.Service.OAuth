@@ -6,7 +6,7 @@ using MessagePack;
 
 namespace Core.Registration
 {
-    [MessagePackObject(keyAsPropertyName: true)]
+    [MessagePackObject(true)]
     public class RegistrationModel : IPasswordKeeping
     {
         public string RegistrationId { get; private set; }
@@ -14,46 +14,73 @@ namespace Core.Registration
         public string Salt { get; set; }
         public string Email { get; }
         public string ClientId { get; private set; }
-        public RegistrationStep RegistrationStep { get; private set; }
+        public RegistrationStep ActiveStep { get; private set; }
+        public string FirstName { get; private set; }
+        public string LastName { get; private set; }
+        public string CountryCodeIso2 { get; private set; }
+        public string PhoneNumber { get; private set; }
+
         public RegistrationModel(string email)
         {
             Email = email;
-            RegistrationId = GenerateRegistrationId();
+            ActiveStep = RegistrationStep.InitialInfo;
+            RegistrationId = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                .Replace("/", "_")
+                .Replace("+", "-")
+                .Substring(0, 22);
         }
 
-        [SerializationConstructor]
-        public RegistrationModel(string registrationId, string email, string clientId, string hash, string salt, RegistrationStep registrationStep)
+        public void CompleteStep(object context)
         {
-            RegistrationId = registrationId;
-            Email = email;
-            ClientId = clientId;
-            Hash = hash;
-            Salt = salt;
-            RegistrationStep = registrationStep;
+            switch (ActiveStep)
+            {
+                case RegistrationStep.InitialInfo:
+                {
+                    if (context is InitialInfoDto ctx)
+                    {
+                        if (ctx.Email != Email)
+                            throw new ArgumentException("Email doesn't match to verified one.");
+                        if (!IsPasswordComplex(ctx.Password))
+                            throw new PasswordIsNotComplexException();
+
+                        ClientId = ctx.ClientId;
+                        this.SetPassword(ctx.Password);
+
+                        break;
+                    }
+
+                    throw new InvalidRegistrationStepContext(ActiveStep);
+                }
+                case RegistrationStep.AccountInformation:
+                {
+                    if (context is AccountInfoDto ctx)
+                    {
+                        if (!IsPhoneNumberFormatCorrect(ctx.PhoneNumber))
+                            throw new InvalidPhoneNumberFormatException(ctx.PhoneNumber);
+
+                        FirstName = ctx.FirstName;
+                        LastName = ctx.LastName;
+                        CountryCodeIso2 = ctx.CountryCodeIso2;
+                        PhoneNumber = ctx.PhoneNumber;
+
+                        break;
+                    }
+
+                    throw new InvalidRegistrationStepContext(ActiveStep);
+                }
+                default:
+                    throw new NotImplementedException();
+            }
+
+            ActiveStep += 1;
         }
 
-        private string GenerateRegistrationId()
+        public static bool IsPhoneNumberFormatCorrect(string phoneNumber)
         {
-            var guid = Guid.NewGuid();
-            var enc = Convert.ToBase64String(guid.ToByteArray());
-            enc = enc.Replace("/", "_");
-            enc = enc.Replace("+", "-");
-            return enc.Substring(0, 22);
+            return phoneNumber.PreparePhoneNum().ToE164Number() != null;
         }
 
-        public void SetInitialInfo(InitialInfoDto initialInfoDto)
-        {
-            if (initialInfoDto.Email != Email)
-                throw new ArgumentException("Email doesn't match to verified one.");
-            if (!IsPasswordComplex(initialInfoDto.Password))
-                throw new PasswordIsNotComplexException();
-
-            ClientId = initialInfoDto.ClientId;
-            this.SetPassword(initialInfoDto.Password);
-            RegistrationStep = RegistrationStep.AccountInformation;
-        }
-
-        private bool IsPasswordComplex(string password)
+        public static bool IsPasswordComplex(string password)
         {
             return password.IsPasswordComplex(8, 128, true, false);
         }
@@ -65,7 +92,7 @@ namespace Core.Registration
 
         public bool CanEmailBeUsed()
         {
-            return RegistrationStep == RegistrationStep.InitialInfo;
+            return ActiveStep == RegistrationStep.InitialInfo;
         }
     }
 }
