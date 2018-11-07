@@ -18,5 +18,15 @@ namespace Lykke.Service.OAuth.ApiErrorCodes
 
         public static readonly ILykkeApiErrorCode BCryptInternalError =
             new LykkeApiErrorCode(nameof(BCryptInternalError), "BCrypt internal error");
+
+        public static readonly ILykkeApiErrorCode CountryFromRestrictedList =
+            new LykkeApiErrorCode(nameof(CountryFromRestrictedList),
+                "The residents from the country are not allowed to register");
+
+        public static readonly ILykkeApiErrorCode InvalidPhoneFormat =
+            new LykkeApiErrorCode(nameof(InvalidPhoneFormat), "Invalid phone number format");
+
+        public static readonly ILykkeApiErrorCode PhoneNumberInUse =
+            new LykkeApiErrorCode(nameof(PhoneNumberInUse), "Phone number already registered");
     }
 }

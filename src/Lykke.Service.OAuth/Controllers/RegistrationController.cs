@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
@@ -33,6 +32,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly ILog _log;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ICountriesService _countriesService;
+        private readonly IAccountInfoStepHandler _accountInfoStepHandler;
 
         /// <summary>
         /// Ctor
@@ -49,10 +49,12 @@ namespace Lykke.Service.OAuth.Controllers
             IPasswordValidationService passwordValidationService,
             ILogFactory logFactory,
             IApplicationRepository applicationRepository, 
-            ICountriesService countriesService)
+            ICountriesService countriesService, 
+            IAccountInfoStepHandler accountInfoStepHandler)
         {
             _applicationRepository = applicationRepository;
             _countriesService = countriesService;
+            _accountInfoStepHandler = accountInfoStepHandler;
             _registrationRepository = registrationRepository;
             _emailValidationService = emailValidationService;
             _passwordValidationService = passwordValidationService;
@@ -114,11 +116,11 @@ namespace Lykke.Service.OAuth.Controllers
         }
 
         /// <summary>
-        /// Submits account information
+        /// Submits account information step
         /// </summary>
         /// <param name="model"></param>
         /// <response code="200">The id of the registration has been proceeded to the next step</response>
-        /// <response code="400">Invalid country or phone number or phone number is already used</response>
+        /// <response code="400">Invalid country or phone number or phone number is already used. Error codes:ModelValidationFailed, CountryFromRestrictedList, InvalidPhoneFormat, PhoneNumberInUse</response>
         /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
         [HttpPost]
         [Route("accountInfo")]
@@ -129,7 +131,36 @@ namespace Lykke.Service.OAuth.Controllers
         [ValidateApiModel]
         public async Task<IActionResult> AccountInfo([FromBody] AccountInfoRequestModel model)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _accountInfoStepHandler.HandleAsync(model.ToDto());
+
+                return Ok(new RegistrationResponse(model.RegistrationId));
+            }
+            catch (RegistrationKeyNotFoundException e)
+            {
+                _log.Error(e, e.Message, $"registrationId = {model.RegistrationId}");
+
+                throw LykkeApiErrorException.NotFound(RegistrationErrorCodes.RegistrationNotFound);
+            }
+            catch (CountryFromRestrictedListException e)
+            {
+                _log.Error(e, e.Message, $"Country = {e.Country}");
+
+                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.CountryFromRestrictedList);
+            }
+            catch (InvalidPhoneNumberFormatException e)
+            {
+                _log.Error(e, e.Message, $"PhoneNumber = {e.PhoneNumber}");
+
+                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.InvalidPhoneFormat);
+            }
+            catch (PhoneNumberAlreadyInUseException e)
+            {
+                _log.Error(e, e.Message, $"PhoneNumber = {e.PhoneNumber}");
+
+                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.PhoneNumberInUse);
+            }
         }
 
         /// <summary>
