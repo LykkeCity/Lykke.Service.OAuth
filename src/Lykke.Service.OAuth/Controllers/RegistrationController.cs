@@ -225,12 +225,12 @@ namespace Lykke.Service.OAuth.Controllers
         [Route("countries")]
         [SwaggerOperation("GetCountries")]
         [Produces("application/json")]
-        [ProducesResponseType(typeof(RegistrationCountriesResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(CountriesResponse), (int) HttpStatusCode.OK)]
         [ValidateApiModel]
         public IActionResult GetCountries()
         {
             return new JsonResult(
-                new RegistrationCountriesResponse(
+                new CountriesResponse(
                     _countriesService.Countries,
                     _countriesService.RestrictedCountriesOfResidence));
         }
