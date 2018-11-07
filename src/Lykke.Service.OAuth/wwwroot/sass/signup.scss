@@ -87,6 +87,28 @@
     }
   }
 
+  &__signout-link {
+    font-size: 16px;
+    line-height: 1.63;
+    color: $gray;
+    float: right;
+
+    @media all and (max-width: $screen-mobile) {
+      display: none;
+    }
+
+    &_mobile {
+      display: none;
+      text-align: center;
+      float: none;
+      margin-top: 68px;
+
+      @media all and (max-width: $screen-mobile) {
+        display: block;
+      }
+    }
+  }
+
   &__mobile-logo {
     position: absolute;
     top: 32px;
@@ -103,6 +125,10 @@
       left: 0;
       width: 100%;
       text-align: center;
+    }
+
+    &_desktop {
+      display: block;
     }
   }
 
@@ -137,6 +163,10 @@
       margin: 32px auto 19px;
     }
 
+    &_additional-info {
+      margin-top: 240px;
+    }
+
     @media all and (max-width: $screen-tablet) {
       width: 350px;
     }
@@ -154,4 +184,11 @@
       width: 100%;
     }
   }
+}
+
+.registration-id-not-found {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%)
 }

@@ -1,0 +1,25 @@
+<div data-ng-controller="accountInfoController as vm">
+    <div class="signup-page">
+        <div class="signup-page__mobile-logo signup-page__mobile-logo_desktop">
+            <img src="/images/lykke_new.svg" />
+        </div>
+        <div class="signup-page__form">
+            <div class="signup-page__signout-link">
+                <a href="#" data-ng-click="vm.handlers.handleLogout()">Log Out</a>
+            </div>
+            <form 
+                class="signup-form signup-form_additional-info"
+                name="signupForm"
+                novalidate
+                autocomplete="off"
+                accessible-form
+            >
+                Step 2
+
+                <div class="signup-page__signout-link signup-page__signout-link_mobile">
+                    <a href="#" data-ng-click="vm.handlers.handleLogout()">Log Out</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
