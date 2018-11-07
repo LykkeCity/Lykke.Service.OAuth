@@ -232,7 +232,11 @@ namespace WebAuth.Controllers
                     RegistrationId = userModel.RegistrationId
                 });
 
-                RedirectToAction("Registration", "Spa", userModel.RegistrationId);
+                return RedirectToAction("Registration", "Spa",
+                    routeValues: new
+                    {
+                        registrationId = userModel.RegistrationId
+                    });
             }
 
             var authResult = await _registrationClient.LoginApi.AuthenticateAsync(new AuthenticateModel
