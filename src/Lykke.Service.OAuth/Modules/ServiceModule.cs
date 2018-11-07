@@ -50,6 +50,9 @@ namespace Lykke.Service.OAuth.Modules
                 .As<IStartupManager>()
                 .SingleInstance();
 
+            builder.RegisterType<AccountInfoStepHandler>()
+                .As<IAccountInfoStepHandler>();
+
             #region PasswordValidators
             builder.RegisterType<PwnedPasswordsValidator>().As<IPasswordValidator>().SingleInstance();
             builder.RegisterType<PasswordValidationService>().As<IPasswordValidationService>().SingleInstance();
