@@ -8,6 +8,6 @@ namespace Core.Registration
         Task<string> UpdateAsync(RegistrationModel registrationModel);
 
         Task<RegistrationModel> GetByIdAsync(string registrationId);
-        Task<RegistrationModel> GetByEmailAsync(string email);
+        Task<RegistrationModel> TryGetByEmailAsync(string email);
     }
 }

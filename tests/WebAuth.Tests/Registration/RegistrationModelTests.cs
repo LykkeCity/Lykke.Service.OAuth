@@ -164,5 +164,37 @@ namespace WebAuth.Tests.Registration
 
             initialInfo.Should().Throw<PasswordIsNotComplexException>();
         }
+
+        [Fact]
+        public void CanEmailBeUsed_WhenInitialInfoIsSet_ShouldBeFalse()
+        {
+            var model = new RegistrationModel(ValidEmail);
+
+            var registrationDto = new RegistrationDto
+            {
+                Email = ValidEmail,
+                Password = ComplexPassword,
+                ClientId = "321"
+            };
+
+            model.SetInitialInfo(registrationDto);
+
+            model.CanEmailBeUsed().Should().BeFalse();
+        }
+
+        [Fact]
+        public void CanEmailBeUsed_WhenInitialInfoNotSet_ShouldBeTrue()
+        {
+            var model = new RegistrationModel(ValidEmail);
+
+            var registrationDto = new RegistrationDto
+            {
+                Email = ValidEmail,
+                Password = ComplexPassword,
+                ClientId = "321"
+            };
+
+            model.CanEmailBeUsed().Should().BeTrue();
+        }
     }
 }

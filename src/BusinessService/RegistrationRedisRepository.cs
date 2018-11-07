@@ -60,7 +60,7 @@ namespace BusinessService
             }
         }
 
-        public async Task<RegistrationModel> GetByEmailAsync(string email)
+        public async Task<RegistrationModel> TryGetByEmailAsync(string email)
         {
             try
             {
@@ -69,13 +69,7 @@ namespace BusinessService
                 if (registrationId.IsNull)
                     return null;
 
-                var redisKey = ToRedisKey(registrationId);
-                var data = await _database.StringGetAsync(redisKey);
-                if (data.IsNull) throw new RegistrationKeyNotFoundException();
-
-                var model = MessagePackSerializer.Deserialize<RegistrationModel>(data);
-
-                return model;
+                return await GetByIdAsync(registrationId);
             }
             catch (Exception ex)
             {

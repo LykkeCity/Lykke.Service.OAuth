@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Core.Registration;
 using Core.Services;
 using Lykke.Service.ClientAccount.Client;
-using Lykke.Service.ClientAccount.Client.Models;
 
 namespace Lykke.Service.OAuth.Services
 {
@@ -35,11 +34,10 @@ namespace Lykke.Service.OAuth.Services
 
            _bCryptService.Verify(email, hash);
 
-            var isEmailUsedInRegistration = await _registrationRepository.GetByEmailAsync(email);
-            if (!isEmailUsedInRegistration.CanEmailBeUsed()) return true;
+            var userModel = await _registrationRepository.TryGetByEmailAsync(email);
+            if (userModel != null && !userModel.CanEmailBeUsed()) return true;
 
-            AccountExistsModel accountExistsModel =
-                await _clientAccountClient.IsTraderWithEmailExistsAsync(email, null);
+            var accountExistsModel = await _clientAccountClient.IsTraderWithEmailExistsAsync(email, null);
 
             return accountExistsModel.IsClientAccountExisting;
         }
