@@ -15,14 +15,17 @@ namespace Lykke.Service.OAuth.Services
         private const int BCryptMinValue = 10;
         private const int BCryptMaxValue = 20;
         private readonly IEnumerable<IPasswordValidator> _passwordValidators;
+        private readonly IEnumerable<string> _restrictedCountriesOfResidenceIso2;
 
         public StartupManager(
             int bCryptWorkFactor,
             ILogFactory logFactory, 
-            IEnumerable<IPasswordValidator> passwordValidators)
+            IEnumerable<IPasswordValidator> passwordValidators, 
+            IEnumerable<string> restrictedCountriesOfResidenceIso2)
         {
             _bCryptWorkFactor = bCryptWorkFactor;
             _passwordValidators = passwordValidators;
+            _restrictedCountriesOfResidenceIso2 = restrictedCountriesOfResidenceIso2;
             _log = logFactory?.CreateLog(this);
         }
 
@@ -46,6 +49,15 @@ namespace Lykke.Service.OAuth.Services
                 throw new NoPasswordValidatorsConfiguredException();
             }
 
+            _log.Info("Checking restricted countries of residence Iso2 codes configuration...");
+
+            if (_restrictedCountriesOfResidenceIso2 == null)
+            {
+                _log.Error(message: "Restricted countries of residence are not configured");
+
+                throw new NoRestrictedCountriesOfResidenceConfiguredException();
+            }
+            
             _log.Info("Settings checked successfully.");
         }
     }

@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
 using Core.Application;
+using Core.Countries;
 using Core.Exceptions;
 using Core.PasswordValidation;
 using Core.Registration;
@@ -31,6 +32,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IPasswordValidationService _passwordValidationService;
         private readonly ILog _log;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly ICountriesService _countriesService;
 
         /// <summary>
         /// Ctor
@@ -40,14 +42,17 @@ namespace Lykke.Service.OAuth.Controllers
         /// <param name="passwordValidationService"></param>
         /// <param name="logFactory"></param>
         /// <param name="applicationRepository"></param>
+        /// <param name="countriesService"></param>
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
             IEmailValidationService emailValidationService,
             IPasswordValidationService passwordValidationService,
             ILogFactory logFactory,
-            IApplicationRepository applicationRepository)
+            IApplicationRepository applicationRepository, 
+            ICountriesService countriesService)
         {
             _applicationRepository = applicationRepository;
+            _countriesService = countriesService;
             _registrationRepository = registrationRepository;
             _emailValidationService = emailValidationService;
             _passwordValidationService = passwordValidationService;
@@ -206,6 +211,28 @@ namespace Lykke.Service.OAuth.Controllers
 
                 throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.InvalidBCryptHashFormat);
             }
+        }
+
+        /// <summary>
+        ///     Get list of countries.
+        ///     And list of restricted countries of residence.
+        /// </summary>
+        /// <response code="200">
+        ///     List of countries.
+        ///     And list of restricted countries of residence.
+        /// </response>
+        [HttpGet]
+        [Route("countries")]
+        [SwaggerOperation("GetCountries")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(RegistrationCountriesResponse), (int) HttpStatusCode.OK)]
+        [ValidateApiModel]
+        public IActionResult GetCountries()
+        {
+            return new JsonResult(
+                new RegistrationCountriesResponse(
+                    _countriesService.Countries,
+                    _countriesService.RestrictedCountriesOfResidence));
         }
     }
 }
