@@ -19,7 +19,7 @@
 <div class="auth_group auth_group--form">
     <div class="container">
         <img src="~/images/logo.ios.svg" alt="Lykke" class="auth_group__logo" width="120" height="120">
-
+        <h5 id="recaptcha_score">Calculating recaptcha score...</h5>
         <form novalidate enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin" class="auth_group__form">
             <div class="form-group">
                 <div class="form-group-input">
@@ -36,9 +36,6 @@
                 <input type="hidden" name="PartnerId" value="@Model.PartnerId" />
             </div>
             <div class="error_message" asp-validation-summary="All"></div>
-            <div id="recaptcha" class="form-group text-center">
-                <div class="g-recaptcha" data-sitekey="@Model.LoginRecaptchaKey" data-theme="white" data-callback="captchaValid"></div>
-            </div>
             <div class="auth_group__indent">
                 <button id="submit" type="submit" class="btn btn--gradient btn-block" disabled>Sign in</button>
             </div>
@@ -62,3 +59,22 @@
     </div>
 </div>
 
+    <script src="https://www.google.com/recaptcha/api.js?render=@Model.LoginRecaptchaKey"></script>
+    
+    <script>
+
+        grecaptcha.ready(function() {
+            grecaptcha.execute("@Model.LoginRecaptchaKey", { action: 'homepage' }).then(function(token) {
+                $.ajax({
+                    url: "verifyToken?token=" + token,
+                    type: "GET",
+                    crossDomain: true,
+                    success: function(result) {
+                        console.log(result.score);
+                        $("#recaptcha_score").text("Recaptcha score: " + result.score);
+                    }
+                });
+            });
+        });
+
+    </script>

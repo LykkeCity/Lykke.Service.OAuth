@@ -12,6 +12,7 @@ using Core.Extensions;
 using Core.Recaptcha;
 using Core.Registration;
 using Core.VerificationCodes;
+using Flurl.Http;
 using Lykke.Common;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
@@ -27,6 +28,7 @@ using Lykke.Service.Registration.Contract.Client.Models;
 using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
@@ -127,6 +129,19 @@ namespace WebAuth.Controllers
                 _log.Error(ex);
                 return Content(ex.Message);
             }
+        }
+
+        [HttpGet("~/verifyToken")]
+        public async Task<IActionResult> VerifyToken([FromQuery] string token)
+        {
+            var result = await "https://www.google.com/recaptcha/api/siteverify"
+                .PostUrlEncodedAsync(new
+                {
+                    secret = _securitySettings.RecaptchaSecrect,
+                    response = token
+                }).ReceiveJson<RecaptchaResponse>();
+
+            return Ok(result);
         }
 
         private static string PlatformToViewName(string platform, string partnerId)
