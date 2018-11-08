@@ -5,9 +5,9 @@
         .module('app')
         .service('signupService', signupService);
 
-    signupService.$inject = ['$http', 'env', '$q', '$window', '$location', 'signupStep', 'errorCode'];
+    signupService.$inject = ['$http', 'env', '$q', '$window', '$location', 'signupStep'];
 
-    function signupService($http, env, $q, $window, $location, signupStep, errorCode) {
+    function signupService($http, env, $q, $window, $location, signupStep) {
         var bCryptWorkFactor;
         var verifiedEmailIds = {};
         var registrationStep = signupStep.initialInfo;
@@ -26,9 +26,9 @@
 
                 return getStatus(registrationId).then(function (response) {
                     registrationStep = response.registrationStep;
-                }).catch(function () {
+                }).catch(function (error) {
                     registrationStep = null;
-                    currentErrorCode = errorCode.registrationIdNotFound;
+                    currentErrorCode = error.data.error;
                 }).finally(function () {
                     deferred.resolve();
                 });
