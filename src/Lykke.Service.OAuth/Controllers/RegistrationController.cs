@@ -182,7 +182,10 @@ namespace Lykke.Service.OAuth.Controllers
             try
             {
                 var registrationModel = await _registrationRepository.GetByIdAsync(registrationId);
-                return new JsonResult(registrationModel.RegistrationStep);
+                return new JsonResult(new RegistrationStatusResponse
+                {
+                    RegistrationStep = registrationModel.RegistrationStep
+                });
             }
             catch (RegistrationKeyNotFoundException)
             {
