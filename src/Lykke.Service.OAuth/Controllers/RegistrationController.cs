@@ -11,11 +11,13 @@ using Core.Registration;
 using Core.Services;
 using Lykke.Common.ApiLibrary.Contract;
 using Lykke.Common.ApiLibrary.Exceptions;
+using Lykke.Common.Extensions;
 using Lykke.Common.Log;
 using Lykke.Service.OAuth.ApiErrorCodes;
 using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.OAuth.Models.Registration;
+using Lykke.Service.OAuth.Models.Registration.Countries;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -34,15 +36,6 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ICountriesService _countriesService;
 
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="registrationRepository"></param>
-        /// <param name="emailValidationService"></param>
-        /// <param name="passwordValidationService"></param>
-        /// <param name="logFactory"></param>
-        /// <param name="applicationRepository"></param>
-        /// <param name="countriesService"></param>
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
             IEmailValidationService emailValidationService,
@@ -271,25 +264,62 @@ namespace Lykke.Service.OAuth.Controllers
         }
 
         /// <summary>
-        ///     Get list of countries.
-        ///     And list of restricted countries of residence.
+        ///     Get countries information for registration process.
         /// </summary>
+        /// <param name="request">Request object for countries.</param>
+        /// <remarks>
+        ///     If country could not be detected by provided ip, there will be no error.
+        ///     userLocationCountry would be null.
+        ///     We don't want to block user registration, because of we can't autodetect his country.
+        /// </remarks>
         /// <response code="200">
         ///     List of countries.
         ///     And list of restricted countries of residence.
+        ///     And user location country.
         /// </response>
-        [HttpGet]
+        /// <response code="400">
+        ///     When RegistrationId is null, empty or whitespace.
+        ///     Error codes: ModelValidationFailed
+        /// </response>
+        /// <response code="404">
+        ///     When user could not be found by RegistrationId.
+        ///     Error codes: RegistrationNotFound
+        /// </response>
+        [HttpPost]
         [Route("countries")]
         [SwaggerOperation("GetCountries")]
+        [Consumes("application/json")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(CountriesResponse), (int) HttpStatusCode.OK)]
         [ValidateApiModel]
-        public IActionResult GetCountries()
+        public async Task<IActionResult> GetCountries([FromBody] CountriesRequest request)
         {
+            try
+            {
+                await _registrationRepository.GetByIdAsync(request.RegistrationId);
+            }
+            catch (RegistrationKeyNotFoundException)
+            {
+                _log.Warning("Someone tried to access countries with invalid registraion id!");
+                throw LykkeApiErrorException.NotFound(RegistrationErrorCodes.RegistrationNotFound);
+            }
+
+            CountryInfo userLocationCountry = null;
+
+            try
+            {
+                userLocationCountry = await _countriesService.GetCountryByIpAsync(HttpContext.GetIp());
+            }
+            catch (CountryNotFoundException e)
+            {
+                _log.Warning(e.Message, e);
+            }
+
             return new JsonResult(
                 new CountriesResponse(
                     _countriesService.Countries,
-                    _countriesService.RestrictedCountriesOfResidence));
+                    _countriesService.RestrictedCountriesOfResidence,
+                    userLocationCountry));
         }
     }
 }

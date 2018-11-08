@@ -1,18 +1,18 @@
 ﻿using Core.Countries;
 
-namespace Lykke.Service.OAuth.Models.Registration
+namespace Lykke.Service.OAuth.Models.Registration.Countries
 {
     /// <summary>
-    ///     Restricted country of residence during registration process
+    ///     User location country model
     /// </summary>
-    public class RestrictedCountryOfResidenceModel
+    public class UserLocationCountryModel
     {
         /// <summary>
         ///     Iso2 country code
         /// </summary>
         public string Iso2 { get; }
 
-        public RestrictedCountryOfResidenceModel(CountryInfo countryInfo)
+        public UserLocationCountryModel(CountryInfo countryInfo)
         {
             Iso2 = countryInfo.Iso2;
         }
