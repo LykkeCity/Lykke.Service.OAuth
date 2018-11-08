@@ -1,7 +1,7 @@
 ﻿using System;
 using Lykke.Service.PersonalData.Client.Models;
 
-namespace WebAuth.Models
+namespace Lykke.Service.OAuth.Models.Registration
 {
     public class ProfilePersonalDataModel
     {

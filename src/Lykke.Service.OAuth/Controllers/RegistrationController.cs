@@ -204,7 +204,11 @@ namespace Lykke.Service.OAuth.Controllers
             try
             {
                 var registrationModel = await _registrationRepository.GetByIdAsync(registrationId);
-                return new JsonResult(registrationModel.CurrentStep);
+
+                return new JsonResult(new RegistrationStatusResponse
+                {
+                    RegistrationStep = registrationModel.CurrentStep
+                });
             }
             catch (RegistrationKeyNotFoundException)
             {
@@ -278,12 +282,12 @@ namespace Lykke.Service.OAuth.Controllers
         [Route("countries")]
         [SwaggerOperation("GetCountries")]
         [Produces("application/json")]
-        [ProducesResponseType(typeof(RegistrationCountriesResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(CountriesResponse), (int) HttpStatusCode.OK)]
         [ValidateApiModel]
         public IActionResult GetCountries()
         {
             return new JsonResult(
-                new RegistrationCountriesResponse(
+                new CountriesResponse(
                     _countriesService.Countries,
                     _countriesService.RestrictedCountriesOfResidence));
         }

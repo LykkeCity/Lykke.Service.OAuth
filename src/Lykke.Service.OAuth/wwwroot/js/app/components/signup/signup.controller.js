@@ -7,20 +7,25 @@
 
     function signupController(signupService, signupStep, $timeout, $window, $scope) {
         var vm = this;
+        var carouselReInitPromise;
 
-        function reInitCarousel() {
-            vm.data.isCarouselRendered = false;
+        function reInitCarousel(event) {
+            if (!event.detail) {
+                $timeout.cancel(carouselReInitPromise);
+                carouselReInitPromise = $timeout(function () {
+                    window.dispatchEvent(new CustomEvent('resize', { detail: 'skipReInit' }));
+                }, vm.data.carouselSpeed * 2);
+            }
         }
 
+        angular.element($window).on('resize', reInitCarousel);
         function handleCarouselLoaded() {
             if (vm.data.isCarouselRendered) {
                 vm.data.loaded = true;
-                angular.element($window).on('resize', reInitCarousel);
             } else {
-                angular.element($window).off('resize', reInitCarousel);
                 $timeout(function () {
                     vm.data.isCarouselRendered = true;
-                    window.dispatchEvent(new Event('resize'));
+                    window.dispatchEvent(new CustomEvent('resize', { detail: 'skipReInit' }));
                 });
             }
         }
@@ -69,6 +74,7 @@
 
         vm.data = {
             isCarouselRendered: false,
+            carouselSpeed: 300,
             loaded: false,
             isSubmitting: false,
             isPasswordPwned: false,
