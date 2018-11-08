@@ -17,6 +17,7 @@ using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.OAuth.Models.Registration;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Lykke.Service.OAuth.Controllers
@@ -166,7 +167,7 @@ namespace Lykke.Service.OAuth.Controllers
             }
             catch (InvalidPhoneNumberFormatException e)
             {
-                _log.Error(e, e.Message, $"PhoneNumber = {e.PhoneNumber}");
+                _log.Error(e, e.Message, $"PhoneNumber = {e.PhoneNumber}"); 
 
                 throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.InvalidPhoneFormat);
             }

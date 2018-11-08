@@ -3,7 +3,7 @@ using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Common.Log;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace WebAuth.EventFilter
+namespace Lykke.Service.OAuth.EventFilter
 {
     public class UnhandledExceptionFilter : IExceptionFilter
     {
