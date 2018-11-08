@@ -184,6 +184,22 @@ input::-webkit-credentials-auto-fill-button {
       @media all and (max-width: 543px) {
         .signup-page__signin-link_mobile {
           display: block; } }
+  .signup-page__signout-link {
+    font-size: 16px;
+    line-height: 1.63;
+    color: #818181;
+    float: right; }
+    @media all and (max-width: 543px) {
+      .signup-page__signout-link {
+        display: none; } }
+    .signup-page__signout-link_mobile {
+      display: none;
+      text-align: center;
+      float: none;
+      margin-top: 68px; }
+      @media all and (max-width: 543px) {
+        .signup-page__signout-link_mobile {
+          display: block; } }
   .signup-page__mobile-logo {
     position: absolute;
     top: 32px;
@@ -199,6 +215,8 @@ input::-webkit-credentials-auto-fill-button {
         left: 0;
         width: 100%;
         text-align: center; } }
+    .signup-page__mobile-logo_desktop {
+      display: block; }
   .signup-page .current-step {
     height: 100%; }
   .signup-page .signup-form {
@@ -219,6 +237,8 @@ input::-webkit-credentials-auto-fill-button {
       margin-bottom: 32px; }
     .signup-page .signup-form .lykke-button_colored {
       margin: 32px auto 19px; }
+    .signup-page .signup-form_additional-info {
+      margin-top: 240px; }
     @media all and (max-width: 991px) {
       .signup-page .signup-form {
         width: 350px; } }
@@ -232,3 +252,9 @@ input::-webkit-credentials-auto-fill-button {
     @media all and (max-width: 480px) {
       .signup-page .signup-form {
         width: 100%; } }
+
+.registration-id-not-found {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%); }

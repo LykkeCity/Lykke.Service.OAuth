@@ -1,0 +1,78 @@
+<div data-ng-controller="initialInfoController as vm">
+    <div class="signup-page">
+        <ui-carousel data-ng-class="{'ui-carousel_loading': !vm.data.loaded}" slides="vm.data.slides" on-after-change="vm.handlers.handleCarouselLoaded()" dots="true" arrows="false" speed="vm.data.carouselSpeed">
+            <carousel-item>
+                <div>
+                    <img class="carousel-item__logo" src="/images/lykke-logo-web.svg" />
+                    <img class="carousel-item__image" data-ng-cloak data-ng-src={{item.imageSrc}} />
+                    <div class="carousel-item__text" data-ng-cloak>"{{item.text}}"</div>
+                </div>
+            </carousel-item>
+        </ui-carousel>
+        <div class="signup-page__mobile-logo">
+            <img src="/images/lykke_new.svg" />
+        </div>
+        <div class="signup-page__form">
+            <div class="signup-page__signin-link">
+                Already have an account? <a href="#">Sign In</a>
+            </div>
+            <form 
+                class="signup-form"
+                name="signupForm"
+                novalidate
+                autocomplete="off"
+                data-ng-submit="vm.handlers.handleSubmit(signupForm)"
+                accessible-form
+            >
+                <div class="lykke-page-title">Create your Lykke Account</div>
+                <div class="lykke-page-subtitle">Enter your email and create a password</div>
+                <div class="lykke-form-group">
+                    <label for="email" class="lykke-label">Email*</label>
+                    <input
+                        name="email"
+                        id="email"
+                        type="email"
+                        data-ng-class="{'lykke-input': true, 'lykke-input_error': signupForm.email.$error.emailTaken}"
+                        placeholder="Enter your email"
+                        required
+                        email-taken
+                        data-ng-keydown="vm.handlers.handleEmailKeydown(signupForm)"
+                        data-ng-model="vm.data.model.email"
+                        data-ng-model-options="{ updateOn: 'blur' }"
+                    />
+                    <div class="lykke-error-label" data-ng-show="signupForm.email.$error.required && (signupForm.email.$touched || signupForm.$submitted)">This field is mandatory</div>
+                    <div class="lykke-error-label" data-ng-show="signupForm.email.$error.email && (signupForm.email.$touched || signupForm.$submitted)">Wrong email format</div>
+                    <div class="lykke-error-label" data-ng-show="signupForm.email.$error.emailTaken && (signupForm.email.$touched || signupForm.$submitted)">Email is already taken</div>
+                </div>
+                <div class="lykke-form-group">
+                    <label class="lykke-label">Password*</label>
+                    <input-password
+                        placeholder="Minimum 8 characters"
+                        data-ng-model="vm.data.model.password"
+                        data-ng-keydown="vm.handlers.handlePasswordKeydown()"
+                        data-has-error="vm.data.isPasswordPwned"
+                        name="password"
+                    ></input-password>
+                    <div class="lykke-error-label" data-ng-show="signupForm.password.$error.required && (signupForm.password.$touched || signupForm.$submitted)">This field is mandatory</div>
+                    <div class="lykke-error-label" data-ng-show="signupForm.password.$error.strongPassword && (signupForm.password.$touched || signupForm.$submitted)">Password should contain minimum 8 characters, 1 lowecase, 1 uppercase and 1 special character</div>
+                    <div class="lykke-error-label" data-ng-show="vm.data.isPasswordPwned && (signupForm.password.$touched || signupForm.$submitted)">It seems password you used has a history of being hacked. Please choose another one.</div>
+                </div>
+                <div data-ng-show="vm.data.isSubmitting" class="spinner_container">
+                    <div class="spinner">
+                        <div class="spinner__inside"></div>
+                    </div>
+                </div>
+                <input data-ng-hide="vm.data.isSubmitting" type="submit" class="lykke-button lykke-button_colored" value="Register" />
+                <terms></terms>
+                <div class="signup-page__signin-link signup-page__signin-link_mobile">
+                    Already have an account? <a href="#">Sign In</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div data-ng-hide="vm.data.loaded" class="spinner_container initial-spinner">
+        <div class="spinner">
+            <div class="spinner__inside"></div>
+        </div>
+    </div>
+</div>
