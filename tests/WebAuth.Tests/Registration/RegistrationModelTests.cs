@@ -78,7 +78,7 @@ namespace WebAuth.Tests.Registration
         }
 
         [Fact]
-        public void SetInitialInfo_WhenEmailIsDifferentFromInitial_ArgumentExceptionIsThrown()
+        public void SetInitialInfo_WhenEmailIsDifferentFromInitial_ExceptionIsThrown()
         {
             var model = new RegistrationModel("email1@test.com");
             var initialInfoDto = new InitialInfoDto
@@ -197,6 +197,82 @@ namespace WebAuth.Tests.Registration
             var model = new RegistrationModel(ValidEmail);
 
             model.CanEmailBeUsed().Should().BeTrue();
+        }
+
+        [Fact]
+        public void CompleteAccountInfoStep_WhenIncorrectState_ShouldRaiseException()
+        {
+            var model = new RegistrationModel(ValidEmail);
+
+            Assert.Throws<InvalidRegistrationStateTransitionException>(() =>
+                model.CompleteAccountInfoStep(new AccountInfoDto()));
+        }
+
+        [Theory]
+        [InlineData("clientId", "5FD924625F6AB16A19CC9807C7C506AE1813490E4BA675F843D5A10E0BAACDb!", "whatever", "John", "White", "RU", "whatever")]
+        public void CompleteAccountInfoStep_WhenInvalidPhoneFormat_ShouldRaiseException(
+            string clientId,
+            string password,
+            string phoneNumber,
+            string firstName, 
+            string lastName, 
+            string countryCode, 
+            string registrationId)
+        {
+            var model = new RegistrationModel(ValidEmail);
+
+            model.CompleteInitialInfoStep(new InitialInfoDto
+            {
+                Email = ValidEmail,
+                ClientId = clientId,
+                Password = password
+            });
+
+            Assert.Throws<InvalidPhoneNumberFormatException>(() =>
+                model.CompleteAccountInfoStep(new AccountInfoDto
+                {
+                    PhoneNumber = phoneNumber,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    CountryCodeIso2 = countryCode,
+                    RegistrationId = registrationId
+                }));
+        }
+
+        [Theory]
+        [InlineData("clientId", "5FD924625F6AB16A19CC9807C7C506AE1813490E4BA675F843D5A10E0BAACDb!", "+79099999999", "John", "White", "RU", "whatever")]
+        public void CompleteAccountInfoStep_WhenValidData_ShouldWork(
+            string clientId,
+            string password,
+            string phoneNumber,
+            string firstName,
+            string lastName,
+            string countryCode,
+            string registrationId)
+        {
+            var model = new RegistrationModel(ValidEmail);
+
+            model.CompleteInitialInfoStep(new InitialInfoDto
+            {
+                Email = ValidEmail,
+                ClientId = clientId,
+                Password = password
+            });
+
+            model.CompleteAccountInfoStep(new AccountInfoDto
+            {
+                PhoneNumber = phoneNumber,
+                FirstName = firstName,
+                LastName = lastName,
+                CountryCodeIso2 = countryCode,
+                RegistrationId = registrationId
+            });
+
+            Assert.Equal(firstName, model.FirstName);
+            Assert.Equal(lastName, model.LastName);
+            Assert.Equal(countryCode, model.CountryOfResidenceIso2);
+            Assert.Equal(phoneNumber, model.PhoneNumber);
+            Assert.Equal(RegistrationStep.Pin, model.CurrentStep);
         }
     }
 }
