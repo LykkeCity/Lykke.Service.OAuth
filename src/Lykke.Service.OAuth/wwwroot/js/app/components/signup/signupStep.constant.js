@@ -5,7 +5,6 @@
 
     app.constant('signupStep', {
         initialInfo: 'InitialInfo',
-        registrationIdNotFound: 'RegistrationIdNotFound',
         accountInformation: 'AccountInformation'
     });
 })();
