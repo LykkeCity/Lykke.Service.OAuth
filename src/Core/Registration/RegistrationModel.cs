@@ -48,7 +48,7 @@ namespace Core.Registration
             ClientId = context.ClientId;
             this.SetPassword(context.Password);
 
-            CurrentStep += 1;
+            CurrentStep = RegistrationStep.AccountInformation;
         }
 
         public void CompleteAccountInfoStep(AccountInfoDto context)
@@ -64,7 +64,7 @@ namespace Core.Registration
             CountryOfResidenceIso2 = context.CountryCodeIso2;
             PhoneNumber = context.PhoneNumber;
 
-            CurrentStep += 1;
+            CurrentStep = RegistrationStep.Pin;
         }
 
         public static bool IsPhoneNumberFormatCorrect(string phoneNumber)
