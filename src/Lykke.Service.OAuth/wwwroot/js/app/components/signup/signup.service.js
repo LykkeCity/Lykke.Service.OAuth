@@ -25,7 +25,7 @@
                 saveRegistrationId(registrationId);
 
                 return getStatus(registrationId).then(function (response) {
-                    registrationStep = response;
+                    registrationStep = response.registrationStep;
                 }).catch(function () {
                     registrationStep = null;
                     currentErrorCode = errorCode.registrationIdNotFound;
