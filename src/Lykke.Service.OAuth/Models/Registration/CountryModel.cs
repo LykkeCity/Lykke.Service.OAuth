@@ -1,28 +1,28 @@
 ﻿using Core.Countries;
 
-namespace Lykke.Service.OAuth.Models
+namespace Lykke.Service.OAuth.Models.Registration
 {
     /// <summary>
     ///     Country model
     /// </summary>
-    public class RegistrationCountryModel
+    public class CountryModel
     {
         /// <summary>
-        ///     Iso2 country code.
+        ///     Iso2 country code
         /// </summary>
         public string Iso2 { get; }
 
         /// <summary>
-        ///     Country display name.
+        ///     Country display name
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        ///     Phone prefix.
+        ///     Phone prefix
         /// </summary>
         public string PhonePrefix { get; }
 
-        public RegistrationCountryModel(CountryInfo countryInfo)
+        public CountryModel(CountryInfo countryInfo)
         {
             Iso2 = countryInfo.Iso2;
             Name = countryInfo.Name;
