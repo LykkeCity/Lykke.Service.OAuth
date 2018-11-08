@@ -6,7 +6,7 @@ using MessagePack;
 
 namespace Core.Registration
 {
-    [MessagePackObject(keyAsPropertyName: true)]
+    [MessagePackObject(true)]
     public class RegistrationModel : IPasswordKeeping
     {
         public string RegistrationId { get; private set; }
@@ -14,46 +14,65 @@ namespace Core.Registration
         public string Salt { get; set; }
         public string Email { get; }
         public string ClientId { get; private set; }
-        public RegistrationStep RegistrationStep { get; private set; }
+        public RegistrationStep CurrentStep { get; private set; }
+        public string FirstName { get; private set; }
+        public string LastName { get; private set; }
+        public string CountryOfResidenceIso2 { get; private set; }
+        public string PhoneNumber { get; private set; }
+
         public RegistrationModel(string email)
         {
             Email = email;
-            RegistrationId = GenerateRegistrationId();
+            CurrentStep = RegistrationStep.InitialInfo;
+            RegistrationId = GenerateId();
         }
 
-        [SerializationConstructor]
-        public RegistrationModel(string registrationId, string email, string clientId, string hash, string salt, RegistrationStep registrationStep)
+        private static string GenerateId()
         {
-            RegistrationId = registrationId;
-            Email = email;
-            ClientId = clientId;
-            Hash = hash;
-            Salt = salt;
-            RegistrationStep = registrationStep;
+            return Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                .Replace("/", "_")
+                .Replace("+", "-")
+                .Substring(0, 22);
         }
 
-        private string GenerateRegistrationId()
+        public void CompleteInitialInfoStep(InitialInfoDto context)
         {
-            var guid = Guid.NewGuid();
-            var enc = Convert.ToBase64String(guid.ToByteArray());
-            enc = enc.Replace("/", "_");
-            enc = enc.Replace("+", "-");
-            return enc.Substring(0, 22);
-        }
+            if (CurrentStep != RegistrationStep.InitialInfo)
+                throw new InvalidRegistrationStateTransitionException(CurrentStep, RegistrationStep.InitialInfo);
 
-        public void SetInitialInfo(InitialInfoDto initialInfoDto)
-        {
-            if (initialInfoDto.Email != Email)
-                throw new ArgumentException("Email doesn't match to verified one.");
-            if (!IsPasswordComplex(initialInfoDto.Password))
+            if (context.Email != Email)
+                throw new RegistrationEmailMatchingException(context.Email);
+            if (!IsPasswordComplex(context.Password))
                 throw new PasswordIsNotComplexException();
 
-            ClientId = initialInfoDto.ClientId;
-            this.SetPassword(initialInfoDto.Password);
-            RegistrationStep = RegistrationStep.AccountInformation;
+            ClientId = context.ClientId;
+            this.SetPassword(context.Password);
+
+            CurrentStep = RegistrationStep.AccountInformation;
         }
 
-        private bool IsPasswordComplex(string password)
+        public void CompleteAccountInfoStep(AccountInfoDto context)
+        {
+            if (CurrentStep != RegistrationStep.AccountInformation)
+                throw new InvalidRegistrationStateTransitionException(CurrentStep, RegistrationStep.AccountInformation);
+
+            if (!IsPhoneNumberFormatCorrect(context.PhoneNumber))
+                throw new InvalidPhoneNumberFormatException(context.PhoneNumber);
+
+            FirstName = context.FirstName;
+            LastName = context.LastName;
+            CountryOfResidenceIso2 = context.CountryCodeIso2;
+            PhoneNumber = context.PhoneNumber;
+
+            CurrentStep = RegistrationStep.Pin;
+        }
+
+        public static bool IsPhoneNumberFormatCorrect(string phoneNumber)
+        {
+            return phoneNumber?.PreparePhoneNum()?.ToE164Number() != null;
+        }
+
+        public static bool IsPasswordComplex(string password)
         {
             return password.IsPasswordComplex(8, 128, true, false);
         }
@@ -65,7 +84,7 @@ namespace Core.Registration
 
         public bool CanEmailBeUsed()
         {
-            return RegistrationStep == RegistrationStep.InitialInfo;
+            return CurrentStep == RegistrationStep.InitialInfo;
         }
     }
 }

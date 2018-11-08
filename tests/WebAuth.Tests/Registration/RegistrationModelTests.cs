@@ -51,6 +51,15 @@ namespace WebAuth.Tests.Registration
             model1.RegistrationId.Should().NotBe(model2.RegistrationId);
         }
 
+        [Theory]
+        [InlineData(ValidEmail)]
+        public void Ctor_WhenEmailPassed_FirstStepIsInitialInfo(string email)
+        {
+            var model = new RegistrationModel(email);
+
+            model.CurrentStep.Should().Be(RegistrationStep.InitialInfo);
+        }
+
 
         [Fact]
         public void SetInitialInfo_WhenEmailIsEqualToInitial_NoException()
@@ -63,13 +72,13 @@ namespace WebAuth.Tests.Registration
                 ClientId = "123"
             };
 
-            model.SetInitialInfo(initialInfoDto);
+            model.CompleteInitialInfoStep(initialInfoDto);
 
             model.Should().NotBeNull();
         }
 
         [Fact]
-        public void SetInitialInfo_WhenEmailIsDifferetFromInitial_ArgumentExceptionIsThrown()
+        public void SetInitialInfo_WhenEmailIsDifferentFromInitial_ArgumentExceptionIsThrown()
         {
             var model = new RegistrationModel("email1@test.com");
             var initialInfoDto = new InitialInfoDto
@@ -79,10 +88,10 @@ namespace WebAuth.Tests.Registration
                 ClientId = "123"
             };
 
-            Action initialInfo = () => model.SetInitialInfo(initialInfoDto);
+            Action initialInfo = () => model.CompleteInitialInfoStep(initialInfoDto);
 
-            initialInfo.Should().Throw<ArgumentException>()
-                .WithMessage("Email doesn't match to verified one.");
+            initialInfo.Should().Throw<RegistrationEmailMatchingException>()
+                .WithMessage("The email doesn't match to the one was provided during registration");
         }
 
         [Fact]
@@ -97,7 +106,7 @@ namespace WebAuth.Tests.Registration
                 ClientId = clientId
             };
 
-            model.SetInitialInfo(initialInfoDto);
+            model.CompleteInitialInfoStep(initialInfoDto);
 
             model.ClientId.Should().BeEquivalentTo(clientId);
         }
@@ -114,7 +123,7 @@ namespace WebAuth.Tests.Registration
                 ClientId = "321"
             };
 
-            model.SetInitialInfo(initialInfoDto);
+            model.CompleteInitialInfoStep(initialInfoDto);
 
             model.Salt.Should().NotBeEmpty();
             model.Hash.Should().NotBe(password);
@@ -136,7 +145,7 @@ namespace WebAuth.Tests.Registration
                 ClientId = "321"
             };
 
-            model.SetInitialInfo(initialInfoDto);
+            model.CompleteInitialInfoStep(initialInfoDto);
 
             model.Should().NotBeNull();
         }
@@ -160,7 +169,7 @@ namespace WebAuth.Tests.Registration
                 ClientId = "321"
             };
 
-            Action initialInfo = () => model.SetInitialInfo(initialInfoDto);
+            Action initialInfo = () => model.CompleteInitialInfoStep(initialInfoDto);
 
             initialInfo.Should().Throw<PasswordIsNotComplexException>();
         }
@@ -177,7 +186,7 @@ namespace WebAuth.Tests.Registration
                 ClientId = "321"
             };
 
-            model.SetInitialInfo(initialInfoDto);
+            model.CompleteInitialInfoStep(initialInfoDto);
 
             model.CanEmailBeUsed().Should().BeFalse();
         }
@@ -186,13 +195,6 @@ namespace WebAuth.Tests.Registration
         public void CanEmailBeUsed_WhenInitialInfoNotSet_ShouldBeTrue()
         {
             var model = new RegistrationModel(ValidEmail);
-
-            var initialInfoDto = new InitialInfoDto
-            {
-                Email = ValidEmail,
-                Password = ComplexPassword,
-                ClientId = "321"
-            };
 
             model.CanEmailBeUsed().Should().BeTrue();
         }

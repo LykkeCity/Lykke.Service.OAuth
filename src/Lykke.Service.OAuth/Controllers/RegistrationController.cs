@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Common.Log;
@@ -32,7 +33,6 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly ILog _log;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ICountriesService _countriesService;
-        private readonly IAccountInfoStepHandler _accountInfoStepHandler;
 
         /// <summary>
         /// Ctor
@@ -49,12 +49,10 @@ namespace Lykke.Service.OAuth.Controllers
             IPasswordValidationService passwordValidationService,
             ILogFactory logFactory,
             IApplicationRepository applicationRepository, 
-            ICountriesService countriesService, 
-            IAccountInfoStepHandler accountInfoStepHandler)
+            ICountriesService countriesService)
         {
             _applicationRepository = applicationRepository;
             _countriesService = countriesService;
-            _accountInfoStepHandler = accountInfoStepHandler;
             _registrationRepository = registrationRepository;
             _emailValidationService = emailValidationService;
             _passwordValidationService = passwordValidationService;
@@ -82,12 +80,13 @@ namespace Lykke.Service.OAuth.Controllers
                 var client = await _applicationRepository.GetByIdAsync(registrationRequestModel.ClientId);
                 if (client == null)
                     throw LykkeApiErrorException.NotFound(OAuthErrorCodes.ClientNotFound);
-                    
-                var registrationModel = await _registrationRepository.GetByIdAsync(registrationRequestModel.RegistrationId);
+
+                var registrationModel =
+                    await _registrationRepository.GetByIdAsync(registrationRequestModel.RegistrationId);
 
                 var passwordValidationResult =
                     await _passwordValidationService.ValidateAsync(registrationRequestModel.Password);
-                    
+
                 if (!passwordValidationResult.IsValid)
                 {
                     var apiError =
@@ -96,11 +95,24 @@ namespace Lykke.Service.OAuth.Controllers
                     throw LykkeApiErrorException.BadRequest(apiError);
                 }
 
-                registrationModel.SetInitialInfo(registrationRequestModel.ToDto());
+                registrationModel.CompleteInitialInfoStep(registrationRequestModel.ToDto());
 
                 var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
 
                 return new JsonResult(new RegistrationResponse(registrationId));
+            }
+            catch (RegistrationEmailMatchingException e)
+            {
+                _log.Warning(e.Message, e, $"Email = {e.Email}");
+
+                throw;
+            }
+            catch (InvalidRegistrationStateTransitionException e)
+            {
+                _log.Error(e, e.Message,
+                    $"currentStep = {e.CurrentStep.ToString()}, destStep = {e.DestinationStep.ToString()}");
+
+                throw;
             }
             catch (RegistrationKeyNotFoundException)
             {
@@ -133,21 +145,24 @@ namespace Lykke.Service.OAuth.Controllers
         {
             try
             {
-                await _accountInfoStepHandler.HandleAsync(model.ToDto());
+                RegistrationModel registrationModel = await _registrationRepository.GetByIdAsync(model.RegistrationId);
 
-                return Ok(new RegistrationResponse(model.RegistrationId));
+                if (_countriesService.RestrictedCountriesOfResidence.Any(x => model.CountryCodeIso2.Equals(x.Iso2)))
+                    throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.CountryFromRestrictedList);
+
+                //todo: validate if phone number is already in use using old KYC database ???
+
+                registrationModel.CompleteAccountInfoStep(model.ToDto());
+
+                var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
+
+                return Ok(new RegistrationResponse(registrationId));
             }
             catch (RegistrationKeyNotFoundException e)
             {
                 _log.Error(e, e.Message, $"registrationId = {model.RegistrationId}");
 
                 throw LykkeApiErrorException.NotFound(RegistrationErrorCodes.RegistrationNotFound);
-            }
-            catch (CountryFromRestrictedListException e)
-            {
-                _log.Error(e, e.Message, $"Country = {e.Country}");
-
-                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.CountryFromRestrictedList);
             }
             catch (InvalidPhoneNumberFormatException e)
             {
@@ -160,6 +175,13 @@ namespace Lykke.Service.OAuth.Controllers
                 _log.Error(e, e.Message, $"PhoneNumber = {e.PhoneNumber}");
 
                 throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.PhoneNumberInUse);
+            }
+            catch (InvalidRegistrationStateTransitionException e)
+            {
+                _log.Error(e, e.Message,
+                    $"currentStep = {e.CurrentStep.ToString()}, destStep = {e.DestinationStep.ToString()}");
+
+                throw;
             }
         }
 
@@ -182,9 +204,10 @@ namespace Lykke.Service.OAuth.Controllers
             try
             {
                 var registrationModel = await _registrationRepository.GetByIdAsync(registrationId);
+
                 return new JsonResult(new RegistrationStatusResponse
                 {
-                    RegistrationStep = registrationModel.RegistrationStep
+                    RegistrationStep = registrationModel.CurrentStep
                 });
             }
             catch (RegistrationKeyNotFoundException)

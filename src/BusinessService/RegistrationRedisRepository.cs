@@ -50,7 +50,7 @@ namespace BusinessService
                 var data = await _database.StringGetAsync(redisKey);
                 if (data.IsNull) throw new RegistrationKeyNotFoundException();
 
-                var model = MessagePackSerializer.Deserialize<RegistrationModel>(data);
+                var model = MessagePackSerializer.Deserialize<RegistrationModel>(data, MessagePack.Resolvers.StandardResolverAllowPrivate.Instance);
 
                 return model;
             }
