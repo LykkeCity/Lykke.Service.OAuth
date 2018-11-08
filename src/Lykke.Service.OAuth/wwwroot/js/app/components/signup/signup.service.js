@@ -5,12 +5,13 @@
         .module('app')
         .service('signupService', signupService);
 
-    signupService.$inject = ['$http', 'env', '$q', '$window', '$location', 'signupStep'];
+    signupService.$inject = ['$http', 'env', '$q', '$window', '$location', 'signupStep', 'errorCode'];
 
-    function signupService($http, env, $q, $window, $location, signupStep) {
+    function signupService($http, env, $q, $window, $location, signupStep, errorCode) {
         var bCryptWorkFactor;
         var verifiedEmailIds = {};
         var registrationStep = signupStep.initialInfo;
+        var currentErrorCode = null;
 
         function init() {
             var deferred = $q.defer();
@@ -19,14 +20,15 @@
                 bCryptWorkFactor = data.bCryptWorkFactor;
             });
 
-            var registrationId = $location.search().registrationId || $window.localStorage.getItem('registrationId');
+            var registrationId = getRegistrationId();
             if (registrationId) {
                 saveRegistrationId(registrationId);
 
                 return getStatus(registrationId).then(function (response) {
                     registrationStep = response;
                 }).catch(function () {
-                    registrationStep = signupStep.registrationIdNotFound;
+                    registrationStep = null;
+                    currentErrorCode = errorCode.registrationIdNotFound;
                 }).finally(function () {
                     deferred.resolve();
                 });
@@ -86,8 +88,16 @@
             $window.localStorage.setItem('registrationId', registrationId);
         }
 
+        function getRegistrationId() {
+            return $location.search().registrationId || $window.localStorage.getItem('registrationId');
+        }
+
         function getRegistrationStep() {
             return registrationStep;
+        }
+
+        function getErrorCode() {
+            return currentErrorCode;
         }
 
         function getStatus(registrationId) {
@@ -120,7 +130,8 @@
             sendInitialInfo: sendInitialInfo,
             getSettings: getSettings,
             signOut: signOut,
-            getRegistrationStep: getRegistrationStep
+            getRegistrationStep: getRegistrationStep,
+            getErrorCode: getErrorCode
         };
     }
 })();

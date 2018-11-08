@@ -14,7 +14,8 @@
 
         signupService.init().then(function () {
             vm.data = {
-                currentStep: signupService.getRegistrationStep()
+                currentStep: signupService.getRegistrationStep(),
+                errorCode: signupService.getErrorCode(),
             };
         });
     }

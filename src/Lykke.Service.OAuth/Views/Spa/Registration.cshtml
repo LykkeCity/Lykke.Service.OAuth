@@ -2,10 +2,15 @@
 @{
     Layout = "_SpaLayout";
 }
-<div data-ng-controller="signupController as vm" data-ng-switch="vm.data.currentStep">
-    <initial-info data-ng-switch-when="InitialInfo"></initial-info>
-    <registration-id-not-found data-ng-switch-when="RegistrationIdNotFound"></registration-id-not-found>
-    <account-info data-ng-switch-when="AccountInformation"></account-info>
+<div data-ng-controller="signupController as vm">
+    <div data-ng-switch="vm.data.currentStep">
+        <initial-info data-ng-switch-when="InitialInfo"></initial-info>
+        <account-info data-ng-switch-when="AccountInformation"></account-info>
+    </div>
+    <div data-ng-switch="vm.data.errorCode">
+        <registration-id-not-found data-ng-switch-when="RegistrationIdNotFound"></registration-id-not-found>
+    </div>
+
 </div>
 
 @section scripts
@@ -15,6 +20,7 @@
         <script src="/js/app/components/signup/signup.service.js"></script>
         <script src="/js/app/components/signup/signup.controller.js"></script>
         <script src="/js/app/components/signup/signupStep.constant.js"></script>
+        <script src="/js/app/components/signup/errorCode.constant.js"></script>
         <script src="/js/app/components/signup/initialInfo/initialInfo.directive.js"></script>
         <script src="/js/app/components/signup/initialInfo/initialInfo.controller.js"></script>
         <script src="/js/app/components/signup/accountInfo/accountInfo.directive.js"></script>
