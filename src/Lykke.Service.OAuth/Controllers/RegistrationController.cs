@@ -80,12 +80,13 @@ namespace Lykke.Service.OAuth.Controllers
                 var client = await _applicationRepository.GetByIdAsync(registrationRequestModel.ClientId);
                 if (client == null)
                     throw LykkeApiErrorException.NotFound(OAuthErrorCodes.ClientNotFound);
-                    
-                var registrationModel = await _registrationRepository.GetByIdAsync(registrationRequestModel.RegistrationId);
+
+                var registrationModel =
+                    await _registrationRepository.GetByIdAsync(registrationRequestModel.RegistrationId);
 
                 var passwordValidationResult =
                     await _passwordValidationService.ValidateAsync(registrationRequestModel.Password);
-                    
+
                 if (!passwordValidationResult.IsValid)
                 {
                     var apiError =
@@ -94,11 +95,24 @@ namespace Lykke.Service.OAuth.Controllers
                     throw LykkeApiErrorException.BadRequest(apiError);
                 }
 
-                registrationModel.CompleteStep(registrationRequestModel.ToDto());
+                registrationModel.CompleteInitialInfoStep(registrationRequestModel.ToDto());
 
                 var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
 
                 return new JsonResult(new RegistrationResponse(registrationId));
+            }
+            catch (RegistrationEmailMatchingException e)
+            {
+                _log.Warning(e.Message, e, $"Email = {e.Email}");
+
+                throw;
+            }
+            catch (InvalidRegistrationStateTransitionException e)
+            {
+                _log.Error(e, e.Message,
+                    $"currentStep = {e.CurrentStep.ToString()}, destStep = {e.DestinationStep.ToString()}");
+
+                throw;
             }
             catch (RegistrationKeyNotFoundException)
             {
@@ -138,7 +152,7 @@ namespace Lykke.Service.OAuth.Controllers
 
                 //todo: validate if phone number is already in use using old KYC database ???
 
-                registrationModel.CompleteStep(model.ToDto());
+                registrationModel.CompleteAccountInfoStep(model.ToDto());
 
                 var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
 
@@ -162,6 +176,13 @@ namespace Lykke.Service.OAuth.Controllers
 
                 throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.PhoneNumberInUse);
             }
+            catch (InvalidRegistrationStateTransitionException e)
+            {
+                _log.Error(e, e.Message,
+                    $"currentStep = {e.CurrentStep.ToString()}, destStep = {e.DestinationStep.ToString()}");
+
+                throw;
+            }
         }
 
         /// <summary>
@@ -183,7 +204,7 @@ namespace Lykke.Service.OAuth.Controllers
             try
             {
                 var registrationModel = await _registrationRepository.GetByIdAsync(registrationId);
-                return new JsonResult(registrationModel.ActiveStep);
+                return new JsonResult(registrationModel.CurrentStep);
             }
             catch (RegistrationKeyNotFoundException)
             {

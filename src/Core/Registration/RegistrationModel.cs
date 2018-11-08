@@ -14,70 +14,62 @@ namespace Core.Registration
         public string Salt { get; set; }
         public string Email { get; }
         public string ClientId { get; private set; }
-        public RegistrationStep ActiveStep { get; private set; }
+        public RegistrationStep CurrentStep { get; private set; }
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
-        public string CountryCodeIso2 { get; private set; }
+        public string CountryOfResidenceIso2 { get; private set; }
         public string PhoneNumber { get; private set; }
 
         public RegistrationModel(string email)
         {
             Email = email;
-            ActiveStep = RegistrationStep.InitialInfo;
-            RegistrationId = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+            CurrentStep = RegistrationStep.InitialInfo;
+            RegistrationId = GenerateId();
+        }
+
+        private static string GenerateId()
+        {
+            return Convert.ToBase64String(Guid.NewGuid().ToByteArray())
                 .Replace("/", "_")
                 .Replace("+", "-")
                 .Substring(0, 22);
         }
 
-        public void CompleteStep(object context)
+        public void CompleteInitialInfoStep(InitialInfoDto context)
         {
-            switch (ActiveStep)
-            {
-                case RegistrationStep.InitialInfo:
-                {
-                    if (context is InitialInfoDto ctx)
-                    {
-                        if (ctx.Email != Email)
-                            throw new ArgumentException("Email doesn't match to verified one.");
-                        if (!IsPasswordComplex(ctx.Password))
-                            throw new PasswordIsNotComplexException();
+            if (CurrentStep != RegistrationStep.InitialInfo)
+                throw new InvalidRegistrationStateTransitionException(CurrentStep, RegistrationStep.InitialInfo);
 
-                        ClientId = ctx.ClientId;
-                        this.SetPassword(ctx.Password);
+            if (context.Email != Email)
+                throw new RegistrationEmailMatchingException(context.Email);
+            if (!IsPasswordComplex(context.Password))
+                throw new PasswordIsNotComplexException();
 
-                        break;
-                    }
+            ClientId = context.ClientId;
+            this.SetPassword(context.Password);
 
-                    throw new InvalidRegistrationStepContext(ActiveStep);
-                }
-                case RegistrationStep.AccountInformation:
-                {
-                    if (context is AccountInfoDto ctx)
-                    {
-                        if (!IsPhoneNumberFormatCorrect(ctx.PhoneNumber))
-                            throw new InvalidPhoneNumberFormatException(ctx.PhoneNumber);
+            CurrentStep += 1;
+        }
 
-                        FirstName = ctx.FirstName;
-                        LastName = ctx.LastName;
-                        CountryCodeIso2 = ctx.CountryCodeIso2;
-                        PhoneNumber = ctx.PhoneNumber;
+        public void CompleteAccountInfoStep(AccountInfoDto context)
+        {
+            if (CurrentStep != RegistrationStep.AccountInformation)
+                throw new InvalidRegistrationStateTransitionException(CurrentStep, RegistrationStep.AccountInformation);
 
-                        break;
-                    }
+            if (!IsPhoneNumberFormatCorrect(context.PhoneNumber))
+                throw new InvalidPhoneNumberFormatException(context.PhoneNumber);
 
-                    throw new InvalidRegistrationStepContext(ActiveStep);
-                }
-                default:
-                    throw new NotImplementedException();
-            }
+            FirstName = context.FirstName;
+            LastName = context.LastName;
+            CountryOfResidenceIso2 = context.CountryCodeIso2;
+            PhoneNumber = context.PhoneNumber;
 
-            ActiveStep += 1;
+            CurrentStep += 1;
         }
 
         public static bool IsPhoneNumberFormatCorrect(string phoneNumber)
         {
-            return phoneNumber.PreparePhoneNum().ToE164Number() != null;
+            return phoneNumber?.PreparePhoneNum()?.ToE164Number() != null;
         }
 
         public static bool IsPasswordComplex(string password)
@@ -92,7 +84,7 @@ namespace Core.Registration
 
         public bool CanEmailBeUsed()
         {
-            return ActiveStep == RegistrationStep.InitialInfo;
+            return CurrentStep == RegistrationStep.InitialInfo;
         }
     }
 }
