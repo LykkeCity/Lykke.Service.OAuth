@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Core.Registration;
+using Lykke.Service.OAuth.Attributes;
 
 namespace Lykke.Service.OAuth.Models.Registration
 {
@@ -39,7 +40,7 @@ namespace Lykke.Service.OAuth.Models.Registration
         /// <summary>
         /// The Id of registration. Obtained while email verification
         /// </summary>
-        [Required]
+        [ValidateRegistrationId]
         public string RegistrationId { get; set; }
 
         /// <summary>

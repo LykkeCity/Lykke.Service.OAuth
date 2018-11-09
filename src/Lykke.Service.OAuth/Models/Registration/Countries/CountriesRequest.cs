@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Lykke.Service.OAuth.Attributes;
 
 namespace Lykke.Service.OAuth.Models.Registration.Countries
 {
@@ -10,7 +10,7 @@ namespace Lykke.Service.OAuth.Models.Registration.Countries
         /// <summary>
         ///     Registration id token.
         /// </summary>
-        [Required]
+        [ValidateRegistrationId]
         public string RegistrationId { get; set; }
     }
 }

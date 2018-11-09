@@ -59,7 +59,13 @@ namespace Lykke.Service.OAuth.Controllers
         /// <param name="registrationRequestModel"></param>
         /// <response code="200">The id of the registration has been started</response>
         /// <response code="400">Request validation failed. Error codes: PasswordIsPwned, PasswordIsNotComplex</response>
-        /// <response code="404">Registration id not found. Error codes: RegistrationNotFound, ClientNotFound</response>
+        /// <response code="404">
+        /// When RegistrationId is null, empty or whitespace.
+        /// Registration id not found. Error codes: RegistrationNotFound,
+        ///
+        /// When Id of the client app was not found:
+        /// Error code: ClientNotFound
+        /// </response>
         [HttpPost]
         [SwaggerOperation("InitialInfo")]
         [ProducesResponseType(typeof(RegistrationResponse), (int) HttpStatusCode.OK)]
@@ -127,7 +133,11 @@ namespace Lykke.Service.OAuth.Controllers
         /// <param name="model"></param>
         /// <response code="200">The id of the registration has been proceeded to the next step</response>
         /// <response code="400">Invalid country or phone number or phone number is already used. Error codes:ModelValidationFailed, CountryFromRestrictedList, InvalidPhoneFormat, PhoneNumberInUse</response>
-        /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
+        /// <response code="404">
+        ///     When RegistrationId is null, empty or whitespace.
+        ///     When Registration id not found.
+        ///     Error codes: RegistrationNotFound
+        /// </response>
         [HttpPost]
         [Route("accountInfo")]
         [SwaggerOperation("AccountInfo")]
@@ -217,12 +227,9 @@ namespace Lykke.Service.OAuth.Controllers
         /// </summary>
         /// <param name="request">Registration status request object.</param>
         /// <response code="200">The current state of registration</response>
-        /// <response code="400">
-        ///     When RegistrationId is null, empty or whitespace.
-        ///     Error codes: ModelValidationFailed
-        /// </response>
         /// <response code="404">
-        ///     Registration id not found.
+        ///     When RegistrationId is null, empty or whitespace.
+        ///     When Registration id not found.
         ///     Error codes: RegistrationNotFound
         /// </response>
         [HttpPost]
@@ -230,7 +237,6 @@ namespace Lykke.Service.OAuth.Controllers
         [Consumes("application/json")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(RegistrationStatusResponse), (int) HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
         [Route("status")]
         [ValidateApiModel]
@@ -319,12 +325,9 @@ namespace Lykke.Service.OAuth.Controllers
         ///     And list of restricted countries of residence.
         ///     And user location country.
         /// </response>
-        /// <response code="400">
-        ///     When RegistrationId is null, empty or whitespace.
-        ///     Error codes: ModelValidationFailed
-        /// </response>
         /// <response code="404">
-        ///     When user could not be found by RegistrationId.
+        ///     When RegistrationId is null, empty or whitespace.
+        ///     When Registration id not found.
         ///     Error codes: RegistrationNotFound
         /// </response>
         [HttpPost]
@@ -333,7 +336,6 @@ namespace Lykke.Service.OAuth.Controllers
         [Consumes("application/json")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(CountriesResponse), (int) HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
         [ValidateApiModel]
         public async Task<IActionResult> GetCountries([FromBody] CountriesRequest request)
