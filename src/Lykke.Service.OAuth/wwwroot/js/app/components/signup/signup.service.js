@@ -39,8 +39,9 @@
             return deferred.promise;
         }
 
-        function validateEmail(email) {
+        function validateEmail(emailViewModel) {
             var deferred = $q.defer();
+            var email = emailViewModel.toLowerCase();
 
             if (angular.isDefined(verifiedEmailIds[email])) {
                 var isEmailTaken = !verifiedEmailIds[email];
@@ -64,7 +65,7 @@
 
         function checkEmailTaken(email, hash) {
             return $http
-                .post('/api/registration/email', {email: email, hash: hash})
+                .post('/api/registration/email', {email: email.toLowerCase(), hash: hash})
                 .then(function (response) {
                     return response.data;
                 });
@@ -73,9 +74,9 @@
         function sendInitialInfo(email, password) {
             return $http
                 .post('/api/registration/initialInfo', {
-                    email: email,
+                    email: email.toLowerCase(),
                     password: password,
-                    registrationId: verifiedEmailIds[email],
+                    registrationId: verifiedEmailIds[email.toLowerCase()],
                     clientId: env.clientId
                 })
                 .then(function (response) {

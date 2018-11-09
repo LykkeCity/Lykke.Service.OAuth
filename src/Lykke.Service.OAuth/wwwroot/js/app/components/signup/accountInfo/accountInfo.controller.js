@@ -35,10 +35,16 @@
                     vm.data.isSubmitting = false;
                     $scope.$emit('currentStepChanged', signupStep.pin);
                 }).catch(function (error) {
+                    var invalidPhoneFormatError = 'InvalidPhoneFormat';
                     vm.data.isSubmitting = false;
+                    vm.data.isPhoneFormatInvalid = invalidPhoneFormatError === error.data.error;
                     // TODO: Password exists
                 });
             }
+        }
+
+        function handlePhoneKeydown() {
+            vm.data.isPhoneFormatInvalid = false;
         }
 
         function openRestrictedCountryQuestionModal() {
@@ -47,7 +53,7 @@
             })
 
             $dialogs.showConfirmationDialog('', {
-                title: 'Are you a citizen or resident of the ' + userCountry.name + '?',
+                title: 'Are you a citizen or resident of ' + userCountry.name + '?',
                 buttonOkText: 'Yes',
                 buttonCancelText : 'No',
                 callback: function (option){
@@ -77,6 +83,7 @@
 
         vm.data = {
             isSubmitting: false,
+            isPhoneFormatInvalid: false,
             model: {
                 firstName: '',
                 lastName: '',
@@ -91,6 +98,7 @@
         vm.handlers = {
             handleSubmit: handleSubmit,
             handleSelectCountry: handleSelectCountry,
+            handlePhoneKeydown: handlePhoneKeydown,
             handleLogout: handleLogout
         };
 
