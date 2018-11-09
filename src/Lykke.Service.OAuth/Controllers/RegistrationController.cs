@@ -244,18 +244,18 @@ namespace Lykke.Service.OAuth.Controllers
 
                 return Ok(new EmailValidationResult {IsEmailTaken = true});
             }
-            catch (EmailHashInvalidException e)
-            {
-                _log.Warning("Invalid hash has been provided for email", e, $"email = {e.Email}");
+            //catch (EmailHashInvalidException e)
+            //{
+            //    _log.Warning("Invalid hash has been provided for email", e, $"email = {e.Email}");
 
-                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.InvalidBCryptHash);
-            }
-            catch (BCryptWorkFactorOutOfRangeException e)
-            {
-                _log.Warning("BCrypt work factor is out of range", e, $"workFactor = {e.WorkFactor}");
+            //    throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.InvalidBCryptHash);
+            //}
+            //catch (BCryptWorkFactorOutOfRangeException e)
+            //{
+            //    _log.Warning("BCrypt work factor is out of range", e, $"workFactor = {e.WorkFactor}");
 
-                throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.BCryptWorkFactorOutOfRange);
-            }
+            //    throw LykkeApiErrorException.BadRequest(RegistrationErrorCodes.BCryptWorkFactorOutOfRange);
+            //}
             catch (BCryptInternalException e)
             {
                 _log.Warning("BCrypt internal exception", e.InnerException,

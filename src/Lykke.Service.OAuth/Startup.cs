@@ -15,7 +15,7 @@ using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Common.Log;
 using Lykke.Logs;
-using Lykke.Service.OAuth.EventFilter;
+using Lykke.Service.OAuth;
 using Lykke.Service.OAuth.Modules;
 using Lykke.SettingsReader;
 using Lykke.SettingsReader.ReloadingManager;
@@ -164,8 +164,7 @@ namespace WebAuth
                 services.AddMvc()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                     .AddViewLocalization()
-                    .AddDataAnnotationsLocalization()
-                    .AddMvcOptions(o => { o.Filters.Add(typeof(UnhandledExceptionFilter)); });
+                    .AddDataAnnotationsLocalization();
 
                 services.AddAutoMapper();
 
@@ -192,6 +191,7 @@ namespace WebAuth
                 builder.RegisterModule(new BusinessModule(settings));
                 builder.RegisterModule(new ClientServiceModule(settings));
                 builder.RegisterModule(new ServiceModule(settings));
+                builder.RegisterModule(new ExceptionsModule());
 
 
                 builder.Populate(services);
@@ -215,7 +215,7 @@ namespace WebAuth
             {
                 app.UseLykkeMiddleware(ex => new { message = "Technical problem" });
 
-                app.UseMiddleware<LykkeApiErrorMiddleware>();
+                app.UseMiddleware<LykkeApiErrorMiddlewareImproved>();
 
                 app.UseLykkeForwardedHeaders();
 
