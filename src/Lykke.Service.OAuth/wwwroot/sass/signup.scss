@@ -87,6 +87,28 @@
     }
   }
 
+  &__signout-link {
+    font-size: 16px;
+    line-height: 1.63;
+    color: $gray;
+    float: right;
+
+    @media all and (max-width: $screen-mobile) {
+      display: none;
+    }
+
+    &_mobile {
+      display: none;
+      text-align: center;
+      float: none;
+      margin-top: 0;
+
+      @media all and (max-width: $screen-mobile) {
+        display: block;
+      }
+    }
+  }
+
   &__mobile-logo {
     position: absolute;
     top: 32px;
@@ -103,6 +125,10 @@
       left: 0;
       width: 100%;
       text-align: center;
+    }
+
+    &_desktop {
+      display: block;
     }
   }
 
@@ -137,6 +163,52 @@
       margin: 32px auto 19px;
     }
 
+    .lykke-input-phone {
+      position: relative;
+
+      input {
+        padding-left: 98px;
+      }
+
+      &__value {
+        font-size: 16px;
+        text-align: right;
+        cursor: pointer;
+        position: absolute;
+        width: 88px;
+        height: 50px;
+        color: $azure;
+        padding-left: 16px;
+
+        div {
+          top: 15px;
+          position: relative;
+        }
+
+        img {
+          margin-left: 4px;
+        }
+      }
+    }
+
+    .phone-prefix-select {
+      position: absolute;
+      outline: 0;
+      cursor: pointer;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      opacity: 0;
+      top: 0;
+      left: 0;
+      width: 88px;
+      height: 50px;
+      border: 0;
+      background: none;
+      color: $azure;
+      padding-left: 16px;
+    }
+
     @media all and (max-width: $screen-tablet) {
       width: 350px;
     }
@@ -153,5 +225,37 @@
     @media all and (max-width: $screen-mobile-tiny) {
       width: 100%;
     }
+
+    &_additional-info {
+      width: 490px;
+      min-height: 90vh;
+
+      .lykke-button {
+        margin: 32px auto 19px;
+      }
+
+      @media all and (max-width: 800px) {
+        width: 480px;
+      }
+
+      @media all and (max-width: $screen-landscape) {
+        margin-top: 50px;
+      }
+
+      @media all and (max-width: $screen-mobile) {
+        width: 350px;
+      }
+
+      @media all and (max-width: $screen-mobile-tiny) {
+        width: 100%;
+      }
+    }
   }
+}
+
+.registration-id-not-found {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%)
 }

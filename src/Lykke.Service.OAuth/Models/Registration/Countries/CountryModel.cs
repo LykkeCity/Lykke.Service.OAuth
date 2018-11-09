@@ -1,6 +1,6 @@
 ﻿using Core.Countries;
 
-namespace Lykke.Service.OAuth.Models.Registration
+namespace Lykke.Service.OAuth.Models.Registration.Countries
 {
     /// <summary>
     ///     Country model
