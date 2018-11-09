@@ -167,6 +167,7 @@ input::-webkit-credentials-auto-fill-button {
   color: #657180; }
 
 .select2-results {
+  min-height: 350px;
   margin: 5px 0 0;
   padding: 0 5px; }
   .select2-results li {
@@ -176,7 +177,7 @@ input::-webkit-credentials-auto-fill-button {
   .select2-results .select2-result-label {
     padding: 0 15px; }
   .select2-results .select2-highlighted {
-    background-color: #0da7fc;
+    background-color: #0388ef;
     color: #fff; }
 
 .modal-open .signup-page {
@@ -341,19 +342,21 @@ input::-webkit-credentials-auto-fill-button {
     .signup-page .signup-form .lykke-input-phone {
       position: relative; }
       .signup-page .signup-form .lykke-input-phone input {
-        padding-left: 95px; }
+        padding-left: 98px; }
       .signup-page .signup-form .lykke-input-phone__value {
         font-size: 16px;
         text-align: right;
         cursor: pointer;
         position: absolute;
-        width: 85px;
+        width: 88px;
         height: 50px;
         color: #0da7fc;
         padding-left: 16px; }
         .signup-page .signup-form .lykke-input-phone__value div {
           top: 15px;
           position: relative; }
+        .signup-page .signup-form .lykke-input-phone__value img {
+          margin-left: 4px; }
     .signup-page .signup-form .phone-prefix-select {
       position: absolute;
       outline: 0;
@@ -364,7 +367,7 @@ input::-webkit-credentials-auto-fill-button {
       opacity: 0;
       top: 0;
       left: 0;
-      width: 85px;
+      width: 88px;
       height: 50px;
       border: 0;
       background: none;

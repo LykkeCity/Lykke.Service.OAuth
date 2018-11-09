@@ -167,7 +167,7 @@
       position: relative;
 
       input {
-        padding-left: 95px;
+        padding-left: 98px;
       }
 
       &__value {
@@ -175,7 +175,7 @@
         text-align: right;
         cursor: pointer;
         position: absolute;
-        width: 85px;
+        width: 88px;
         height: 50px;
         color: $azure;
         padding-left: 16px;
@@ -183,6 +183,10 @@
         div {
           top: 15px;
           position: relative;
+        }
+
+        img {
+          margin-left: 4px;
         }
       }
     }
@@ -197,7 +201,7 @@
       opacity: 0;
       top: 0;
       left: 0;
-      width: 85px;
+      width: 88px;
       height: 50px;
       border: 0;
       background: none;

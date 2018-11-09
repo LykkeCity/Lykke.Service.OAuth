@@ -61,7 +61,7 @@
                     <label for="phone" class="lykke-label">Your phone number*</label>
                     <div class="lykke-input-phone">
                         <div class="lykke-input-phone__value">
-                            <div>{{vm.data.model.phonePrefix}} <img src="/images/group-2.svg" /></div>
+                            <div><span>{{vm.data.model.phonePrefix}}</span> <img src="/images/group-2.svg" /></div>
                             <select data-ng-model="vm.data.model.phonePrefix" class="phone-prefix-select">
                                 <option data-ng-repeat="country in vm.data.countries" value="{{country.phonePrefix}}">{{country.name}}</option>
                             </select>

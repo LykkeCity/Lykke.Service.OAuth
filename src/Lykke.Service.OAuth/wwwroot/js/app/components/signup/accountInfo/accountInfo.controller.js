@@ -106,7 +106,7 @@
                 return country.iso2 === userCountryIso2;
             })
 
-            vm.data.model.country = userCountry.iso2;
+            vm.data.model.country = response.userLocationCountry && response.userLocationCountry.iso2;
             vm.data.model.phonePrefix = userCountry.phonePrefix;
         });
     }
