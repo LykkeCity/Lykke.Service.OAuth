@@ -197,6 +197,10 @@ input::-webkit-credentials-auto-fill-button {
     font-family: "Proxima Nova";
     background: none;
     max-width: 100%;
+
+    @include inputPlaceholder() {
+      color: $light-grey-blue;
+    }
   }
 }
 

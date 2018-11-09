@@ -95,19 +95,19 @@
         };
 
         signupService.getCountries().then(function (response) {
-            var userCountry;
-            var userCountryIso2 = response.userLocationCountry && response.userLocationCountry.iso2;
+            var defaultCountryIso2 = 'CH';
+            var userCountryIso2 = response.userLocationCountry && response.userLocationCountry.iso2 || defaultCountryIso2;
             vm.data.countries = response.countries;
             vm.data.restrictedCountries = response.restrictedCountriesOfResidence;
-            if (!userCountryIso2) {
-                userCountryIso2 = vm.data.countries[0].iso2
-            }
-            userCountry = vm.data.countries.find(function (country) {
+            var userCountry = vm.data.countries.find(function (country) {
                 return country.iso2 === userCountryIso2;
             })
 
-            vm.data.model.country = response.userLocationCountry && response.userLocationCountry.iso2;
+            vm.data.model.country = userCountryIso2;
             vm.data.model.phonePrefix = userCountry.phonePrefix;
+
+            // Hack: Lib doesn't provide interface for this
+            angular.element('.select2-search input').prop('placeholder', 'Search for your country or select one from the list');
         });
     }
 })();

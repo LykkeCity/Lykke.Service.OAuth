@@ -158,6 +158,14 @@ input::-webkit-credentials-auto-fill-button {
     font-family: "Proxima Nova";
     background: none;
     max-width: 100%; }
+    .select2-search input::-moz-placeholder {
+      color: #b2b8bf; }
+    .select2-search input::-webkit-input-placeholder {
+      color: #b2b8bf; }
+    .select2-search input:-ms-input-placeholder {
+      color: #b2b8bf; }
+    .select2-search input::placeholder {
+      color: #b2b8bf; }
 
 .select2-chosen.ng-binding {
   color: #b2b8bf; }
