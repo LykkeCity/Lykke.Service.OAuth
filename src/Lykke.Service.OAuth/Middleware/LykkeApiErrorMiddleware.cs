@@ -8,15 +8,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace Lykke.Service.OAuth
+namespace Lykke.Service.OAuth.Middleware
 {
-    public class LykkeApiErrorMiddlewareImproved
+    public class LykkeApiErrorMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILog _log;
         private readonly ExceptionsHandlingConfiguration _errorCodeConfiguration;
 
-        public LykkeApiErrorMiddlewareImproved(
+        public LykkeApiErrorMiddleware(
             RequestDelegate next,
             ExceptionsHandlingConfiguration errorCodeConfiguration,
             ILogFactory logFactory)
@@ -34,7 +34,7 @@ namespace Lykke.Service.OAuth
             }
             catch (Exception ex)
             {
-                var handlerConfig = _errorCodeConfiguration.FindConfig(ex.GetType());
+                var handlerConfig = _errorCodeConfiguration.Find(ex.GetType());
 
                 if (handlerConfig != null)
                 {
@@ -53,7 +53,7 @@ namespace Lykke.Service.OAuth
 
         private void LogException(Exception ex, LogLevel logLevel)
         {
-            string exContext = ex.CollectContext();
+            string exContext = ex.PickContext();
 
             switch (logLevel)
             {

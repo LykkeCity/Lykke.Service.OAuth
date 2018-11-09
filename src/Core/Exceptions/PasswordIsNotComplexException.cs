@@ -9,7 +9,7 @@ namespace Core.Exceptions
         {
         }
 
-        public PasswordIsNotComplexException(string message) : base(message)
+        public PasswordIsNotComplexException(string message = null) : base(message ?? "Password is not complex.")
         {
         }
 

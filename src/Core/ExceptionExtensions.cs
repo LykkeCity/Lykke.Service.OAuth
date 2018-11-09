@@ -4,9 +4,17 @@ using System.Text;
 
 namespace Core
 {
+    /// <summary>
+    /// Extension methods for <see cref="Exception"/>
+    /// </summary>
     public static class ExceptionExtensions
     {
-        public static string CollectContext(this Exception ex)
+        /// <summary>
+        /// Builds a formatted, line separated strings with exception's business properties
+        /// </summary>
+        /// <param name="ex">The exception</param>
+        /// <returns></returns>
+        public static string PickContext(this Exception ex)
         {
             PropertyInfo[] properties = ex.GetType()
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);

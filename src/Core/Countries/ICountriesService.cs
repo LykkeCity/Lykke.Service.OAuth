@@ -8,7 +8,7 @@ namespace Core.Countries
     public interface ICountriesService
     {
         /// <summary>
-        ///     List of all available countires.
+        ///     List of all available countries.
         /// </summary>
         IEnumerable<CountryInfo> Countries { get; }
 
