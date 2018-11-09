@@ -1,0 +1,15 @@
+﻿@{
+    Layout = null;
+}
+
+@model Lykke.Service.OAuth.Models.Registration.AfterRegistrationLoginViewModel
+
+<head>
+    <environment names="Development">
+        <link rel="stylesheet" href="~/styles/android.css" asp-append-version="true">
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="~/dist/android.min.css" asp-append-version="true">
+    </environment>
+</head>
+<span hidden id="registrationId">@Model.RegistrationId</span>
