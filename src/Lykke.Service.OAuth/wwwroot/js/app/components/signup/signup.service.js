@@ -84,6 +84,21 @@
                 });
         }
 
+        function sendAccountInfo(firstName, lastName, countryCodeIso2, phoneNumber) {
+            return $http
+                .post('/api/registration/accountInfo', {
+                    firstName: firstName,
+                    lastName: lastName,
+                    countryCodeIso2: countryCodeIso2,
+                    phoneNumber: phoneNumber,
+                    registrationId: getRegistrationId()
+                })
+                .then(function (response) {
+                    saveRegistrationId(response.data.registrationId);
+                    return response.data;
+                });
+        }
+
         function saveRegistrationId(registrationId) {
             $window.localStorage.setItem('registrationId', registrationId);
         }
@@ -118,6 +133,16 @@
                 });
         }
 
+        function getCountries() {
+            return $http
+                .post('/api/registration/countries', {
+                    registrationId: getRegistrationId()
+                })
+                .then(function (response) {
+                    return response.data;
+                });
+        }
+
         function signOut() {
             $window.localStorage.removeItem('registrationId');
             $window.location.replace($location.path());
@@ -128,10 +153,12 @@
             checkEmailTaken: checkEmailTaken,
             validateEmail: validateEmail,
             sendInitialInfo: sendInitialInfo,
+            sendAccountInfo: sendAccountInfo,
             getSettings: getSettings,
             signOut: signOut,
             getRegistrationStep: getRegistrationStep,
-            getErrorCode: getErrorCode
+            getErrorCode: getErrorCode,
+            getCountries: getCountries
         };
     }
 })();

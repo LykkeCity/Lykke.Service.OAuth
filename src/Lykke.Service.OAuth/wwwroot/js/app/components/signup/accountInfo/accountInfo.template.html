@@ -11,10 +11,84 @@
                 class="signup-form signup-form_additional-info"
                 name="signupForm"
                 novalidate
+                data-ng-submit="vm.handlers.handleSubmit(signupForm)"
                 autocomplete="off"
                 accessible-form
             >
-                Step 2
+                <div class="lykke-page-title">Account information</div>
+                <div class="lykke-page-subtitle">This information is kept private and helps us secure your account.</div>
+                <div class="lykke-form-group">
+                    <label for="firstName" class="lykke-label">First Name*</label>
+                    <input
+                        name="firstName"
+                        id="firstName"
+                        class="lykke-input"
+                        type="text"
+                        placeholder="Enter your first name"
+                        required
+                        data-ng-maxlength="50"
+                        data-ng-model="vm.data.model.firstName"
+                    />
+                    <div class="lykke-error-label" data-ng-show="signupForm.firstName.$error.required && (signupForm.firstName.$touched || signupForm.$submitted)">This field is mandatory</div>
+                    <div class="lykke-error-label" data-ng-show="signupForm.firstName.$error.maxlength && (signupForm.firstName.$touched || signupForm.$submitted)">First Name is too long (maximum is 50 characters)</div>
+                </div>
+                <div class="lykke-form-group">
+                    <label for="lastName" class="lykke-label">Last Name*</label>
+                    <input
+                        name="lastName"
+                        id="lastName"
+                        class="lykke-input"
+                        type="text"
+                        placeholder="Enter your last name"
+                        required
+                        data-ng-maxlength="50"
+                        data-ng-model="vm.data.model.lastName"
+                    />
+                    <div class="lykke-error-label" data-ng-show="signupForm.lastName.$error.required && (signupForm.lastName.$touched || signupForm.$submitted)">This field is mandatory</div>
+                    <div class="lykke-error-label" data-ng-show="signupForm.lastName.$error.maxlength && (signupForm.lastName.$touched || signupForm.$submitted)">Last Name is too long (maximum is 50 characters)</div>
+                </div>
+                <div class="lykke-form-group">
+                    <label for="country" class="lykke-label">Country of residence*</label>
+                    <ui-select name="country" ng-required="true" ng-model="vm.data.model.country" theme="select2" class="lykke-input" on-select="vm.handlers.handleSelectCountry()">
+                        <ui-select-match placeholder="Select your country">{{$select.selected.name}}</ui-select-match>
+                        <ui-select-choices position="down" repeat="country.iso2 as country in vm.data.countries | filter: $select.search">
+                            <div ng-bind-html="country.name | highlight: $select.search"></div>
+                        </ui-select-choices>
+                    </ui-select>
+                    <div class="lykke-error-label" data-ng-show="signupForm.country.$error.required && (signupForm.country.$touched || signupForm.$submitted)">This field is mandatory</div>
+                </div>
+                <div class="lykke-form-group">
+                    <label for="phone" class="lykke-label">Your phone number*</label>
+                    <div class="lykke-input-phone">
+                        <div class="lykke-input-phone__value">
+                            <div>{{vm.data.model.phonePrefix}} <img src="/images/group-2.svg" /></div>
+                            <select data-ng-model="vm.data.model.phonePrefix" class="phone-prefix-select">
+                                <option data-ng-repeat="country in vm.data.countries" value="{{country.phonePrefix}}">{{country.name}}</option>
+                            </select>
+                        </div>
+                        <input
+                            name="phoneNumber"
+                            id="phoneNumber"
+                            class="lykke-input"
+                            type="tel"
+                            placeholder="1234 567 890"
+                            required
+                            data-ng-maxlength="20"
+                            data-ng-pattern="/^[0-9 ]+$/"
+                            data-ng-model="vm.data.model.phoneNumber"
+                        />
+                    </div>
+                    <div class="lykke-error-label" data-ng-show="signupForm.phoneNumber.$error.required && (signupForm.phoneNumber.$touched || signupForm.$submitted)">This field is mandatory</div>
+                    <div class="lykke-error-label" data-ng-show="signupForm.phoneNumber.$error.maxlength && (signupForm.phoneNumber.$touched || signupForm.$submitted)">Phone is too long (maximum is 20 characters)</div>
+                    <div class="lykke-error-label" data-ng-show="signupForm.phoneNumber.$error.pattern && (signupForm.phoneNumber.$touched || signupForm.$submitted)">Wrong phone format</div>
+                </div>       
+
+                <div data-ng-show="vm.data.isSubmitting" class="spinner_container">
+                    <div class="spinner">
+                        <div class="spinner__inside"></div>
+                    </div>
+                </div>
+                <input data-ng-hide="vm.data.isSubmitting" type="submit" class="lykke-button lykke-button_primary" value="Continue" />
 
                 <div class="signup-page__signout-link signup-page__signout-link_mobile">
                     <a href="#" data-ng-click="vm.handlers.handleLogout()">Log Out</a>

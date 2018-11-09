@@ -12,6 +12,8 @@
     "outputFileName": "wwwroot/dist/spa.min.css",
     "inputFiles": [
       "wwwroot/styles/ui-carousel.min.css",
+      "wwwroot/styles/ui-select.min.css",
+      "wwwroot/styles/angular-dialogs.css",
       "wwwroot/styles/style-sass.css"
     ]
   },
@@ -95,6 +97,8 @@
       "wwwroot/js/app/components/signup/initialInfo/initialInfo.controller.js",
       "wwwroot/js/app/components/signup/accountInfo/accountInfo.directive.js",
       "wwwroot/js/app/components/signup/accountInfo/accountInfo.controller.js",
+      "wwwroot/js/app/components/signup/pin/pin.directive.js",
+      "wwwroot/js/app/components/signup/pin/pin.controller.js",
       "wwwroot/js/app/components/signup/registrationIdNotFound/registrationIdNotFound.directive.js",
       "wwwroot/js/app/components/signup/registrationIdNotFound/registrationIdNotFound.controller.js",
       "wwwroot/js/app/components/shared/inputPassword/inputPassword.directive.js",
