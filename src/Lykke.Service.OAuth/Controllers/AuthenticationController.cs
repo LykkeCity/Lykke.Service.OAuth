@@ -231,8 +231,7 @@ namespace WebAuth.Controllers
                 if (platform == "android" || platform == "ios")
                     return RedirectToAction("AfterRegistrationLogin", new AfterRegistrationLoginRequest
                     {
-                        RegistrationId = userModel.RegistrationId,
-                        Platform = platform
+                        RegistrationId = userModel.RegistrationId
                     });
 
                 return RedirectToAction("Registration", "Spa",
@@ -491,7 +490,7 @@ namespace WebAuth.Controllers
         [HttpGet("~/afterregistrationlogin")]
         public IActionResult AfterRegistrationLogin(AfterRegistrationLoginRequest request)
         {
-            return View($"AfterRegistrationLogin.{request.Platform}", new AfterRegistrationLoginViewModel
+            return Json(new AfterRegistrationLoginResponse
             {
                 RegistrationId = request.RegistrationId
             });
