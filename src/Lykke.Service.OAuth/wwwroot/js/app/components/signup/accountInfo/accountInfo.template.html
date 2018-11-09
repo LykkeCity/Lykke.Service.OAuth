@@ -69,10 +69,11 @@
                         <input
                             name="phoneNumber"
                             id="phoneNumber"
-                            class="lykke-input"
+                            data-ng-class="{'lykke-input': true, 'lykke-input_error': vm.data.isPhoneFormatInvalid}"
                             type="tel"
                             placeholder="1234 567 890"
                             required
+                            data-ng-keydown="vm.handlers.handlePhoneKeydown()"
                             data-ng-maxlength="20"
                             data-ng-pattern="/^[0-9 ]+$/"
                             data-ng-model="vm.data.model.phoneNumber"
@@ -80,7 +81,7 @@
                     </div>
                     <div class="lykke-error-label" data-ng-show="signupForm.phoneNumber.$error.required && (signupForm.phoneNumber.$touched || signupForm.$submitted)">This field is mandatory</div>
                     <div class="lykke-error-label" data-ng-show="signupForm.phoneNumber.$error.maxlength && (signupForm.phoneNumber.$touched || signupForm.$submitted)">Phone is too long (maximum is 20 characters)</div>
-                    <div class="lykke-error-label" data-ng-show="signupForm.phoneNumber.$error.pattern && (signupForm.phoneNumber.$touched || signupForm.$submitted)">Wrong phone format</div>
+                    <div class="lykke-error-label" data-ng-show="(signupForm.phoneNumber.$error.pattern || vm.data.isPhoneFormatInvalid) && !signupForm.phoneNumber.$error.maxlength && (signupForm.phoneNumber.$touched || signupForm.$submitted)">Wrong phone format</div>
                 </div>       
 
                 <div data-ng-show="vm.data.isSubmitting" class="spinner_container">
