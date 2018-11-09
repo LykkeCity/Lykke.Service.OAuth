@@ -5,6 +5,7 @@
 
     app.constant('signupStep', {
         initialInfo: 'InitialInfo',
-        accountInformation: 'AccountInformation'
+        accountInformation: 'AccountInformation',
+        pin: 'Pin'
     });
 })();

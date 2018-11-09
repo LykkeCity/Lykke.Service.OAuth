@@ -6,6 +6,7 @@
     <div data-ng-switch="vm.data.currentStep">
         <initial-info data-ng-switch-when="InitialInfo"></initial-info>
         <account-info data-ng-switch-when="AccountInformation"></account-info>
+        <pin data-ng-switch-when="Pin"></pin>
     </div>
     <div data-ng-switch="vm.data.errorCode">
         <registration-id-not-found data-ng-switch-when="RegistrationNotFound"></registration-id-not-found>
@@ -25,6 +26,8 @@
         <script src="/js/app/components/signup/initialInfo/initialInfo.controller.js"></script>
         <script src="/js/app/components/signup/accountInfo/accountInfo.directive.js"></script>
         <script src="/js/app/components/signup/accountInfo/accountInfo.controller.js"></script>
+        <script src="/js/app/components/signup/pin/pin.directive.js"></script>
+        <script src="/js/app/components/signup/pin/pin.controller.js"></script>
         <script src="/js/app/components/signup/registrationIdNotFound/registrationIdNotFound.directive.js"></script>
         <script src="/js/app/components/signup/registrationIdNotFound/registrationIdNotFound.controller.js"></script>
         <script src="/js/app/components/shared/inputPassword/inputPassword.directive.js"></script>
