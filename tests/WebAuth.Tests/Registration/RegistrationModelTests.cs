@@ -10,7 +10,7 @@ namespace WebAuth.Tests.Registration
     {
         private const string ValidEmail = "test@test.com";
         private const string ComplexPassword = "QWEqwe123!";
-
+        private DateTime dateTime = new DateTime();
         [Theory]
         [InlineData(ValidEmail)]
         [InlineData("invalid_email")]
@@ -18,7 +18,7 @@ namespace WebAuth.Tests.Registration
         [InlineData(null)]
         public void Ctor_WhenEmailPassed_ModelIsCreated(string email)
         {
-            var model = new RegistrationModel(email);
+            var model = new RegistrationModel(email, dateTime);
 
             model.Should().NotBeNull();
         }
@@ -27,7 +27,7 @@ namespace WebAuth.Tests.Registration
         [InlineData(ValidEmail)]
         public void Ctor_WhenEmailPassed_RegistrationIdIsGenerated(string email)
         {
-            var model = new RegistrationModel(email);
+            var model = new RegistrationModel(email, dateTime);
 
             model.RegistrationId.Should().NotBeNull();
         }
@@ -36,7 +36,7 @@ namespace WebAuth.Tests.Registration
         [InlineData(ValidEmail)]
         public void Ctor_WhenEmailPassed_RegistrationIdLengthIs22(string email)
         {
-            var model = new RegistrationModel(email);
+            var model = new RegistrationModel(email, dateTime);
 
             model.RegistrationId.Length.Should().Be(22);
         }
@@ -45,8 +45,8 @@ namespace WebAuth.Tests.Registration
         [InlineData(ValidEmail)]
         public void Ctor_WhenEmailPassed_RegistrationIdIsRandom(string email)
         {
-            var model1 = new RegistrationModel(email);
-            var model2 = new RegistrationModel(email);
+            var model1 = new RegistrationModel(email, dateTime);
+            var model2 = new RegistrationModel(email, dateTime);
 
             model1.RegistrationId.Should().NotBe(model2.RegistrationId);
         }
@@ -55,7 +55,7 @@ namespace WebAuth.Tests.Registration
         [InlineData(ValidEmail)]
         public void Ctor_WhenEmailPassed_FirstStepIsInitialInfo(string email)
         {
-            var model = new RegistrationModel(email);
+            var model = new RegistrationModel(email, dateTime);
 
             model.CurrentStep.Should().Be(RegistrationStep.InitialInfo);
         }
@@ -64,7 +64,7 @@ namespace WebAuth.Tests.Registration
         [Fact]
         public void SetInitialInfo_WhenEmailIsEqualToInitial_NoException()
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
             var initialInfoDto = new InitialInfoDto
             {
                 Email = ValidEmail,
@@ -80,7 +80,7 @@ namespace WebAuth.Tests.Registration
         [Fact]
         public void SetInitialInfo_WhenEmailIsDifferentFromInitial_ExceptionIsThrown()
         {
-            var model = new RegistrationModel("email1@test.com");
+            var model = new RegistrationModel("email1@test.com", dateTime);
             var initialInfoDto = new InitialInfoDto
             {
                 Email = "email2@test.com",
@@ -97,7 +97,7 @@ namespace WebAuth.Tests.Registration
         [Fact]
         public void SetInitialInfo_WhenClientIdPassed_FillsClientId()
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
             var clientId = "123";
             var initialInfoDto = new InitialInfoDto
             {
@@ -114,7 +114,7 @@ namespace WebAuth.Tests.Registration
         [Fact]
         public void SetInitialInfo_WhenPasswordIsPassed_FillsSaltAndHash()
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
             var password = ComplexPassword;
             var initialInfoDto = new InitialInfoDto
             {
@@ -136,7 +136,7 @@ namespace WebAuth.Tests.Registration
         [InlineData("5FD924625F6AB16A19CC9807C7C506AE1813490E4BA675F843D5A10E0BAACDb!")]
         public void InitialInfo_WhenPasswordIsComplex_ShouldWork(string password)
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
 
             var initialInfoDto = new InitialInfoDto
             {
@@ -160,7 +160,7 @@ namespace WebAuth.Tests.Registration
         [InlineData(null)]
         public void InitialInfo_WhenPasswordIsNotComplex_ShouldThrowException(string password)
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
 
             var initialInfoDto = new InitialInfoDto
             {
@@ -177,7 +177,7 @@ namespace WebAuth.Tests.Registration
         [Fact]
         public void CanEmailBeUsed_WhenInitialInfoIsSet_ShouldBeFalse()
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
 
             var initialInfoDto = new InitialInfoDto
             {
@@ -194,7 +194,7 @@ namespace WebAuth.Tests.Registration
         [Fact]
         public void CanEmailBeUsed_WhenInitialInfoNotSet_ShouldBeTrue()
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
 
             model.CanEmailBeUsed().Should().BeTrue();
         }
@@ -202,7 +202,7 @@ namespace WebAuth.Tests.Registration
         [Fact]
         public void CompleteAccountInfoStep_WhenIncorrectState_ShouldRaiseException()
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
 
             Assert.Throws<InvalidRegistrationStateTransitionException>(() =>
                 model.CompleteAccountInfoStep(new AccountInfoDto()));
@@ -219,7 +219,7 @@ namespace WebAuth.Tests.Registration
             string countryCode, 
             string registrationId)
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
 
             model.CompleteInitialInfoStep(new InitialInfoDto
             {
@@ -250,7 +250,7 @@ namespace WebAuth.Tests.Registration
             string countryCode,
             string registrationId)
         {
-            var model = new RegistrationModel(ValidEmail);
+            var model = new RegistrationModel(ValidEmail, dateTime);
 
             model.CompleteInitialInfoStep(new InitialInfoDto
             {

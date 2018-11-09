@@ -34,10 +34,10 @@ namespace Lykke.Service.OAuth.Services
 
            _bCryptService.Verify(email, hash);
 
-            var userModel = await _registrationRepository.TryGetByEmailAsync(email);
+            var userModel = await _registrationRepository.GetByEmailAsync(email);
             if (userModel != null && !userModel.CanEmailBeUsed()) return true;
 
-            var accountExistsModel = await _clientAccountClient.IsTraderWithEmailExistsAsync(email, null);
+            var accountExistsModel = await _clientAccountClient.IsTraderWithEmailExistsAsync(email.ToLower(), null);
 
             return accountExistsModel.IsClientAccountExisting;
         }

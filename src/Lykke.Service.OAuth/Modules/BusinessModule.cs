@@ -31,12 +31,6 @@ namespace WebAuth.Modules
                 .As<IVerificationCodesService>()
                 .WithParameter(TypedParameter.From(_settings.CurrentValue.OAuth.Cache.VerificationCodeExpiration))
                 .SingleInstance();     
-            
-            //todo @mkobzev: use ILifetimeSettings
-            builder.RegisterType<RegistrationRedisRepository>()
-                .As<IRegistrationRepository>()
-                .WithParameter(TypedParameter.From(_settings.CurrentValue.OAuth.Cache.RegistrationExpiration))
-                .SingleInstance();
         }
     }
 }
