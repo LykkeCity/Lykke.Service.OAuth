@@ -19,20 +19,25 @@ namespace Core.Registration
         public string LastName { get; private set; }
         public string CountryOfResidenceIso2 { get; private set; }
         public string PhoneNumber { get; private set; }
+        public DateTime Started { get; private set; }
 
-        public RegistrationModel(string email)
+        public RegistrationModel(string email, DateTime started)
         {
-            Email = email;
+            Email = email?.ToLower();
             CurrentStep = RegistrationStep.InitialInfo;
             RegistrationId = GenerateId();
+            Started = started;
         }
 
-        private static string GenerateId()
+        public RegistrationModel(IRegistrationModelDto dto)
         {
-            return Convert.ToBase64String(Guid.NewGuid().ToByteArray())
-                .Replace("/", "_")
-                .Replace("+", "-")
-                .Substring(0, 22);
+            RegistrationId = dto.RegistrationId;
+            Email = dto.Email;
+            Hash = dto.PasswordHash;
+            Salt = dto.PasswordSalt;
+            ClientId = dto.ClientId;
+            CurrentStep = dto.CurrentStep;
+            Started = dto.Started;
         }
 
         public void CompleteInitialInfoStep(InitialInfoDto context)
@@ -40,7 +45,7 @@ namespace Core.Registration
             if (CurrentStep != RegistrationStep.InitialInfo)
                 throw new InvalidRegistrationStateTransitionException(CurrentStep, RegistrationStep.InitialInfo);
 
-            if (context.Email != Email)
+            if (context.Email.ToLower() != Email)
                 throw new RegistrationEmailMatchingException(context.Email);
             if (!IsPasswordComplex(context.Password))
                 throw new PasswordIsNotComplexException();
@@ -67,6 +72,12 @@ namespace Core.Registration
             CurrentStep = RegistrationStep.Pin;
         }
 
+        public void SetRegistrationId(string registrationId, DateTime started)
+        {
+            RegistrationId = registrationId;
+            Started = started;
+        }
+
         public static bool IsPhoneNumberFormatCorrect(string phoneNumber)
         {
             return phoneNumber?.PreparePhoneNum()?.ToE164Number() != null;
@@ -77,14 +88,17 @@ namespace Core.Registration
             return password.IsPasswordComplex(8, 128, true, false);
         }
 
-        public void SetRegistrationId(string registrationId)
-        {
-            RegistrationId = registrationId;
-        }
-
         public bool CanEmailBeUsed()
         {
             return CurrentStep == RegistrationStep.InitialInfo;
+        }
+
+        private static string GenerateId()
+        {
+            return Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                .Replace("/", "_")
+                .Replace("+", "-")
+                .Substring(0, 22);
         }
     }
 }

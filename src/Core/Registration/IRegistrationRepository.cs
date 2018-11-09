@@ -35,6 +35,6 @@ namespace Core.Registration
         /// </summary>
         /// <param name="email">Registration email</param>
         /// <returns>Registration model or null if not found</returns>
-        Task<RegistrationModel> TryGetByEmailAsync(string email);
+        Task<RegistrationModel> GetByEmailAsync(string email);
     }
 }

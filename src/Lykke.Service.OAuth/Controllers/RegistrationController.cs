@@ -18,6 +18,7 @@ using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.OAuth.Models.Registration.Countries;
+using Lykke.Service.Registration;
 using Lykke.Service.PersonalData.Client;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
@@ -212,7 +213,7 @@ namespace Lykke.Service.OAuth.Controllers
 
             if (!isEmailTaken)
             {
-                var registrationModel = new RegistrationModel(request.Email);
+                var registrationModel = new RegistrationModel(request.Email, DateTime.UtcNow);
                 var registrationId = await _registrationRepository.AddAsync(registrationModel);
                 return Ok(new EmailValidationResult {IsEmailTaken = false, RegistrationId = registrationId});
             }

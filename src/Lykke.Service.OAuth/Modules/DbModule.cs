@@ -1,10 +1,13 @@
 ﻿using Autofac;
 using AzureDataAccess.Application;
 using AzureDataAccess.Bitcoin;
+using AzureDataAccess.Registration;
 using AzureStorage;
 using AzureStorage.Tables;
+using AzureStorage.Tables.Templates.Index;
 using Core.Application;
 using Core.Bitcoin;
+using Core.Registration;
 using Lykke.Common.Log;
 using Lykke.SettingsReader;
 using Microsoft.Extensions.Caching.Memory;
@@ -55,6 +58,19 @@ namespace WebAuth.Modules
                 connectionMultiplexer.IncludeDetailInExceptions = false;
                 return connectionMultiplexer;
             }).As<IConnectionMultiplexer>().SingleInstance();
+
+
+            const string registrationUsersTableName = "RegistrationUser";
+            var registrationUserStorageConnString = _settings.ConnectionString(x => x.OAuth.Db.RegistrationUserStorageConnString);
+            builder.Register(c => new RegistrationAzureRepository(
+                    AzureTableStorage<RegistrationAzureEntity>.Create(
+                        registrationUserStorageConnString,
+                        registrationUsersTableName, c.Resolve<ILogFactory>()),
+                    AzureTableStorage<AzureIndex>.Create(
+                        registrationUserStorageConnString,
+                        registrationUsersTableName, c.Resolve<ILogFactory>())))
+                .As<IRegistrationRepository>()
+                .SingleInstance();
         }
     }
 }

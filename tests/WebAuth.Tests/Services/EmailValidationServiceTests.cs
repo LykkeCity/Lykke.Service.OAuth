@@ -40,7 +40,7 @@ namespace WebAuth.Tests.Services
         {
             var email = "test@test.com";
             var registrationModel = CreateRegistrationModel(email);
-            _registrationRepo.Setup(x => x.TryGetByEmailAsync(email)).ReturnsAsync(registrationModel);
+            _registrationRepo.Setup(x => x.GetByEmailAsync(email)).ReturnsAsync(registrationModel);
 
             var result = await _service.IsEmailTakenAsync(email, _hash);
 
@@ -52,7 +52,7 @@ namespace WebAuth.Tests.Services
         {
             var email = "test@test.com";
             var registrationModel = CreateRegistrationModel(email);
-            _registrationRepo.Setup(x => x.TryGetByEmailAsync(email)).ReturnsAsync(registrationModel);
+            _registrationRepo.Setup(x => x.GetByEmailAsync(email)).ReturnsAsync(registrationModel);
 
             var result = await _service.IsEmailTakenAsync(email, _hash);
 
@@ -64,7 +64,7 @@ namespace WebAuth.Tests.Services
 
         private static RegistrationModel CreateRegistrationModel(string email)
         {
-            var registrationModel = new RegistrationModel(email);
+            var registrationModel = new RegistrationModel(email, DateTime.Now);
             registrationModel.CompleteInitialInfoStep(new InitialInfoDto {Email = email, Password = "zxcZXC123!"});
             return registrationModel;
         }
@@ -122,7 +122,7 @@ namespace WebAuth.Tests.Services
             });
 
             _registrationRepo = new Mock<IRegistrationRepository>();
-            _registrationRepo.Setup(x => x.TryGetByEmailAsync(It.IsAny<string>())).ReturnsAsync((RegistrationModel)null);
+            _registrationRepo.Setup(x => x.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((RegistrationModel)null);
         }
     }
 }

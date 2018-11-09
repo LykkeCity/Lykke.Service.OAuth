@@ -225,7 +225,7 @@ namespace WebAuth.Controllers
         private async Task<ActionResult> HandleAuthenticationAsync(LoginViewModel model, string platform,
             string viewName)
         {
-            var userModel = await _registrationRepository.TryGetByEmailAsync(model.Username);
+            var userModel = await _registrationRepository.GetByEmailAsync(model.Username);
             if (userModel != null && userModel.CheckPassword(model.Password))
             {
                 if (platform == "android" || platform == "ios")
