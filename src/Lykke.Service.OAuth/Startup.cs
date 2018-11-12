@@ -31,13 +31,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using WebAuth.EventFilter;
 using WebAuth.Modules;
 using WebAuth.Providers;
 using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
+using LykkeApiErrorMiddleware = Lykke.Service.OAuth.Middleware.LykkeApiErrorMiddleware;
 
 namespace WebAuth
 {
@@ -164,8 +164,7 @@ namespace WebAuth
                 services.AddMvc()
                     .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
                     .AddViewLocalization()
-                    .AddDataAnnotationsLocalization()
-                    .AddMvcOptions(o => { o.Filters.Add(typeof(UnhandledExceptionFilter)); });
+                    .AddDataAnnotationsLocalization();
 
                 services.AddAutoMapper();
 
@@ -192,6 +191,7 @@ namespace WebAuth
                 builder.RegisterModule(new BusinessModule(settings));
                 builder.RegisterModule(new ClientServiceModule(settings));
                 builder.RegisterModule(new ServiceModule(settings));
+                builder.RegisterModule(new ExceptionsModule());
 
 
                 builder.Populate(services);

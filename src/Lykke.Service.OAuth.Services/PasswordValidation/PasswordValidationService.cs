@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Core.Exceptions;
 using Core.PasswordValidation;
 
 namespace Lykke.Service.OAuth.Services.PasswordValidation
@@ -32,6 +33,28 @@ namespace Lykke.Service.OAuth.Services.PasswordValidation
             return errors.Any()
                 ? PasswordValidationResult.Fail(errors)
                 : PasswordValidationResult.Success();
+        }
+
+        /// <inheritdoc />
+        public async Task ValidateAndThrowAsync(string password)
+        {
+            PasswordValidationResult result = await ValidateAsync(password);
+
+            if (result.IsValid)
+                return;
+
+            switch (result.Error)
+            {
+                case PasswordValidationErrorCode.PasswordIsEmpty:
+                    throw new PasswordIsEmptyException();
+                case PasswordValidationErrorCode.PasswordIsNotComplex:
+                    throw new PasswordIsNotComplexException();
+                case PasswordValidationErrorCode.PasswordIsPwned:
+                    throw new PasswordIsPwnedException();
+                default:
+                    throw new Exception(
+                        $"Unexpected password validation error code = {result.Error.ToString()}");
+            }
         }
     }
 }

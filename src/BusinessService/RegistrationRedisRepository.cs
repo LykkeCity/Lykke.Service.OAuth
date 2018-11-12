@@ -10,6 +10,7 @@ using StackExchange.Redis;
 
 namespace BusinessService
 {
+    /// <inheritdoc />
     public class RegistrationRedisRepository : IRegistrationRepository
     {
         private const string RedisPrefix = "OAuth:Registration:";
@@ -29,6 +30,7 @@ namespace BusinessService
             _registrationExpiration = registrationExpiration;
         }
 
+        /// <inheritdoc />
         public async Task<string> AddAsync(RegistrationModel entity)
         {
             await ReuseRegistrationIdIfPossible(entity);
@@ -42,6 +44,7 @@ namespace BusinessService
             return entity.RegistrationId;
         }
 
+        /// <inheritdoc />
         public async Task<RegistrationModel> GetByIdAsync(string registrationId)
         {
             var redisKey = ToRedisKey(registrationId);
@@ -60,6 +63,7 @@ namespace BusinessService
             }
         }
 
+        /// <inheritdoc />
         public async Task<RegistrationModel> TryGetByEmailAsync(string email)
         {
             try
@@ -78,6 +82,7 @@ namespace BusinessService
             }
         }
 
+        /// <inheritdoc />
         public async Task<string> UpdateAsync(RegistrationModel registrationModel)
         {
             var redisKey = ToRedisKey(registrationModel.RegistrationId);
