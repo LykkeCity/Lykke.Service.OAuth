@@ -12,21 +12,21 @@ namespace Core.Registration
         /// Add new registration
         /// </summary>
         /// <param name="registrationModel"></param>
-        /// <returns></returns>
+        /// <returns>Registration id</returns>
         Task<string> AddAsync(RegistrationModel registrationModel);
 
         /// <summary>
         /// Update existing registration
         /// </summary>
         /// <param name="registrationModel"></param>
-        /// <returns></returns>
+        /// <returns>Registration id</returns>
         Task<string> UpdateAsync(RegistrationModel registrationModel);
 
         /// <summary>
         /// Get registration model by id
         /// </summary>
         /// <param name="registrationId">Registration id</param>
-        /// <returns></returns>
+        /// <returns>Registration model</returns>
         /// <exception cref="RegistrationKeyNotFoundException">Thrown when registration id is not found in repository</exception>
         Task<RegistrationModel> GetByIdAsync(string registrationId);
 

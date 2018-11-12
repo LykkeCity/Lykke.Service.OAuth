@@ -49,8 +49,8 @@ namespace Lykke.Service.OAuth
         /// <summary>
         /// Finds the handling configuration for exception
         /// </summary>
-        /// <param name="exceptionType"></param>
-        /// <returns></returns>
+        /// <param name="exceptionType">Exception type</param>
+        /// <returns>Exception handler details</returns>
         public HandlerConfig Find(Type exceptionType)
         {
             return _configurationItems.TryGetValue(exceptionType, out var result) ? result : null;
@@ -62,7 +62,7 @@ namespace Lykke.Service.OAuth
         /// <param name="exceptionType">Exception type</param>
         /// <param name="httpStatusCode">HttpStatusCode to respond with</param>
         /// <param name="apiErrorCode">Business error code to respond with</param>
-        /// <returns></returns>
+        /// <returns>Configuration of exception handlers</returns>
         public ExceptionsHandlingConfiguration AddWarning(Type exceptionType, HttpStatusCode httpStatusCode,
             ILykkeApiErrorCode apiErrorCode)
         {
@@ -75,7 +75,7 @@ namespace Lykke.Service.OAuth
         /// <param name="exceptionType">Exception type</param>
         /// <param name="httpStatusCode">HttpStatusCode to respond with</param>
         /// <param name="apiErrorCode">Business error code to respond with</param>
-        /// <returns></returns>
+        /// <returns>Configuration of exception handlers</returns>
         public ExceptionsHandlingConfiguration AddError(Type exceptionType, HttpStatusCode httpStatusCode,
             ILykkeApiErrorCode apiErrorCode)
         {
@@ -88,7 +88,7 @@ namespace Lykke.Service.OAuth
         /// <param name="exceptionType">Exception type</param>
         /// <param name="httpStatusCode">HttpStatusCode to respond with</param>
         /// <param name="apiErrorCode">Business error code to respond with</param>
-        /// <returns></returns>
+        /// <returns>Configuration of exception handlers</returns>
         public ExceptionsHandlingConfiguration AddInfo(Type exceptionType, HttpStatusCode httpStatusCode,
             ILykkeApiErrorCode apiErrorCode)
         {
@@ -101,7 +101,7 @@ namespace Lykke.Service.OAuth
         /// <param name="exceptionType">Exception type</param>
         /// <param name="httpStatusCode">HttpStatusCode to respond with</param>
         /// <param name="apiErrorCode">Business error code to respond with</param>
-        /// <returns></returns>
+        /// <returns>Configuration of exception handlers</returns>
         public ExceptionsHandlingConfiguration AddCritical(Type exceptionType, HttpStatusCode httpStatusCode,
             ILykkeApiErrorCode apiErrorCode)
         {
@@ -114,7 +114,7 @@ namespace Lykke.Service.OAuth
         /// <param name="exceptionType">Exception type</param>
         /// <param name="httpStatusCode">HttpStatusCode to respond with</param>
         /// <param name="apiErrorCode">Business error code to respond with</param>
-        /// <returns></returns>
+        /// <returns>Configuration of exception handlers</returns>
         public ExceptionsHandlingConfiguration AddNoLog(Type exceptionType, HttpStatusCode httpStatusCode,
             ILykkeApiErrorCode apiErrorCode)
         {
