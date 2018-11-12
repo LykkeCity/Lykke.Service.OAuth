@@ -1,7 +1,8 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
-using Core;
+using Common.Log;
 using Core.Application;
 using Core.Countries;
 using Core.Exceptions;
@@ -9,10 +10,14 @@ using Core.PasswordValidation;
 using Core.Registration;
 using Core.Services;
 using Lykke.Common.ApiLibrary.Contract;
+using Lykke.Common.ApiLibrary.Exceptions;
+using Lykke.Common.Extensions;
+using Lykke.Common.Log;
+using Lykke.Service.OAuth.ApiErrorCodes;
 using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.OAuth.Models.Registration;
-using Lykke.Service.OAuth.Services.Countries;
+using Lykke.Service.OAuth.Models.Registration.Countries;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -29,19 +34,22 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IPasswordValidationService _passwordValidationService;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ICountriesService _countriesService;
+        private readonly ILog _log;
 
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
             IEmailValidationService emailValidationService,
             IPasswordValidationService passwordValidationService,
             IApplicationRepository applicationRepository, 
-            ICountriesService countriesService)
+            ICountriesService countriesService,
+            ILogFactory logFactory)
         {
             _applicationRepository = applicationRepository;
             _countriesService = countriesService;
             _registrationRepository = registrationRepository;
             _emailValidationService = emailValidationService;
             _passwordValidationService = passwordValidationService;
+            _log = logFactory.CreateLog(this);
         }
 
         /// <summary>
@@ -72,10 +80,7 @@ namespace Lykke.Service.OAuth.Controllers
             var registrationModel =
                 await _registrationRepository.GetByIdAsync(registrationRequestModel.RegistrationId);
 
-            var passwordValidationResult =
-                await _passwordValidationService.ValidateAsync(registrationRequestModel.Password);
-
-            passwordValidationResult.ThrowOrKeepSilent();
+            await _passwordValidationService.ValidateAndThrowAsync(registrationRequestModel.Password);
 
             registrationModel.CompleteInitialInfoStep(registrationRequestModel.ToDto());
 
@@ -106,7 +111,7 @@ namespace Lykke.Service.OAuth.Controllers
         {
             RegistrationModel registrationModel = await _registrationRepository.GetByIdAsync(model.RegistrationId);
 
-            _countriesService.ValidateCountryCode(model.CountryCodeIso2);
+            _countriesService.ValidateCode(model.CountryCodeIso2);
 
             //todo: validate if phone number is already in use using old KYC database?
 
@@ -234,15 +239,7 @@ namespace Lykke.Service.OAuth.Controllers
         [ValidateApiModel]
         public async Task<IActionResult> GetCountries([FromBody] CountriesRequest request)
         {
-            try
-            {
-                await _registrationRepository.GetByIdAsync(request.RegistrationId);
-            }
-            catch (RegistrationKeyNotFoundException)
-            {
-                _log.Warning("Someone tried to access countries with invalid registraion id!");
-                throw LykkeApiErrorException.NotFound(RegistrationErrorCodes.RegistrationNotFound);
-            }
+            await _registrationRepository.GetByIdAsync(request.RegistrationId);
 
             CountryInfo userLocationCountry = null;
 

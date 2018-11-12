@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Common;
 using Core.Countries;
+using Core.Exceptions;
 using Lykke.Common;
 using Lykke.Service.IpGeoLocation;
 
@@ -55,6 +57,37 @@ namespace Lykke.Service.OAuth.Services.Countries
                 throw new CountryNotFoundException($"Country could not be found for iso3 code: {geolocationData.CountryCode}, ip:{ip}");
 
             return countryInfo;
+        }
+
+        /// <inheritdoc />
+        public bool IsCodeIso2Restricted(string countryCode)
+        {
+            if (string.IsNullOrWhiteSpace(countryCode))
+                throw new ArgumentNullException(nameof(countryCode));
+
+            return RestrictedCountriesOfResidence.Any(x => countryCode.Equals(x.Iso2));
+        }
+
+        /// <inheritdoc />
+        public bool IsCodeIso2Valid(string countryCode)
+        {
+            if (string.IsNullOrWhiteSpace(countryCode))
+                throw new ArgumentNullException(nameof(countryCode));
+
+            return CountryManager.GetCountryNameByIso2(countryCode) != string.Empty;
+        }
+
+        /// <inheritdoc />
+        public void ValidateCode(string countryCode)
+        {
+            if (string.IsNullOrWhiteSpace(countryCode))
+                throw new ArgumentNullException(nameof(countryCode));
+
+            if (IsCodeIso2Restricted(countryCode))
+                throw new CountryFromRestrictedListException(countryCode);
+
+            if (!IsCodeIso2Valid(countryCode))
+                throw new CountryInvalidException(countryCode);
         }
     }
 }
