@@ -23,6 +23,9 @@ namespace Lykke.Service.OAuth.ApiErrorCodes
             new LykkeApiErrorCode(nameof(CountryFromRestrictedList),
                 "The residents from the country are not allowed to register");
 
+        public static readonly ILykkeApiErrorCode CountryCodeInvalid =
+            new LykkeApiErrorCode(nameof(CountryCodeInvalid), "The country code is invalid.");
+
         public static readonly ILykkeApiErrorCode InvalidPhoneFormat =
             new LykkeApiErrorCode(nameof(InvalidPhoneFormat), "Invalid phone number format");
 

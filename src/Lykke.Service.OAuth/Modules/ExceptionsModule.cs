@@ -38,6 +38,9 @@ namespace Lykke.Service.OAuth.Modules
                 .AddError(typeof(CountryFromRestrictedListException), HttpStatusCode.BadRequest,
                     RegistrationErrorCodes.CountryFromRestrictedList)
 
+                .AddError(typeof(CountryInvalidException), HttpStatusCode.BadRequest,
+                    RegistrationErrorCodes.CountryCodeInvalid)
+
                 .AddNoLog(typeof(PasswordIsNotComplexException), HttpStatusCode.BadRequest,
                     PasswordValidationApiErrorCodes.PasswordIsNotComplex)
 

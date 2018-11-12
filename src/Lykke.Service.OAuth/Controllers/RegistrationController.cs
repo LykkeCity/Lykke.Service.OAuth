@@ -91,7 +91,7 @@ namespace Lykke.Service.OAuth.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <response code="200">The id of the registration has been proceeded to the next step</response>
-        /// <response code="400">Invalid country or phone number or phone number is already used. Error codes:ModelValidationFailed, CountryFromRestrictedList, InvalidPhoneFormat, PhoneNumberInUse</response>
+        /// <response code="400">Invalid country or phone number or phone number is already used. Error codes:ModelValidationFailed, CountryFromRestrictedList, CountryCodeInvalid, InvalidPhoneFormat, PhoneNumberInUse</response>
         /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
         [HttpPost]
         [Route("accountInfo")]
@@ -104,8 +104,7 @@ namespace Lykke.Service.OAuth.Controllers
         {
             RegistrationModel registrationModel = await _registrationRepository.GetByIdAsync(model.RegistrationId);
 
-            if (_countriesService.IsCountryCodeIso2Restricted(model.CountryCodeIso2))
-                throw new CountryFromRestrictedListException(model.CountryCodeIso2);
+            _countriesService.ValidateCountryCode(model.CountryCodeIso2);
 
             //todo: validate if phone number is already in use using old KYC database?
 
