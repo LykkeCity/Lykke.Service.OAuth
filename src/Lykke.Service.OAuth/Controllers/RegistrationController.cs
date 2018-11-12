@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using Core;
@@ -30,14 +30,6 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ICountriesService _countriesService;
 
-        /// <summary>
-        /// Ctor
-        /// </summary>
-        /// <param name="registrationRepository"></param>
-        /// <param name="emailValidationService"></param>
-        /// <param name="passwordValidationService"></param>
-        /// <param name="applicationRepository"></param>
-        /// <param name="countriesService"></param>
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
             IEmailValidationService emailValidationService,
@@ -58,7 +50,13 @@ namespace Lykke.Service.OAuth.Controllers
         /// <param name="registrationRequestModel"></param>
         /// <response code="200">The id of the registration has been started</response>
         /// <response code="400">Request validation failed. Error codes: PasswordIsPwned, PasswordIsNotComplex, PasswordIsEmpty</response>
-        /// <response code="404">Registration id not found. Error codes: RegistrationNotFound, ClientNotFound</response>
+        /// <response code="404">
+        /// When RegistrationId is null, empty or whitespace.
+        /// Registration id not found. Error codes: RegistrationNotFound,
+        ///
+        /// When Id of the client app was not found:
+        /// Error code: ClientNotFound
+        /// </response>
         [HttpPost]
         [SwaggerOperation("InitialInfo")]
         [ProducesResponseType(typeof(RegistrationResponse), (int) HttpStatusCode.OK)]
@@ -92,7 +90,11 @@ namespace Lykke.Service.OAuth.Controllers
         /// <param name="model"></param>
         /// <response code="200">The id of the registration has been proceeded to the next step</response>
         /// <response code="400">Invalid country or phone number or phone number is already used. Error codes:ModelValidationFailed, CountryFromRestrictedList, CountryCodeInvalid, InvalidPhoneFormat, PhoneNumberInUse</response>
-        /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
+        /// <response code="404">
+        ///     When RegistrationId is null, empty or whitespace.
+        ///     When Registration id not found.
+        ///     Error codes: RegistrationNotFound
+        /// </response>
         [HttpPost]
         [Route("accountInfo")]
         [SwaggerOperation("AccountInfo")]
@@ -123,6 +125,7 @@ namespace Lykke.Service.OAuth.Controllers
         /// <response code="200">The current state of registration</response>
         /// <response code="400">Request validation failed</response>
         /// <response code="404">Registration id not found. Error codes: RegistrationNotFound</response>
+        [Obsolete("This method would be removed as it considered unsafe to transfer registrationId. Please use POST instead.")]
         [HttpGet]
         [SwaggerOperation("Status")]
         [ProducesResponseType(typeof(RegistrationStatusResponse), (int) HttpStatusCode.OK)]
@@ -138,6 +141,42 @@ namespace Lykke.Service.OAuth.Controllers
             {
                 RegistrationStep = registrationModel.CurrentStep
             });
+        }
+
+        
+        /// <summary>
+        ///     Returns the status of registration
+        /// </summary>
+        /// <param name="request">Registration status request object.</param>
+        /// <response code="200">The current state of registration</response>
+        /// <response code="404">
+        ///     When RegistrationId is null, empty or whitespace.
+        ///     When Registration id not found.
+        ///     Error codes: RegistrationNotFound
+        /// </response>
+        [HttpPost]
+        [SwaggerOperation("Status")]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(RegistrationStatusResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
+        [Route("status")]
+        [ValidateApiModel]
+        public async Task<IActionResult> Status([FromBody] RegistrationStatusRequest request)
+        {
+            try
+            {
+                var registrationModel = await _registrationRepository.GetByIdAsync(request.RegistrationId);
+
+                return new JsonResult(new RegistrationStatusResponse
+                {
+                    RegistrationStep = registrationModel.CurrentStep
+                });
+            }
+            catch (RegistrationKeyNotFoundException)
+            {
+                throw LykkeApiErrorException.NotFound(RegistrationErrorCodes.RegistrationNotFound);
+            }
         }
 
         /// <summary>
@@ -167,25 +206,60 @@ namespace Lykke.Service.OAuth.Controllers
         }
 
         /// <summary>
-        ///     Get list of countries.
-        ///     And list of restricted countries of residence.
+        ///     Get countries information for registration process.
         /// </summary>
+        /// <param name="request">Request object for countries.</param>
+        /// <remarks>
+        ///     If country could not be detected by provided ip, there will be no error.
+        ///     userLocationCountry would be null.
+        ///     We don't want to block user registration, because of we can't autodetect his country.
+        /// </remarks>
         /// <response code="200">
         ///     List of countries.
         ///     And list of restricted countries of residence.
+        ///     And user location country.
         /// </response>
-        [HttpGet]
+        /// <response code="404">
+        ///     When RegistrationId is null, empty or whitespace.
+        ///     When Registration id not found.
+        ///     Error codes: RegistrationNotFound
+        /// </response>
+        [HttpPost]
         [Route("countries")]
         [SwaggerOperation("GetCountries")]
+        [Consumes("application/json")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(CountriesResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
         [ValidateApiModel]
-        public IActionResult GetCountries()
+        public async Task<IActionResult> GetCountries([FromBody] CountriesRequest request)
         {
+            try
+            {
+                await _registrationRepository.GetByIdAsync(request.RegistrationId);
+            }
+            catch (RegistrationKeyNotFoundException)
+            {
+                _log.Warning("Someone tried to access countries with invalid registraion id!");
+                throw LykkeApiErrorException.NotFound(RegistrationErrorCodes.RegistrationNotFound);
+            }
+
+            CountryInfo userLocationCountry = null;
+
+            try
+            {
+                userLocationCountry = await _countriesService.GetCountryByIpAsync(HttpContext.GetIp());
+            }
+            catch (CountryNotFoundException e)
+            {
+                _log.Warning(e.Message, e);
+            }
+
             return new JsonResult(
                 new CountriesResponse(
                     _countriesService.Countries,
-                    _countriesService.RestrictedCountriesOfResidence));
+                    _countriesService.RestrictedCountriesOfResidence,
+                    userLocationCountry));
         }
     }
 }

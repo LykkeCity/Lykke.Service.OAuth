@@ -21,6 +21,7 @@ using Lykke.Service.ConfirmationCodes.Client;
 using Lykke.Service.ConfirmationCodes.Client.Models.Request;
 using Lykke.Service.IpGeoLocation;
 using Lykke.Service.OAuth.Models;
+using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Enums;
 using Lykke.Service.Registration.Contract.Client.Models;
@@ -221,16 +222,17 @@ namespace WebAuth.Controllers
             return RedirectToAction("Signup", new { key = code.Key });
         }
 
-        private async Task<ActionResult> HandleAuthenticationAsync(LoginViewModel model, string platform, string viewName)
+        private async Task<ActionResult> HandleAuthenticationAsync(LoginViewModel model, string platform,
+            string viewName)
         {
             var userModel = await _registrationRepository.TryGetByEmailAsync(model.Username);
             if (userModel != null && userModel.CheckPassword(model.Password))
             {
                 if (platform == "android" || platform == "ios")
-                return new JsonResult(new AuthenticationResponseModel
-                {
-                    RegistrationId = userModel.RegistrationId
-                });
+                    return RedirectToAction("AfterRegistrationLogin", new AfterRegistrationLoginRequest
+                    {
+                        RegistrationId = userModel.RegistrationId
+                    });
 
                 return RedirectToAction("Registration", "Spa",
                     routeValues: new
@@ -483,6 +485,15 @@ namespace WebAuth.Controllers
                 await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
             }
             return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme);
+        }
+
+        [HttpGet("~/afterregistrationlogin")]
+        public IActionResult AfterRegistrationLogin(AfterRegistrationLoginRequest request)
+        {
+            return Json(new AfterRegistrationLoginResponse
+            {
+                RegistrationId = request.RegistrationId
+            });
         }
 
         private static bool IsPasswordComplex(string password)
