@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
@@ -18,6 +18,9 @@ using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.OAuth.Models.Registration.Countries;
+using Lykke.Service.PersonalData.Client;
+using Lykke.Service.PersonalData.Client.Models;
+using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -34,6 +37,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IPasswordValidationService _passwordValidationService;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ICountriesService _countriesService;
+        private readonly IPersonalDataService _personalDataService;
         private readonly ILog _log;
 
         public RegistrationController(
@@ -42,10 +46,12 @@ namespace Lykke.Service.OAuth.Controllers
             IPasswordValidationService passwordValidationService,
             IApplicationRepository applicationRepository, 
             ICountriesService countriesService,
-            ILogFactory logFactory)
+            ILogFactory logFactory, 
+            IPersonalDataService personalDataService)
         {
             _applicationRepository = applicationRepository;
             _countriesService = countriesService;
+            _personalDataService = personalDataService;
             _registrationRepository = registrationRepository;
             _emailValidationService = emailValidationService;
             _passwordValidationService = passwordValidationService;
@@ -113,7 +119,11 @@ namespace Lykke.Service.OAuth.Controllers
 
             _countriesService.ValidateCode(model.CountryCodeIso2);
 
-            //todo: validate if phone number is already in use using old KYC database?
+            SearchPersonalDataModel searchPersonalDataModel =
+                await _personalDataService.FindClientsByPhrase(model.PhoneNumber, SearchMode.Term);
+
+            if (searchPersonalDataModel != null)
+                throw new PhoneNumberAlreadyInUseException(model.PhoneNumber);
 
             registrationModel.CompleteAccountInfoStep(model.ToDto());
 
