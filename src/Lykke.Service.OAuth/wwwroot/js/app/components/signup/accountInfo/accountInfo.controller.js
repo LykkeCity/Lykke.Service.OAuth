@@ -35,10 +35,16 @@
                     vm.data.isSubmitting = false;
                     $scope.$emit('currentStepChanged', signupStep.pin);
                 }).catch(function (error) {
-                    var invalidPhoneFormatError = 'InvalidPhoneFormat';
+                    var errorCodes = {
+                        phoneNumberInUse: 'PhoneNumberInUse',
+                        invalidPhoneFormatError: 'InvalidPhoneFormat'
+                    };
                     vm.data.isSubmitting = false;
-                    vm.data.isPhoneFormatInvalid = invalidPhoneFormatError === error.data.error;
-                    // TODO: Password exists
+                    vm.data.isPhoneFormatInvalid = errorCodes.invalidPhoneFormatError === error.data.error;
+
+                    if (errorCodes.phoneNumberInUse === error.data.error) {
+                        openPhoneInUseWarningModal();
+                    }
                 });
             }
         }
@@ -81,6 +87,15 @@
             });
         }
 
+        function openPhoneInUseWarningModal() {
+            var text = 'Looks like the phone number you entered is associated with another account. If you have trouble accessing this account please contact <a href="mailto:support@lykke.com">support@lykke.com</a>';
+
+            $dialogs.showInfoDialog(text, {
+                title: 'Oops…',
+                buttonCloseText: 'Ok, got it!'
+            });
+        }
+
         vm.data = {
             isSubmitting: false,
             isPhoneFormatInvalid: false,
@@ -113,6 +128,7 @@
 
             vm.data.model.country = userCountryIso2;
             vm.data.model.phonePrefix = userCountry.phonePrefix;
+            handleSelectCountry();
 
             // Hack: Lib doesn't provide interface for this
             angular.element('.select2-search input').prop('placeholder', 'Search for your country or select one from the list');

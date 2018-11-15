@@ -91,7 +91,8 @@
     font-size: 16px;
     line-height: 1.63;
     color: $gray;
-    float: right;
+    position: absolute;
+    right: 40px;
 
     @media all and (max-width: $screen-mobile) {
       display: none;
@@ -100,7 +101,7 @@
     &_mobile {
       display: none;
       text-align: center;
-      float: none;
+      position: static;
       margin-top: 0;
 
       @media all and (max-width: $screen-mobile) {

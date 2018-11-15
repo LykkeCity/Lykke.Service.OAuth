@@ -227,6 +227,9 @@ input::-webkit-credentials-auto-fill-button {
       font-size: 1.125rem;
       line-height: 1.67;
       color: #333; }
+      .modal-dialog .modal-content .modal-body p a {
+        color: #333;
+        text-decoration: underline; }
     .modal-dialog .modal-content .btn {
       background: #0388ef;
       width: 100%;
@@ -298,14 +301,15 @@ input::-webkit-credentials-auto-fill-button {
     font-size: 16px;
     line-height: 1.63;
     color: #818181;
-    float: right; }
+    position: absolute;
+    right: 40px; }
     @media all and (max-width: 543px) {
       .signup-page__signout-link {
         display: none; } }
     .signup-page__signout-link_mobile {
       display: none;
       text-align: center;
-      float: none;
+      position: static;
       margin-top: 0; }
       @media all and (max-width: 543px) {
         .signup-page__signout-link_mobile {
