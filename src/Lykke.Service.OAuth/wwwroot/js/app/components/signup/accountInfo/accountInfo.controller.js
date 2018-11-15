@@ -3,9 +3,9 @@
 
     angular.module('app').controller('accountInfoController', accountInfoController);
 
-    accountInfoController.$inject = ['signupService', '$scope', 'signupStep', '$dialogs', '$timeout'];
+    accountInfoController.$inject = ['signupService', '$scope', 'signupStep', '$dialogs', '$timeout', 'phoneErrorCode'];
 
-    function accountInfoController(signupService, $scope, signupStep, $dialogs, $timeout) {
+    function accountInfoController(signupService, $scope, signupStep, $dialogs, $timeout, phoneErrorCode) {
         var vm = this;
 
         function handleSelectCountry() {
@@ -35,15 +35,15 @@
                     vm.data.isSubmitting = false;
                     $scope.$emit('currentStepChanged', signupStep.pin);
                 }).catch(function (error) {
-                    var errorCodes = {
-                        phoneNumberInUse: 'PhoneNumberInUse',
-                        invalidPhoneFormatError: 'InvalidPhoneFormat'
-                    };
                     vm.data.isSubmitting = false;
-                    vm.data.isPhoneFormatInvalid = errorCodes.invalidPhoneFormatError === error.data.error;
 
-                    if (errorCodes.phoneNumberInUse === error.data.error) {
-                        openPhoneInUseWarningModal();
+                    switch (error.data.error) {
+                        case phoneErrorCode.invalidPhoneFormat:
+                            vm.data.isPhoneFormatInvalid = true;
+                            break;
+                        case phoneErrorCode.phoneNumberInUse:
+                            openPhoneInUseWarningModal();
+                            break;
                     }
                 });
             }
