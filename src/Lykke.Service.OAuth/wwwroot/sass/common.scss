@@ -284,6 +284,11 @@ input::-webkit-credentials-auto-fill-button {
         @include rem(font-size, 18px);
         line-height: 1.67;
         color: $text;
+
+        a {
+          color: $text;
+          text-decoration: underline;
+        }
       }
     }
 
