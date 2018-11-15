@@ -22,11 +22,32 @@ namespace AzureDataAccess.Registration
 
         public async Task<string> AddAsync(RegistrationModel model)
         {
-            var entity = RegistrationAzureEntity.Create(model);
+            var index = await _emailIndexStorage.GetDataAsync(
+                RegistrationAzureEntity.IndexByEmail.GeneratePartitionKey(model.Email),
+                RegistrationAzureEntity.IndexByEmail.GenerateRowKey()
+            );
 
-            await ReuseRegistrationIdOrAddIndex(entity);
+            var isEmailAlreadyUsed = index != null;
+            if (isEmailAlreadyUsed)
+            {
+                var originalEntity = await _storage.GetDataAsync(index);
+                var originalModel = originalEntity.GetModel();
 
-            await _storage.InsertAsync(entity);
+                model.SetRegistrationId(originalModel.RegistrationId, originalModel.Started);
+            }
+            else
+            {
+                var entity = RegistrationAzureEntity.Create(model);
+
+                await _storage.InsertAsync(entity);
+
+                await _emailIndexStorage.InsertAsync(new AzureIndex(
+                    RegistrationAzureEntity.IndexByEmail.GeneratePartitionKey(entity.Email),
+                    RegistrationAzureEntity.IndexByEmail.GenerateRowKey(),
+                    entity.PartitionKey,
+                    entity.RowKey
+                ));
+            }
 
             return model.RegistrationId;
         }
@@ -72,34 +93,5 @@ namespace AzureDataAccess.Registration
 
             return registrationModel.RegistrationId;
         }
-
-        private async Task ReuseRegistrationIdOrAddIndex(RegistrationAzureEntity entity)
-        {
-            var index = await _emailIndexStorage.GetDataAsync(
-                RegistrationAzureEntity.IndexByEmail.GeneratePartitionKey(entity.Email),
-                RegistrationAzureEntity.IndexByEmail.GenerateRowKey()
-            );
-
-            var isEmailAlreadyUsed = index != null;
-            if (isEmailAlreadyUsed)
-            {
-                var originalEntity = await _storage.GetDataAsync(index);
-                var originalModel = originalEntity.GetModel();
-
-                var model = entity.GetModel();
-                model.SetRegistrationId(originalModel.RegistrationId, originalModel.Started);
-                entity.UpdateModel(model);
-                await _storage.ReplaceAsync(entity);
-            }
-            else
-            {
-                await _emailIndexStorage.InsertAsync(new AzureIndex(
-                    RegistrationAzureEntity.IndexByEmail.GeneratePartitionKey(entity.Email),
-                    RegistrationAzureEntity.IndexByEmail.GenerateRowKey(),
-                    entity.PartitionKey,
-                    entity.RowKey
-                ));
-            }
-        }
-    }
+     }
 }
