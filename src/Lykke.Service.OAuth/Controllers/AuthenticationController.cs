@@ -12,6 +12,7 @@ using Core.Extensions;
 using Core.Recaptcha;
 using Core.VerificationCodes;
 using Lykke.Common;
+using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
@@ -181,8 +182,8 @@ namespace WebAuth.Controllers
 
                 if (!ModelState.IsValid)
                     return View(viewName, model);
-
-                var authResult = await _registrationClient.LoginApi.AuthenticateAsync(new AuthenticateModel
+                AuthenticateResponseModel authResult;
+                var requestModel = new AuthenticateModel
                 {
                     Email = model.Username,
                     Password = model.Password,
@@ -190,7 +191,17 @@ namespace WebAuth.Controllers
                     UserAgent = HttpContext.GetUserAgent(),
                     PartnerId = model.PartnerId,
                     Ttl = GetSessionTtl(platform)
-                });
+                };
+                try
+                {
+                    authResult = await _registrationClient.LoginApi.AuthenticateAsync(requestModel);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error(nameof(AuthenticationController), ex, requestModel.Sanitize().ToJson());
+                    ModelState.AddModelError("", "Technical problems during authorization.");
+                    return View(viewName, model);
+                }
 
                 if (authResult == null)
                 {
