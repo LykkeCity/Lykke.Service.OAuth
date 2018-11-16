@@ -110,6 +110,16 @@
     }
   }
 
+  &__forgot-password-link {
+    margin-top: 10px;
+
+    a {
+      font-size: 17px;
+      line-height: 1.18;
+      color: $slate;
+    }
+  }
+
   &__mobile-logo {
     position: absolute;
     top: 32px;

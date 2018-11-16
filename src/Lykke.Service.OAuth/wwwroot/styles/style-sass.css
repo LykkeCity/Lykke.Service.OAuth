@@ -314,6 +314,12 @@ input::-webkit-credentials-auto-fill-button {
       @media all and (max-width: 543px) {
         .signup-page__signout-link_mobile {
           display: block; } }
+  .signup-page__forgot-password-link {
+    margin-top: 10px; }
+    .signup-page__forgot-password-link a {
+      font-size: 17px;
+      line-height: 1.18;
+      color: #3f4d60; }
   .signup-page__mobile-logo {
     position: absolute;
     top: 32px;

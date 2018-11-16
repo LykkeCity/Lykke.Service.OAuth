@@ -1,0 +1,9 @@
+<ui-carousel slides="vm.data.slides" on-after-change="vm.handlers.handleCarouselLoaded()" dots="true" arrows="false" speed="vm.data.carouselSpeed">
+    <carousel-item>
+        <div>
+            <img class="carousel-item__logo" src="/images/lykke-logo-web.svg" />
+            <img class="carousel-item__image" data-ng-cloak data-ng-src={{item.imageSrc}} />
+            <div class="carousel-item__text" data-ng-cloak>"{{item.text}}"</div>
+        </div>
+    </carousel-item>
+</ui-carousel>

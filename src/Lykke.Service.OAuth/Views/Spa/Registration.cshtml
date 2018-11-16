@@ -3,15 +3,21 @@
     Layout = "_SpaLayout";
 }
 <div data-ng-controller="signupController as vm">
-    <div data-ng-switch="vm.data.currentStep">
-        <initial-info data-ng-switch-when="InitialInfo"></initial-info>
-        <account-info data-ng-switch-when="AccountInformation"></account-info>
-        <pin data-ng-switch-when="Pin"></pin>
+    <div data-ng-switch="vm.data.currentPage">
+        <div data-ng-switch-when="SignUp">
+            <div data-ng-switch="vm.data.currentStep">
+                <initial-info data-ng-switch-when="InitialInfo"></initial-info>
+                <account-info data-ng-switch-when="AccountInformation"></account-info>
+                <pin data-ng-switch-when="Pin"></pin>
+            </div>
+            <div data-ng-switch="vm.data.errorCode">
+                <registration-id-not-found data-ng-switch-when="RegistrationNotFound"></registration-id-not-found>
+            </div>
+        </div>
+        <div data-ng-switch-when="SignIn">
+            <sign-in></sign-in>
+        </div>
     </div>
-    <div data-ng-switch="vm.data.errorCode">
-        <registration-id-not-found data-ng-switch-when="RegistrationNotFound"></registration-id-not-found>
-    </div>
-
 </div>
 
 @section scripts
@@ -23,8 +29,11 @@
         <script src="/js/app/components/signup/signupStep.constant.js"></script>
         <script src="/js/app/components/signup/errorCode.constant.js"></script>
         <script src="/js/app/components/signup/phoneErrorCode.constant.js"></script>
+        <script src="/js/app/components/signup/page.constant.js"></script>
         <script src="/js/app/components/signup/initialInfo/initialInfo.directive.js"></script>
         <script src="/js/app/components/signup/initialInfo/initialInfo.controller.js"></script>
+        <script src="/js/app/components/signup/signin/signin.directive.js"></script>
+        <script src="/js/app/components/signup/signin/signin.controller.js"></script>
         <script src="/js/app/components/signup/accountInfo/accountInfo.directive.js"></script>
         <script src="/js/app/components/signup/accountInfo/accountInfo.controller.js"></script>
         <script src="/js/app/components/signup/pin/pin.directive.js"></script>
@@ -32,6 +41,7 @@
         <script src="/js/app/components/signup/registrationIdNotFound/registrationIdNotFound.directive.js"></script>
         <script src="/js/app/components/signup/registrationIdNotFound/registrationIdNotFound.controller.js"></script>
         <script src="/js/app/components/shared/inputPassword/inputPassword.directive.js"></script>
+        <script src="/js/app/components/shared/imageCarousel/imageCarousel.directive.js"></script>
         <script src="/js/app/components/shared/accessibleForm/accessibleForm.directive.js"></script>
         <script src="/js/app/components/shared/emailTaken/emailTaken.directive.js"></script>
         <script src="/js/app/components/shared/strongPassword/strongPassword.directive.js"></script>

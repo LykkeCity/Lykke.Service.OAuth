@@ -146,7 +146,7 @@
 
         function signOut() {
             $window.localStorage.removeItem('registrationId');
-            $window.location.replace($location.path());
+            $location.search('registrationId', null);
         }
 
         return {
