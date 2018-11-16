@@ -3,16 +3,16 @@
 
     angular.module('app').controller('signupController', signupController);
 
-    signupController.$inject = ['signupService', '$scope', 'page'];
+    signupController.$inject = ['signupService', '$scope', 'page', 'signupEvent'];
 
-    function signupController(signupService, $scope, page) {
+    function signupController(signupService, $scope, page, signupEvent) {
         var vm = this;
 
-        $scope.$on('currentStepChanged', function (event, currentStep) {
+        $scope.$on(signupEvent.currentStepChanged, function (event, currentStep) {
             vm.data.currentStep = currentStep;
         });
 
-        $scope.$on('currentPageChanged', function (event, currentPage) {
+        $scope.$on(signupEvent.currentPageChanged, function (event, currentPage) {
             vm.data.currentPage = currentPage;
         });
 

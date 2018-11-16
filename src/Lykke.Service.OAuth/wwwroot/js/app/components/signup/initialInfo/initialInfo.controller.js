@@ -3,9 +3,9 @@
 
     angular.module('app').controller('initialInfoController', initialInfoController);
 
-    initialInfoController.$inject = ['signupService', 'signupStep', '$scope', 'page'];
+    initialInfoController.$inject = ['signupService', 'signupStep', '$scope', 'page', 'signupEvent'];
 
-    function initialInfoController(signupService, signupStep, $scope, page) {
+    function initialInfoController(signupService, signupStep, $scope, page, signupEvent) {
         var vm = this;
 
         function handleCarouselLoaded() {
@@ -33,7 +33,7 @@
                         vm.data.model.password
                     ).then(function (data) {
                         vm.data.isSubmitting = false;
-                        $scope.$emit('currentStepChanged', signupStep.accountInformation);
+                        $scope.$emit(signupEvent.currentStepChanged, signupStep.accountInformation);
                     }).catch(function (error) {
                         var passwordIsPwnedError = 'PasswordIsPwned';
                         vm.data.isSubmitting = false;
@@ -55,7 +55,7 @@
         }
 
         function handleSignInClick() {
-            $scope.$emit('currentPageChanged', page.signIn);
+            $scope.$emit(signupEvent.currentPageChanged, page.signIn);
         }
 
         vm.data = {
