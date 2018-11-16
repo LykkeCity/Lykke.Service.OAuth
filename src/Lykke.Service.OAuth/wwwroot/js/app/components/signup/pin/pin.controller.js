@@ -3,15 +3,15 @@
 
     angular.module('app').controller('pinController', pinController);
 
-    pinController.$inject = ['signupService', '$scope', 'page', 'signupStep'];
+    pinController.$inject = ['signupService', '$scope', 'page', 'signupStep', 'signupEvent'];
 
-    function pinController(signupService, $scope, page, signupStep) {
+    function pinController(signupService, $scope, page, signupStep, signupEvent) {
         var vm = this;
 
         function handleLogout() {
             signupService.signOut();
-            $scope.$emit('currentStepChanged', signupStep.initialInfo);
-            $scope.$emit('currentPageChanged', page.signIn);
+            $scope.$emit(signupEvent.currentStepChanged, signupStep.initialInfo);
+            $scope.$emit(signupEvent.currentPageChanged, page.signIn);
         }
 
         vm.handlers = {

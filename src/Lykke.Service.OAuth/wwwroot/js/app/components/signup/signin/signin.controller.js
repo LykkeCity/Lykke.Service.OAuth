@@ -3,9 +3,9 @@
 
     angular.module('app').controller('signInController', signInController);
 
-    signInController.$inject = ['$scope', 'page'];
+    signInController.$inject = ['$scope', 'page', 'signupEvent'];
 
-    function signInController($scope, page) {
+    function signInController($scope, page, signupEvent) {
         var vm = this;
 
         function handleCarouselLoaded() {
@@ -13,7 +13,7 @@
         }
 
         function handleSignUpClick() {
-            $scope.$emit('currentPageChanged', page.signUp);
+            $scope.$emit(signupEvent.currentPageChanged, page.signUp);
         }
 
         vm.data = {

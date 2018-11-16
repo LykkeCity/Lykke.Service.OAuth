@@ -3,9 +3,9 @@
 
     angular.module('app').controller('accountInfoController', accountInfoController);
 
-    accountInfoController.$inject = ['signupService', '$scope', 'signupStep', '$dialogs', '$timeout', 'phoneErrorCode', 'page'];
+    accountInfoController.$inject = ['signupService', '$scope', 'signupStep', '$dialogs', '$timeout', 'phoneErrorCode', 'page', 'signupEvent'];
 
-    function accountInfoController(signupService, $scope, signupStep, $dialogs, $timeout, phoneErrorCode, page) {
+    function accountInfoController(signupService, $scope, signupStep, $dialogs, $timeout, phoneErrorCode, page, signupEvent) {
         var vm = this;
 
         function handleSelectCountry() {
@@ -20,8 +20,8 @@
 
         function handleLogout() {
             signupService.signOut();
-            $scope.$emit('currentStepChanged', signupStep.initialInfo);
-            $scope.$emit('currentPageChanged', page.signIn);
+            $scope.$emit(signupEvent.currentStepChanged, signupStep.initialInfo);
+            $scope.$emit(signupEvent.currentPageChanged, page.signIn);
         }
 
         function handleSubmit(form) {
@@ -35,7 +35,7 @@
                     vm.data.model.phonePrefix + vm.data.model.phoneNumber
                 ).then(function (data) {
                     vm.data.isSubmitting = false;
-                    $scope.$emit('currentStepChanged', signupStep.pin);
+                    $scope.$emit(signupEvent.currentStepChanged, signupStep.pin);
                 }).catch(function (error) {
                     vm.data.isSubmitting = false;
 
