@@ -1,4 +1,4 @@
-<div data-ng-controller="initialInfoController as vm">
+<div data-ng-controller="signInController as vm">
     <div class="signup-page">
         <image-carousel on-load="vm.handlers.handleCarouselLoaded"></image-carousel>
         <div class="signup-page__mobile-logo">
@@ -6,58 +6,54 @@
         </div>
         <div class="signup-page__form">
             <div class="signup-page__signin-link">
-                Already have an account? <a href="#" data-ng-click="vm.handlers.handleSignInClick()">Sign In</a>
+                Don't have an account? <a href="#" data-ng-click="vm.handlers.handleSignUpClick()">Sign Up</a>
             </div>
             <form 
                 class="signup-form"
                 name="signupForm"
                 novalidate
                 autocomplete="off"
-                data-ng-submit="vm.handlers.handleSubmit(signupForm)"
                 accessible-form
             >
-                <div class="lykke-page-title">Create your Lykke Account</div>
-                <div class="lykke-page-subtitle">Enter your email and create a password</div>
+                <div class="lykke-page-title">Welcome back</div>
+                <div class="lykke-page-subtitle">Enter your details below</div>
                 <div class="lykke-form-group">
                     <label for="email" class="lykke-label">Email*</label>
                     <input
                         name="email"
                         id="email"
                         type="email"
-                        data-ng-class="{'lykke-input': true, 'lykke-input_error': signupForm.email.$error.emailTaken}"
+                        class="lykke-input"
                         placeholder="Enter your email"
                         required
                         email-taken
-                        data-ng-keydown="vm.handlers.handleEmailKeydown(signupForm)"
                         data-ng-model="vm.data.model.email"
                         data-ng-model-options="{ updateOn: 'blur' }"
                     />
                     <div class="lykke-error-label" data-ng-show="signupForm.email.$error.required && (signupForm.email.$touched || signupForm.$submitted)">This field is mandatory</div>
                     <div class="lykke-error-label" data-ng-show="signupForm.email.$error.email && (signupForm.email.$touched || signupForm.$submitted)">Wrong email format</div>
-                    <div class="lykke-error-label" data-ng-show="signupForm.email.$error.emailTaken && (signupForm.email.$touched || signupForm.$submitted)">Email is already taken</div>
                 </div>
                 <div class="lykke-form-group">
                     <label class="lykke-label">Password*</label>
                     <input-password
-                        placeholder="Minimum 8 characters"
+                        placeholder="Enter your password"
                         data-ng-model="vm.data.model.password"
-                        data-ng-keydown="vm.handlers.handlePasswordKeydown()"
                         data-has-error="vm.data.isPasswordPwned"
                         name="password"
                     ></input-password>
                     <div class="lykke-error-label" data-ng-show="signupForm.password.$error.required && (signupForm.password.$touched || signupForm.$submitted)">This field is mandatory</div>
-                    <div class="lykke-error-label" data-ng-show="signupForm.password.$error.strongPassword && (signupForm.password.$touched || signupForm.$submitted)">Password should contain minimum 8 characters, 1 lowecase, 1 uppercase and 1 special character</div>
-                    <div class="lykke-error-label" data-ng-show="vm.data.isPasswordPwned && (signupForm.password.$touched || signupForm.$submitted)">It seems password you used has a history of being hacked. Please choose another one.</div>
                 </div>
                 <div data-ng-show="vm.data.isSubmitting" class="spinner_container">
                     <div class="spinner">
                         <div class="spinner__inside"></div>
                     </div>
                 </div>
-                <input data-ng-hide="vm.data.isSubmitting" type="submit" class="lykke-button lykke-button_colored" value="Register" />
-                <terms></terms>
+                <input data-ng-hide="vm.data.isSubmitting" type="submit" class="lykke-button lykke-button_colored" value="Sign In" />
+                <div class="signup-page__forgot-password-link">
+                    <a href="#">Forgot password?</a>
+                </div>
                 <div class="signup-page__signin-link signup-page__signin-link_mobile">
-                    Already have an account? <a href="#" data-ng-click="vm.handlers.handleSignInClick()">Sign In</a>
+                    Don't have an account? <a href="#" data-ng-click="vm.handlers.handleSignUpClick()">Sign Up</a>
                 </div>
             </form>
         </div>

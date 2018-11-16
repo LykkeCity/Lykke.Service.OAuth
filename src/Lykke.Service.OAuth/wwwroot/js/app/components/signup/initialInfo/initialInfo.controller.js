@@ -3,31 +3,13 @@
 
     angular.module('app').controller('initialInfoController', initialInfoController);
 
-    initialInfoController.$inject = ['signupService', 'signupStep', '$timeout', '$window', '$scope'];
+    initialInfoController.$inject = ['signupService', 'signupStep', '$scope', 'page'];
 
-    function initialInfoController(signupService, signupStep, $timeout, $window, $scope) {
+    function initialInfoController(signupService, signupStep, $scope, page) {
         var vm = this;
-        var carouselReInitPromise;
 
-        function reInitCarousel(event) {
-            if (!event.detail) {
-                $timeout.cancel(carouselReInitPromise);
-                carouselReInitPromise = $timeout(function () {
-                    window.dispatchEvent(new CustomEvent('resize', { detail: 'skipReInit' }));
-                }, vm.data.carouselSpeed * 2);
-            }
-        }
-
-        angular.element($window).on('resize', reInitCarousel);
         function handleCarouselLoaded() {
-            if (vm.data.isCarouselRendered) {
-                vm.data.loaded = true;
-            } else {
-                $timeout(function () {
-                    vm.data.isCarouselRendered = true;
-                    window.dispatchEvent(new CustomEvent('resize', { detail: 'skipReInit' }));
-                });
-            }
+            vm.data.loaded = true;
         }
 
         function handleSubmit(form) {
@@ -72,29 +54,22 @@
             vm.data.isPasswordPwned = false;
         }
 
+        function handleSignInClick() {
+            $scope.$emit('currentPageChanged', page.signIn);
+        }
+
         vm.data = {
-            isCarouselRendered: false,
-            carouselSpeed: 300,
             loaded: false,
             isSubmitting: false,
             isPasswordPwned: false,
             model: {
                 email: '',
                 password: ''
-            },
-            slides: [
-                {
-                    imageSrc: '/images/carousel/rectangle-2.png',
-                    text: 'I was recommended Lykke from a good friend of mine. App is great. User friendly. Service is fast. Very responsive.'
-                },
-                {
-                    imageSrc: '/images/carousel/rectangle-3.png',
-                    text: 'Thank-you very much for your support... The service by Lykke is incredible. 👍🏻'
-                }
-            ]
+            }
         };
 
         vm.handlers = {
+            handleSignInClick: handleSignInClick,
             handleCarouselLoaded: handleCarouselLoaded,
             handleSubmit: handleSubmit,
             handleEmailKeydown: handleEmailKeydown,
