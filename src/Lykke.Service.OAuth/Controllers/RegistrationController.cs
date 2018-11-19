@@ -133,7 +133,7 @@ namespace Lykke.Service.OAuth.Controllers
 
             await _registrationRepository.UpdateAsync(registrationModel);
 
-            var registrationServiceResponse = await CreateUser(registrationModel);
+            var registrationServiceResponse = await CreateUserAsync(registrationModel);
 
             return Ok(
                 new RegistrationCompleteResponse(registrationServiceResponse.Token,
@@ -141,7 +141,7 @@ namespace Lykke.Service.OAuth.Controllers
             );
         }
 
-        private async Task<AccountsRegistrationResponseModel> CreateUser(RegistrationModel registrationModel)
+        private async Task<AccountsRegistrationResponseModel> CreateUserAsync(RegistrationModel registrationModel)
         {
             var registrationServiceResponse = await _registrationServiceClient.RegistrationApi.RegisterAsync(
                 new SafeAccountRegistrationModel
