@@ -18,6 +18,11 @@ namespace Lykke.Service.OAuth.Services
         }
         public async Task Handle(RegistrationFinishedEvent evt)
         {
+            if (evt?.RegistrationId == null)
+            {
+                _logger.LogError("Empty registration id.");
+            }
+
             var result = await _registrationRepository.DeleteIfExistAsync(evt.RegistrationId);
 
             if (!result) _logger.LogError($"Can not delete registration {evt.RegistrationId}.");
