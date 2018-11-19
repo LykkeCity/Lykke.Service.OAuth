@@ -113,7 +113,7 @@ namespace Lykke.Service.OAuth.Controllers
         [HttpPost]
         [Route("accountInfo")]
         [SwaggerOperation("AccountInfo")]
-        [ProducesResponseType(typeof(AccountsRegistrationResponseModel), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(RegistrationCompleteResponse), (int) HttpStatusCode.OK)]
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
         [ValidateApiModel]
@@ -131,9 +131,19 @@ namespace Lykke.Service.OAuth.Controllers
 
             registrationModel.CompleteAccountInfoStep(model.ToDto());
 
-            var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
+            await _registrationRepository.UpdateAsync(registrationModel);
 
-            var registrationResponse = await _registrationServiceClient.RegistrationApi.RegisterAsync(
+            var registrationServiceResponse = await CreateUser(registrationModel);
+
+            return Ok(
+                new RegistrationCompleteResponse(registrationServiceResponse.Token,
+                    registrationServiceResponse.NotificationsId)
+            );
+        }
+
+        private async Task<AccountsRegistrationResponseModel> CreateUser(RegistrationModel registrationModel)
+        {
+            var registrationServiceResponse = await _registrationServiceClient.RegistrationApi.RegisterAsync(
                 new SafeAccountRegistrationModel
                 {
                     Email = registrationModel.Email,
@@ -155,8 +165,7 @@ namespace Lykke.Service.OAuth.Controllers
                     UserAgent = HttpContext.GetUserAgent()
                 }
             );
-
-            return Ok(registrationResponse);
+            return registrationServiceResponse;
         }
 
         /// <summary>
