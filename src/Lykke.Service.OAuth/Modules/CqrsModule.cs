@@ -57,12 +57,11 @@ namespace Lykke.Service.OAuth.Modules
 
                     Register.BoundedContext("oauth")
                         .ListeningEvents(typeof(RegistrationFinishedEvent))
-                            .From("registration").On("events")
+                        .From("registration").On("events")
                         .WithProjection(typeof(RegistrationFinishedProjection), "registration")
                 ))
                 .As<ICqrsEngine>()
-                .SingleInstance()
-                .AutoActivate();
+                .SingleInstance();
         }
     }
 }

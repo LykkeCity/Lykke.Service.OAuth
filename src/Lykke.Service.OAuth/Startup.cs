@@ -14,6 +14,7 @@ using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Common.Log;
+using Lykke.Cqrs;
 using Lykke.Logs;
 using Lykke.Service.OAuth.Modules;
 using Lykke.SettingsReader;
@@ -294,6 +295,8 @@ namespace WebAuth
         {
             try
             {
+                ApplicationContainer.Resolve<ICqrsEngine>().Start();
+
                 ApplicationContainer.Resolve<IStartupManager>().Start();
 
                 HealthNotifier.Notify($"Env: {Program.EnvInfo}", "Started");

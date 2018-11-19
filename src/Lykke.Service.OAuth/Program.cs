@@ -23,7 +23,7 @@ namespace WebAuth
                     .UseContentRoot(Directory.GetCurrentDirectory())
 #if !DEBUG
                         .UseApplicationInsights()
-                        .UseUrls("http://*:5000/")
+                        .UseUrls("http://*:5001/")
 #endif
                     .UseStartup<Startup>()
                     .Build();
