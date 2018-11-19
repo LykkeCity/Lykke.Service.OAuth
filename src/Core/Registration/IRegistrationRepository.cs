@@ -36,5 +36,12 @@ namespace Core.Registration
         /// <param name="email">Registration email</param>
         /// <returns>Registration model or null if not found</returns>
         Task<RegistrationModel> GetByEmailAsync(string email);
+
+        /// <summary>
+        /// Deletes registration entity by id
+        /// </summary>
+        /// <param name="registrationId"></param>
+        /// <returns></returns>
+        Task<bool> DeleteIfExistAsync(string registrationId);
     }
 }

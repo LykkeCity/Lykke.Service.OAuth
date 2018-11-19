@@ -18,10 +18,10 @@ using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.OAuth.Models.Registration.Countries;
-using Lykke.Service.Registration;
-using Lykke.Service.PersonalData.Client;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
+using Lykke.Service.Registration;
+using Lykke.Service.Registration.Contract.Client.Models;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -40,6 +40,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly ICountriesService _countriesService;
         private readonly IPersonalDataService _personalDataService;
         private readonly ILog _log;
+        private readonly IRegistrationServiceClient _registrationServiceClient;
 
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
@@ -48,8 +49,10 @@ namespace Lykke.Service.OAuth.Controllers
             IApplicationRepository applicationRepository, 
             ICountriesService countriesService,
             ILogFactory logFactory, 
-            IPersonalDataService personalDataService)
+            IPersonalDataService personalDataService,
+            IRegistrationServiceClient registrationServiceClient)
         {
+            _registrationServiceClient = registrationServiceClient;
             _applicationRepository = applicationRepository;
             _countriesService = countriesService;
             _personalDataService = personalDataService;
@@ -110,17 +113,17 @@ namespace Lykke.Service.OAuth.Controllers
         [HttpPost]
         [Route("accountInfo")]
         [SwaggerOperation("AccountInfo")]
-        [ProducesResponseType(typeof(RegistrationResponse), (int) HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(AccountsRegistrationResponseModel), (int) HttpStatusCode.OK)]
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
         [ValidateApiModel]
         public async Task<IActionResult> AccountInfo([FromBody] AccountInfoRequestModel model)
         {
-            RegistrationModel registrationModel = await _registrationRepository.GetByIdAsync(model.RegistrationId);
+            var registrationModel = await _registrationRepository.GetByIdAsync(model.RegistrationId);
 
             _countriesService.ValidateCode(model.CountryCodeIso2);
 
-            SearchPersonalDataModel searchPersonalDataModel =
+            var searchPersonalDataModel =
                 await _personalDataService.FindClientsByPhrase(model.PhoneNumber, SearchMode.Term);
 
             if (searchPersonalDataModel != null)
@@ -130,8 +133,30 @@ namespace Lykke.Service.OAuth.Controllers
 
             var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
 
-            return Ok(new RegistrationResponse(registrationId));
+            var registrationResponse = await _registrationServiceClient.RegistrationApi.RegisterAsync(
+                new SafeAccountRegistrationModel
+                {
+                    Email = registrationModel.Email,
+                    ClientId = registrationModel.ClientId,
+                    CountryFromPOA = registrationModel.CountryOfResidenceIso2,
+                    FullName = registrationModel.FirstName + " " + registrationModel.LastName,
+                    ContactPhone = registrationModel.PhoneNumber,
+                    ClientInfo = null,
+                    Changer = null,
+                    PartnerId = null,
+                    Salt = registrationModel.Salt,
+                    Hash = registrationModel.Hash,
+                    Cid = null,
+                    CreatedAt = registrationModel.Started,
+                    Hint = null,
+                    IosVersion = null,
+                    Ttl = TimeSpan.FromDays(3),
+                    Ip = HttpContext.GetIp(),
+                    UserAgent = HttpContext.GetUserAgent()
+                }
+            );
 
+            return Ok(registrationResponse);
         }
 
         /// <summary>

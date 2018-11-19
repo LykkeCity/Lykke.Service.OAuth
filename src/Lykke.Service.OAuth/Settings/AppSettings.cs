@@ -2,11 +2,11 @@
 using Lykke.Service.ConfirmationCodes.Client;
 using Lykke.Service.GoogleAnalyticsWrapper.Client;
 using Lykke.Service.OAuth.Settings;
+using Lykke.Service.OAuth.Settings.ServiceSettings;
 using Lykke.Service.PersonalData.Settings;
 using Lykke.Service.Session.Client;
 using Lykke.Service.Registration;
 using WebAuth.Settings.ClientSettings;
-using WebAuth.Settings.ServiceSettings;
 using WebAuth.Settings.SlackNotifications;
 
 namespace WebAuth.Settings

@@ -192,7 +192,7 @@ namespace WebAuth
                 builder.RegisterModule(new ClientServiceModule(settings));
                 builder.RegisterModule(new ServiceModule(settings));
                 builder.RegisterModule(new ExceptionsModule());
-
+                builder.RegisterModule(new CqrsModule(settings));
 
                 builder.Populate(services);
                 ApplicationContainer = builder.Build();
