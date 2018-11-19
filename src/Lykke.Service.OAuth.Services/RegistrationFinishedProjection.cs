@@ -1,31 +1,32 @@
 ﻿using System.Threading.Tasks;
+using Common.Log;
 using Core.Registration;
+using Lykke.Common.Log;
 using Lykke.Service.Registration.Contract.Events;
-using Microsoft.Extensions.Logging;
 
 namespace Lykke.Service.OAuth.Services
 {
     public class RegistrationFinishedProjection
     {
         private readonly IRegistrationRepository _registrationRepository;
-        private readonly ILogger _logger;
+        private ILog _log;
 
         public RegistrationFinishedProjection(
-            IRegistrationRepository registrationRepository, ILoggerFactory loggerFactory)
+            IRegistrationRepository registrationRepository, ILogFactory logFactory)
         {
             _registrationRepository = registrationRepository;
-            _logger = loggerFactory.CreateLogger(GetType());
+            _log = logFactory.CreateLog(this);
         }
         public async Task Handle(RegistrationFinishedEvent evt)
         {
             if (evt?.RegistrationId == null)
             {
-                _logger.LogError("Empty registration id.");
+                _log.Error("Empty registration id.");
             }
 
             var result = await _registrationRepository.DeleteIfExistAsync(evt.RegistrationId);
 
-            if (!result) _logger.LogError($"Can not delete registration {evt.RegistrationId}.");
+            if (!result) _log.Error($"Can not delete registration {evt.RegistrationId}.");
         }
     }
 }
