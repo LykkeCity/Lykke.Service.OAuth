@@ -79,6 +79,14 @@ namespace AzureDataAccess.Registration
             return entity?.GetModel();
         }
 
+        public async Task<bool> DeleteIfExistAsync(string registrationId)
+        {
+            return await _storage.DeleteIfExistAsync(
+                RegistrationAzureEntity.ById.GeneratePartitionKey(registrationId),
+                RegistrationAzureEntity.ById.GenerateRowKey(registrationId)
+            );
+        }
+
         public async Task<string> UpdateAsync(RegistrationModel registrationModel)
         {
             var partitionKey = RegistrationAzureEntity.ById.GeneratePartitionKey(registrationModel.RegistrationId);

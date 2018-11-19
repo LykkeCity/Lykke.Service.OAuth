@@ -46,6 +46,14 @@ namespace AzureDataAccess.Registration
             }
         }
 
+        public string PhoneNumber { get; private set; }
+
+        public string LastName { get; set; }
+
+        public string CountryOfResidenceIso2 { get; set; }
+
+        public string FirstName { get; set; }
+
         public static RegistrationAzureEntity Create(RegistrationModel model)
         {
             var entity = new RegistrationAzureEntity
@@ -70,6 +78,10 @@ namespace AzureDataAccess.Registration
             PasswordSalt = model.Salt;
             ClientId = model.ClientId;
             Started = model.Started;
+            PhoneNumber = model.PhoneNumber;
+            FirstName = model.FirstName;
+            LastName = model.LastName;
+            CountryOfResidenceIso2 = model.CountryOfResidenceIso2;
             CurrentStep = model.CurrentStep;
         }
 
