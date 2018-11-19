@@ -295,9 +295,9 @@ namespace WebAuth
         {
             try
             {
-                ApplicationContainer.Resolve<ICqrsEngine>().Start();
-
                 ApplicationContainer.Resolve<IStartupManager>().Start();
+
+                ApplicationContainer.Resolve<ICqrsEngine>().Start();
 
                 HealthNotifier.Notify($"Env: {Program.EnvInfo}", "Started");
             }

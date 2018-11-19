@@ -81,6 +81,15 @@ namespace AzureDataAccess.Registration
 
         public async Task<bool> DeleteIfExistAsync(string registrationId)
         {
+            var entity = await _storage.GetDataAsync(
+                RegistrationAzureEntity.ById.GeneratePartitionKey(registrationId),
+                RegistrationAzureEntity.ById.GenerateRowKey(registrationId)
+            );
+
+            await _emailIndexStorage.DeleteIfExistAsync(
+                RegistrationAzureEntity.IndexByEmail.GeneratePartitionKey(entity.Email),
+                RegistrationAzureEntity.IndexByEmail.GenerateRowKey());
+
             return await _storage.DeleteIfExistAsync(
                 RegistrationAzureEntity.ById.GeneratePartitionKey(registrationId),
                 RegistrationAzureEntity.ById.GenerateRowKey(registrationId)

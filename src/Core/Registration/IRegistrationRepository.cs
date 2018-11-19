@@ -41,7 +41,7 @@ namespace Core.Registration
         /// Deletes registration entity by id
         /// </summary>
         /// <param name="registrationId"></param>
-        /// <returns></returns>
+        /// <returns>True, if operation was successful</returns>
         Task<bool> DeleteIfExistAsync(string registrationId);
     }
 }
