@@ -162,7 +162,8 @@ namespace Lykke.Service.OAuth.Controllers
                     IosVersion = null,
                     Ttl = TimeSpan.FromDays(3),
                     Ip = HttpContext.GetIp(),
-                    UserAgent = HttpContext.GetUserAgent()
+                    UserAgent = HttpContext.GetUserAgent(),
+                    RegistrationId = registrationModel.RegistrationId
                 }
             );
             return registrationServiceResponse;
