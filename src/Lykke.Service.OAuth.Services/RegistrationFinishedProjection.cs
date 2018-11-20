@@ -23,6 +23,7 @@ namespace Lykke.Service.OAuth.Services
             if (evt.RegistrationId == null)
             {
                 _log.Error("Empty registration id.");
+                return;
             }
 
             //todo @mkobzev: add command which will change the domain
