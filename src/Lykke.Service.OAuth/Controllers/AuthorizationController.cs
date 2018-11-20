@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
@@ -10,12 +9,16 @@ using AspNet.Security.OpenIdConnect.Server;
 using Common;
 using Core.Application;
 using Core.Extensions;
+using Core.ExternalProvider;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using WebAuth.Managers;
 using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 using OpenIdConnectMessage = Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectMessage;
@@ -28,14 +31,24 @@ namespace WebAuth.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserManager _userManager;
         private readonly IClientSessionsClient _clientSessionsClient;
+        private readonly IDataProtector _dataProtector;
+        private readonly IExternalProviderService _externalProviderService;
+
+
 
         public AuthorizationController(
             IApplicationRepository applicationRepository,
-            IUserManager userManager, IClientSessionsClient clientSessionsClient)
+            IUserManager userManager, 
+            IClientSessionsClient clientSessionsClient,
+            //TODO:@gafanasiev Move protection and cookie creation to service
+            IDataProtectionProvider dataProtectionProvider, 
+            IExternalProviderService externalProviderService)
         {
             _applicationRepository = applicationRepository;
             _userManager = userManager;
             _clientSessionsClient = clientSessionsClient;
+            _externalProviderService = externalProviderService;
+            _dataProtector = dataProtectionProvider.CreateProtector(OpenIdConnectConstantsExt.Protectors.ExternalProviderCookieProtector);
         }
 
         [HttpGet("~/connect/authorize")]
@@ -64,38 +77,6 @@ namespace WebAuth.Controllers
                 });
             }
 
-            Dictionary<string, string> parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
-            string redirectUrl;
-
-            // Note: authentication could be theoretically enforced at the filter level via AuthorizeAttribute
-            // but this authorization endpoint accepts both GET and POST requests while the cookie middleware
-            // only uses 302 responses to redirect the user agent to the login page, making it incompatible with POST.
-            // To work around this limitation, the OpenID Connect request is automatically saved in the user session and will be
-            // restored by AuthorizationProvider.ExtractAuthorizationRequest after the external authentication process has been completed.
-            if (!User.Identities.Any(identity => identity.IsAuthenticated))
-            {
-                var identifier = Guid.NewGuid().ToString();
-
-                // Store the authorization request in the user session.
-                HttpContext.Session.Set("authorization-request:" + identifier, request.ToJson().ToUtf8Bytes());
-                parameters.Add("request_id", identifier);
-
-                redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
-
-                // this parameter added for authentification on login page with PartnerId
-                parameters.TryGetValue(CommonConstants.PartnerIdParameter, out var partnerId);
-
-                var authenticationProperties = new AuthenticationProperties
-                {
-                    RedirectUri = Url.Action(redirectUrl),
-                };
-
-                if (!string.IsNullOrWhiteSpace(partnerId))
-                    authenticationProperties.Parameters.Add(CommonConstants.PartnerIdParameter, partnerId);
-
-                return Challenge(authenticationProperties);
-            }
-
             // Note: ASOS automatically ensures that an application corresponds to the client_id specified
             // in the authorization request by calling IOpenIdConnectServerProvider.ValidateAuthorizationRequest.
             // In theory, this null check shouldn't be needed, but a race condition could occur if you
@@ -111,10 +92,53 @@ namespace WebAuth.Controllers
                 });
             }
 
-            var acceptUri = Url.Action("Accept");
-            redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
+            var tenent = GetTenant(request);
 
-            return Redirect(redirectUrl);
+            if (tenent == OpenIdConnectConstantsExt.Tenants.Ironclad)
+            {
+                return HandleLykkeAuthorize(request);
+            }
+
+            return HandleIroncladAuthorize(request);
+        }
+
+        [Authorize]
+        [HttpPost("~/connect/authorize/external")]
+        [HttpGet("~/connect/authorize/external")]
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true, Duration = 0)]
+        public IActionResult AuthorizeExternal()
+        {
+            var response = HttpContext.GetOpenIdConnectResponse();
+            if (response != null)
+            {
+                return View("Error", response);
+            }
+
+            var request = HttpContext.GetOpenIdConnectRequest();
+            if (request == null)
+            {
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "An internal error has occurred"
+                });
+            }
+
+            // Create a new authentication ticket holding the user identity.
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(User.Identity),
+                new AuthenticationProperties(),
+                OpenIdConnectServerDefaults.AuthenticationScheme);
+
+            //TODO:@gafanasiev add allowed scopes for client application.
+            ticket.SetScopes(new[]
+            {
+                OpenIdConnectConstants.Scopes.OpenId,
+                OpenIdConnectConstants.Scopes.Email,
+                OpenIdConnectConstants.Scopes.Profile
+            }.Intersect(request.GetScopes()));
+
+            return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 
         [Authorize]
@@ -170,7 +194,6 @@ namespace WebAuth.Controllers
                     ErrorDescription = "Unable to find session id in the calling context"
                 });
             }
-
 
             identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
 
@@ -266,7 +289,103 @@ namespace WebAuth.Controllers
             {
                 await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
             }
-            return SignOut(OpenIdConnectConstantsExt.Auth.DefaultScheme, OpenIdConnectServerDefaults.AuthenticationScheme);
+            //TODO:@gafanasiev Fix bug with logout 
+            return SignOut(OpenIdConnectServerDefaults.AuthenticationScheme);
+        }
+
+        private IActionResult HandleIroncladAuthorize(OpenIdConnectRequest request)
+        {
+            var parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
+
+            if (!User.Identities.Any(identity => identity.IsAuthenticated))
+            {
+                var externalRedirectUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeExternal"), parameters);
+
+                var properties = new AuthenticationProperties
+                {
+                    RedirectUri = Url.Action("AfterExternalLoginCallback", "External"),
+                    // We need to save original redirectUrl, later get it in AfterExternalLoginCallback and redirect back to it.
+                    Items = { { OpenIdConnectConstantsExt.Parameters.AfterExternalLoginCallback, externalRedirectUrl } }
+                };
+
+                return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
+            }
+
+            var acceptUri = Url.Action("AuthorizeExternal");
+
+            var redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
+
+            return LocalRedirect(redirectUrl);
+        }
+
+        private IActionResult HandleLykkeAuthorize(OpenIdConnectRequest request)
+        {
+            var parameters = request.GetParameters()
+                .ToDictionary(item => item.Key, item => item.Value.Value.ToString());
+
+            string redirectUrl;
+
+            if (!User.Identities.Any(identity => identity.IsAuthenticated))
+            {
+                var identifier = Guid.NewGuid().ToString();
+
+                // Store the authorization request in the user session.
+                HttpContext.Session.Set("authorization-request:" + identifier, request.ToJson().ToUtf8Bytes());
+                parameters.Add("request_id", identifier);
+
+                redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
+
+                // this parameter added for authentification on login page with PartnerId
+                parameters.TryGetValue(CommonConstants.PartnerIdParameter, out var partnerId);
+
+                var authenticationProperties = new AuthenticationProperties
+                {
+                    RedirectUri = Url.Action(redirectUrl)
+                };
+
+                if (!string.IsNullOrWhiteSpace(partnerId))
+                    authenticationProperties.Parameters.Add(CommonConstants.PartnerIdParameter, partnerId);
+
+                return Challenge(authenticationProperties);
+            }
+
+            SaveLykkeUserIdAfterExternalLogin();
+
+            var acceptUri = Url.Action("Accept");
+            redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
+
+            return Redirect(redirectUrl);
+        }
+
+        private string GetTenant(OpenIdConnectRequest request)
+        {
+            if (request.AcrValues == null) return string.Empty;
+
+            var acrValuesJson = JObject.Parse(request.AcrValues);
+
+            var jToken = acrValuesJson.GetValue(OpenIdConnectConstantsExt.Parameters.Tenant);
+
+            return jToken.Type == JTokenType.String ? jToken.Value<string>() : string.Empty;
+        }
+
+        private async Task SaveLykkeUserIdAfterExternalLogin()
+        {
+            var userId = User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userId)) return;
+
+            var guid = await _externalProviderService.SaveLykkeUserIdForExternalLoginAsync(userId, TimeSpan.FromMinutes(3));
+
+            // TODO:@gafanasiev check if this supports multiple instances.
+            var protectedGuid = _dataProtector.Protect(guid);
+
+            HttpContext.Response.Cookies.Append(OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie, protectedGuid, new CookieOptions
+            {
+                HttpOnly = true,
+                MaxAge = TimeSpan.FromMinutes(1)
+                //TODO:@gafanasiev uncomment in production
+                //Secure = true
+            });
         }
     }
 }

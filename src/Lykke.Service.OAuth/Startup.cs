@@ -10,6 +10,7 @@ using Common;
 using Common.Log;
 using Core.Extensions;
 using Core.Services;
+using IdentityModel;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
@@ -38,6 +39,7 @@ using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
+using Microsoft.AspNetCore.Authentication;
 using LykkeApiErrorMiddleware = Lykke.Service.OAuth.Middleware.LykkeApiErrorMiddleware;
 
 namespace WebAuth
@@ -123,6 +125,44 @@ namespace WebAuth
                         options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                         options.EventsType = typeof(CustomCookieAuthenticationEvents);
                     })
+
+                    // This cookie is used for external provider authentication.
+                    .AddCookie(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme, options =>
+                    {
+                        options.Cookie.HttpOnly = true;
+                        options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
+                    })
+
+                    .AddOpenIdConnect(
+                        OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme,
+                        OpenIdConnectConstantsExt.Tenants.Ironclad,
+                        options =>
+                        {
+                            // One cookie is used as authentication scheme for all external providers.
+                            options.SignInScheme = OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme;
+
+                            // Set unique callback path for every provider to eliminate intersection.
+                            options.CallbackPath = "/signin-oidc-ironclad";
+
+                            // TODO: Enter Ironclad implicit clientId here.
+                            options.ClientId = "";
+
+                            options.Authority = "http://localhost:5005";
+                            options.RequireHttpsMetadata = false;
+
+                            options.ResponseType = OidcConstants.ResponseTypes.IdTokenToken;
+                            options.GetClaimsFromUserInfoEndpoint = true;
+                            options.DisableTelemetry = true;
+
+                            options.Scope.Clear();
+                            options.Scope.Add("openid");
+                            options.Scope.Add("profile");
+                            options.Scope.Add("sample_api");
+                            options.Scope.Add("email");
+                            options.Scope.Add("phone");
+
+                            options.ClaimActions.MapAllExcept();
+                        })
 
                     .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
                         options =>

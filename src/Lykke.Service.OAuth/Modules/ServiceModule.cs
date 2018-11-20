@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using Autofac;
 using Core.Countries;
+using Core.ExternalProvider;
 using Core.PasswordValidation;
 using Core.Services;
 using Lykke.Common;
 using Lykke.Service.OAuth.Services;
 using Lykke.Service.OAuth.Services.Countries;
+using Lykke.Service.OAuth.Services.ExternalProvider;
 using Lykke.Service.OAuth.Services.PasswordValidation;
 using Lykke.Service.OAuth.Services.PasswordValidation.Validators;
 using Lykke.SettingsReader;
@@ -33,6 +35,10 @@ namespace Lykke.Service.OAuth.Modules
             builder.RegisterType<TokenService>().As<ITokenService>().SingleInstance();
 
             builder.RegisterType<ValidationService>().As<IValidationService>().SingleInstance();
+
+            builder.RegisterType<ExternalProviderService>().As<IExternalProviderService>().SingleInstance();
+
+            builder.RegisterType<ExternalUserService>().As<IExternalUserService>().SingleInstance();
 
             builder.RegisterType<CountriesService>()
                 .WithParameter(TypedParameter.From(new CountryPhoneCodes().GetCountries()))
