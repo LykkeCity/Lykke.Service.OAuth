@@ -1,60 +1,32 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
-using AspNet.Security.OpenIdConnect.Primitives;
-using Common;
 using Common.Log;
-using Core.Application;
-using Core.Bitcoin;
 using Core.Extensions;
+using Core.ExternalProvider.Exceptions;
+using Core.Services;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.Log;
-using Lykke.Service.ClientAccount.Client;
-using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebAuth.Extensions;
-using WebAuth.Models;
 
-namespace WebAuth.Controllers
+namespace Lykke.Service.OAuth.Controllers
 {
     [ApiExplorerSettings(IgnoreApi = true)]
     public class UserinfoController : Controller
     {
         private readonly ILog _log;
-        private readonly IApplicationRepository _applicationRepository;
         private readonly IClientSessionsClient _clientSessionsClient;
-        private readonly IWalletCredentialsRepository _walletCredentialsRepository;
-        private readonly IClientAccountClient _clientAccountClient;
-
+        private readonly ITokenService _tokenService;
 
         public UserinfoController(
             ILogFactory logFactory,
-            IApplicationRepository applicationRepository,
             IClientSessionsClient clientSessionsClient,
-            IWalletCredentialsRepository walletCredentialsRepository,
-            IClientAccountClient clientAccountClient)
-
+            ITokenService tokenService)
         {
             _log = logFactory.CreateLog(this);
-            _applicationRepository = applicationRepository;
             _clientSessionsClient = clientSessionsClient;
-            _walletCredentialsRepository = walletCredentialsRepository;
-            _clientAccountClient = clientAccountClient;
-        }
-
-        [HttpGet("~/connect/userinfo")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
-        public IActionResult GetUserInfo()
-        {
-            var userInfo = new UserInfoViewModel
-            {
-                Email = User.GetClaim(OpenIdConnectConstants.Claims.Email),
-                FirstName = User.GetClaim(OpenIdConnectConstants.Claims.GivenName),
-                LastName = User.GetClaim(OpenIdConnectConstants.Claims.FamilyName)
-            };
-            return Json(userInfo);
+            _tokenService = tokenService;
         }
 
         [HttpGet("~/getlykkewallettoken")]
@@ -72,6 +44,27 @@ namespace WebAuth.Controllers
             return await GetToken();
         }
 
+        [HttpGet("~/token/kyc")]
+        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.LykkeScheme)]
+        public async Task<IActionResult> GetKycToken()
+        {
+            try
+            {
+                var sessionId = User.GetClaimValue(OpenIdConnectConstantsExt.Claims.SessionId);
+
+                var accessToken = await _tokenService.GetIroncladAccessTokenAsync(sessionId);
+
+                return Json(new {Token = accessToken});
+            }
+            catch (Exception e)
+                when (e is ClaimNotFoundException ||
+                      e is TokenNotFoundException)
+            {
+                _log.Warning("Token not found.", e);
+                return BadRequest("Token not found.");
+            }
+        }
+
         private async Task<IActionResult> GetToken()
         {
             var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
@@ -83,6 +76,9 @@ namespace WebAuth.Controllers
             }
 
             var session = await _clientSessionsClient.GetAsync(sessionId);
+            
+            if (session == null) 
+                return NotFound("Session not found.");
 
             return Json(new { Token = sessionId, session.AuthId });
         }
