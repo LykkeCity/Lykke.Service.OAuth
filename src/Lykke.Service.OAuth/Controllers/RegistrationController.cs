@@ -143,7 +143,8 @@ namespace Lykke.Service.OAuth.Controllers
 
             var registrationServiceResponse = await CreateUserAsync(registrationModel);
 
-            await SignInAsync(registrationServiceResponse, registrationModel);
+            //todo: @mkobzev fix nre
+            //await SignInAsync(registrationServiceResponse, registrationModel);
 
             return Ok(
                 new RegistrationCompleteResponse(registrationServiceResponse.Token,
