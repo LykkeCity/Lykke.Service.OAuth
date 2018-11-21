@@ -1,11 +1,13 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Common.Log;
 using Core.Application;
 using Core.Countries;
 using Core.Exceptions;
+using Core.Extensions;
 using Core.PasswordValidation;
 using Core.Registration;
 using Core.Services;
@@ -22,8 +24,10 @@ using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using WebAuth.Managers;
 
 namespace Lykke.Service.OAuth.Controllers
 {
@@ -41,6 +45,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IPersonalDataService _personalDataService;
         private readonly ILog _log;
         private readonly IRegistrationServiceClient _registrationServiceClient;
+        private readonly IUserManager _userManager;
 
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
@@ -50,8 +55,11 @@ namespace Lykke.Service.OAuth.Controllers
             ICountriesService countriesService,
             ILogFactory logFactory, 
             IPersonalDataService personalDataService,
-            IRegistrationServiceClient registrationServiceClient)
+            IRegistrationServiceClient registrationServiceClient,
+            IUserManager userManager
+            )
         {
+            _userManager = userManager;
             _registrationServiceClient = registrationServiceClient;
             _applicationRepository = applicationRepository;
             _countriesService = countriesService;
@@ -135,10 +143,21 @@ namespace Lykke.Service.OAuth.Controllers
 
             var registrationServiceResponse = await CreateUserAsync(registrationModel);
 
+            await SignInAsync(registrationServiceResponse, registrationModel);
+
             return Ok(
                 new RegistrationCompleteResponse(registrationServiceResponse.Token,
                     registrationServiceResponse.NotificationsId)
             );
+        }
+
+        private async Task SignInAsync(AccountsRegistrationResponseModel registrationServiceResponse,
+            RegistrationModel registrationModel)
+        {
+            var identity = await _userManager.CreateUserIdentityAsync(registrationServiceResponse.Account.Id,
+                registrationModel.Email, registrationModel.Email, null, registrationServiceResponse.Token, true);
+
+            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
         }
 
         private async Task<AccountsRegistrationResponseModel> CreateUserAsync(RegistrationModel registrationModel)
