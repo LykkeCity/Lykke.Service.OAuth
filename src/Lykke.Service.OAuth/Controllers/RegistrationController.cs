@@ -143,8 +143,12 @@ namespace Lykke.Service.OAuth.Controllers
 
             var registrationServiceResponse = await CreateUserAsync(registrationModel);
 
-            //todo: @mkobzev fix nre
-            //await SignInAsync(registrationServiceResponse, registrationModel);
+            if (registrationServiceResponse == null)
+            {
+                throw new Exception("Null response from registration service during registration.");
+            }
+
+            await SignInAsync(registrationServiceResponse, registrationModel);
 
             return Ok(
                 new RegistrationCompleteResponse(registrationServiceResponse.Token,
@@ -170,6 +174,8 @@ namespace Lykke.Service.OAuth.Controllers
                     ClientId = registrationModel.ClientId,
                     CountryFromPOA = registrationModel.CountryOfResidenceIso2,
                     FullName = registrationModel.FirstName + " " + registrationModel.LastName,
+                    FirstName = registrationModel.FirstName,
+                    LastName = registrationModel.LastName,
                     ContactPhone = registrationModel.PhoneNumber,
                     ClientInfo = null,
                     Changer = null,
