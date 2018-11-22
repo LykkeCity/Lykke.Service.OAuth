@@ -3,10 +3,11 @@
 
     angular.module('app').controller('accountInfoController', accountInfoController);
 
-    accountInfoController.$inject = ['signupService', '$scope', 'signupStep', '$dialogs', '$timeout', 'phoneErrorCode', 'page', 'signupEvent'];
+    accountInfoController.$inject = ['signupService', '$scope', 'signupStep', '$dialogs', '$timeout', 'phoneErrorCode', 'page', 'signupEvent', 'envService', '$window'];
 
-    function accountInfoController(signupService, $scope, signupStep, $dialogs, $timeout, phoneErrorCode, page, signupEvent) {
+    function accountInfoController(signupService, $scope, signupStep, $dialogs, $timeout, phoneErrorCode, page, signupEvent, envService, $window) {
         var vm = this;
+        var isPhoneChanged = false;
 
         function handleSelectCountry() {
             var restrictedCountryFound = vm.data.restrictedCountries.find(function (restrictedCountry) {
@@ -15,6 +16,10 @@
 
             if (!!restrictedCountryFound) {
                 openRestrictedCountryQuestionModal();
+            }
+
+            if (!isPhoneChanged) {
+                selectPhonePrefix();
             }
         }
 
@@ -33,9 +38,9 @@
                     vm.data.model.lastName,
                     vm.data.model.country,
                     vm.data.model.phonePrefix + vm.data.model.phoneNumber
-                ).then(function (data) {
-                    vm.data.isSubmitting = false;
-                    $scope.$emit(signupEvent.currentStepChanged, signupStep.pin);
+                ).then(function () {
+                    signupService.signOut();
+                    $window.location.href = envService.getFundsUrl();
                 }).catch(function (error) {
                     vm.data.isSubmitting = false;
 
@@ -53,6 +58,19 @@
 
         function handlePhoneKeydown() {
             vm.data.isPhoneFormatInvalid = false;
+            isPhoneChanged = true;
+        }
+
+        function handlePhonePrefixChanged() {
+            isPhoneChanged = true;
+        }
+
+        function selectPhonePrefix() {
+            var selectedCountry = vm.data.countries.find(function (country) {
+                return country.iso2 === vm.data.model.country;
+            })
+
+            vm.data.model.phonePrefix = selectedCountry.phonePrefix;
         }
 
         function openRestrictedCountryQuestionModal() {
@@ -116,6 +134,7 @@
             handleSubmit: handleSubmit,
             handleSelectCountry: handleSelectCountry,
             handlePhoneKeydown: handlePhoneKeydown,
+            handlePhonePrefixChanged: handlePhonePrefixChanged,
             handleLogout: handleLogout
         };
 
