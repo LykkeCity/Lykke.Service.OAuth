@@ -86,49 +86,5 @@ namespace WebAuth.Controllers
 
             return Json(new { Token = sessionId, session.AuthId });
         }
-
-
-        [HttpGet("~/getprivatekey")]
-        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> GetPrivateKey()
-        {
-            var applicationId = HttpContext.GetApplicationId();
-
-            if (!applicationId.IsValidPartitionOrRowKey())
-                return BadRequest("Invalid applicationId");
-
-            var app = await _applicationRepository.GetByIdAsync(applicationId);
-
-            if (app == null)
-                return BadRequest("Application Id Incorrect!");
-
-            var clientId = User.Identity.GetClientId();
-            string encodedPrivateKey = string.Empty;
-
-            if (clientId != null)
-            {
-                var walletCredential = await _walletCredentialsRepository.GetAsync(clientId);
-
-                return Json(new { EncodedPrivateKey = walletCredential?.EncodedPrivateKey });
-            }
-
-            return Json(new { EncodedPrivateKey = encodedPrivateKey });
-        }
-
-        private async Task<ClientModel> GetClientByIdAsync(string clientId)
-        {
-            ClientModel client = null;
-
-            try
-            {
-                client = await _clientAccountClient.GetByIdAsync(clientId);
-            }
-            catch (Exception)
-            {
-                _log.Info(nameof(GetClientByIdAsync), clientId, "Can't get client info");
-            }
-
-            return client;
-        }
     }
 }
