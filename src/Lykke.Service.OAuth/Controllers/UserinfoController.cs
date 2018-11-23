@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
-using Common;
 using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
@@ -10,13 +8,14 @@ using Core.Extensions;
 using Core.Services;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Service.OAuth.Providers;
+using Lykke.Common.Log;
+using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebAuth.Extensions;
 using WebAuth.Models;
 
-namespace WebAuth.Controllers
+namespace Lykke.Service.OAuth.Controllers
 {
     [ApiExplorerSettings(IgnoreApi = true)]
     public class UserinfoController : Controller
