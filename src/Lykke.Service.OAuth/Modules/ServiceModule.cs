@@ -5,6 +5,7 @@ using Core.PasswordValidation;
 using Core.Services;
 using Lykke.Common;
 using Lykke.Service.OAuth.Middleware;
+using Lykke.Service.OAuth.Providers;
 using Lykke.Service.OAuth.Services;
 using Lykke.Service.OAuth.Services.Countries;
 using Lykke.Service.OAuth.Services.PasswordValidation;
@@ -54,6 +55,7 @@ namespace Lykke.Service.OAuth.Modules
                 .SingleInstance();
 
             builder.RegisterType<LykkePrincipal>().As<ILykkePrincipal>().SingleInstance();
+            builder.RegisterType<KycTokenProvider>().As<IKycTokenProvider>().SingleInstance();
 
             #region PasswordValidators
             builder.RegisterType<PwnedPasswordsValidator>().As<IPasswordValidator>().SingleInstance();
