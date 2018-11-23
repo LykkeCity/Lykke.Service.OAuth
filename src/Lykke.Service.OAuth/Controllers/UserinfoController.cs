@@ -9,9 +9,7 @@ using Core.Bitcoin;
 using Core.Extensions;
 using Core.Services;
 using IdentityServer4.AccessTokenValidation;
-using Lykke.Common.Log;
-using Lykke.Service.ClientAccount.Client;
-using Lykke.Service.ClientAccount.Client.Models;
+using Lykke.Service.OAuth.Providers;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,27 +21,17 @@ namespace WebAuth.Controllers
     [ApiExplorerSettings(IgnoreApi = true)]
     public class UserinfoController : Controller
     {
-        private readonly ILog _log;
-        private readonly IApplicationRepository _applicationRepository;
         private readonly IClientSessionsClient _clientSessionsClient;
-        private readonly IWalletCredentialsRepository _walletCredentialsRepository;
-        private readonly IClientAccountClient _clientAccountClient;
+        private readonly IKycTokenProvider _kycTokenProvider;
         private readonly ITokenService _tokenService;
 
         public UserinfoController(
-            ILogFactory logFactory,
-            IApplicationRepository applicationRepository,
             IClientSessionsClient clientSessionsClient,
-            IWalletCredentialsRepository walletCredentialsRepository,
-            IClientAccountClient clientAccountClient, 
-            ITokenService tokenService)
-
+            ITokenService tokenService,
+            IKycTokenProvider kycTokenProvider)
         {
-            _log = logFactory.CreateLog(this);
-            _applicationRepository = applicationRepository;
+            _kycTokenProvider = kycTokenProvider;
             _clientSessionsClient = clientSessionsClient;
-            _walletCredentialsRepository = walletCredentialsRepository;
-            _clientAccountClient = clientAccountClient;
             _tokenService = tokenService;
         }
 
@@ -60,6 +48,13 @@ namespace WebAuth.Controllers
         public async Task<IActionResult> GetLykkeWalletTokenMobile()
         {
             return await GetToken();
+        }
+
+        [HttpGet("~/getkyctoken")]
+        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.LykkeScheme)]
+        public async Task<IActionResult> GetKycToken()
+        {
+            return Json(await _kycTokenProvider.GetKycTokenAsync());
         }
 
         private async Task<IActionResult> GetToken()
