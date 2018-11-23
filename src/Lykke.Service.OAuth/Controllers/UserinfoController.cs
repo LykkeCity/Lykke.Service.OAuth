@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
-using Common;
 using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
@@ -10,14 +8,12 @@ using Core.Extensions;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
-using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebAuth.Extensions;
 using WebAuth.Models;
 
-namespace WebAuth.Controllers
+namespace Lykke.Service.OAuth.Controllers
 {
     [ApiExplorerSettings(IgnoreApi = true)]
     public class UserinfoController : Controller
@@ -70,6 +66,13 @@ namespace WebAuth.Controllers
         public async Task<IActionResult> GetLykkeWalletTokenMobile()
         {
             return await GetToken();
+        }
+
+        [HttpGet("~/getkyctoken")]
+        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.LykkeScheme)]
+        public async Task<IActionResult> GetKycToken()
+        {
+            return Json("test");
         }
 
         private async Task<IActionResult> GetToken()

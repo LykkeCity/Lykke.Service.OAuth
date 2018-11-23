@@ -1,5 +1,6 @@
 ﻿namespace Core.Extensions
 {
+    //todo: rename
     public class OpenIdConnectConstantsExt
     {
         public static class Claims
@@ -13,6 +14,7 @@
         public static class Auth
         {
             public const string DefaultScheme = "ServerCookie";
+            public const string LykkeScheme = "LykkeScheme";
         }
 
         public static class Errors
