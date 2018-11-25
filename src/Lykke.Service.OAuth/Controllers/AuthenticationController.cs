@@ -15,6 +15,7 @@ using Core.VerificationCodes;
 using Lykke.Common;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
+using Lykke.Cqrs;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.ConfirmationCodes.Client;
@@ -25,6 +26,8 @@ using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Enums;
 using Lykke.Service.Registration.Contract.Client.Models;
+using Lykke.Service.Salesforce.Contract;
+using Lykke.Service.Salesforce.Contract.Commands;
 using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
@@ -60,6 +63,7 @@ namespace WebAuth.Controllers
         private readonly IIpGeoLocationClient _geoLocationClient;
         private readonly IEnumerable<CountryItem> _countries;
         private readonly IRegistrationRepository _registrationRepository;
+        private readonly ICqrsEngine _cqrsEngine;
 
         public AuthenticationController(
             IRegistrationServiceClient registrationClient,
@@ -74,9 +78,11 @@ namespace WebAuth.Controllers
             IIpGeoLocationClient geoLocationClient,
             ILogFactory logFactory,
             IClientSessionsClient clientSessionsClient,
-            IRegistrationRepository registrationRepository)
+            IRegistrationRepository registrationRepository,
+            ICqrsEngine cqrsEngine)
         {
             _registrationRepository = registrationRepository;
+            _cqrsEngine = cqrsEngine;
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
             _emailFacadeService = emailFacadeService;
@@ -218,7 +224,7 @@ namespace WebAuth.Controllers
             var code = await _verificationCodesService.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(model.Email, code.Code, url);
-
+            
             return RedirectToAction("Signup", new { key = code.Key });
         }
 
@@ -322,9 +328,20 @@ namespace WebAuth.Controllers
                 result.IsEmailTaken = accountExistsModel.IsClientAccountExisting;
 
                 if (result.IsEmailTaken)
+                {
                     await _verificationCodesService.DeleteCodeAsync(existingCode.Key);
+                }
+                else
+                {
+                    _cqrsEngine.SendCommand(new CreateContactCommand
+                    {
+                        Email = existingCode.Email
+                        //TODO: send partnerId once implemented
+                        //PartnerId = 
+                    }, "oauth", SalesforceBoundedContext.Name);
+                }
             }
-
+            
             return result;
         }
 
@@ -470,6 +487,18 @@ namespace WebAuth.Controllers
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
+                
+                _cqrsEngine.SendCommand(new UpdateContactCommand
+                {
+                    Email = model.Email,
+                    //TODO: send partnerId once implemented
+                    //PartnerId = 
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Phone = model.Phone,
+                    Country = model.CountryOfResidence,
+                    ClientId = result.Account.Id
+                }, "oauth", SalesforceBoundedContext.Name);
             }
             else
             {

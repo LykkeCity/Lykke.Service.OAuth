@@ -4,6 +4,7 @@
     <AssemblyName>Core</AssemblyName>
     <PackageId>Core</PackageId>
     <LangVersion>latest</LangVersion>
+    <Version>1.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Lykke.Common" Version="7.1.0" />
