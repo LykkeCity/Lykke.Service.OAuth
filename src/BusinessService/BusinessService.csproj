@@ -15,7 +15,7 @@
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="7.1.0" />
+    <PackageReference Include="Lykke.Common" Version="7.3.1" />
     <PackageReference Include="Flurl.Http" Version="1.2.0" />
     <PackageReference Include="Lykke.Messages" Version="1.9.0" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="2.0.3" />
