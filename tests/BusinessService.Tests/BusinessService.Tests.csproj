@@ -5,6 +5,7 @@
     <AssemblyName>BusinessService.Tests</AssemblyName>
     <PackageId>BusinessService.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
