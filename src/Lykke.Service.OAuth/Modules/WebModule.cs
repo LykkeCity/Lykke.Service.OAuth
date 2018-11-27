@@ -29,6 +29,7 @@ namespace WebAuth.Modules
             builder.RegisterType<AuthorizationProvider>().AsSelf().SingleInstance();
             builder.RegisterType<CustomCookieAuthenticationEvents>().SingleInstance();
             builder.RegisterInstance(_settings.CurrentValue.OAuth.Security);
+            builder.RegisterInstance(_settings.CurrentValue.OAuth.FeatureToggle);
         }
     }
 }
