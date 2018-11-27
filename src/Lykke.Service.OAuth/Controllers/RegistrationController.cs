@@ -35,7 +35,7 @@ namespace Lykke.Service.OAuth.Controllers
     /// Registration-related stuff
     /// </summary>
     [Route("api/[controller]")]
-    [TypeFilter(typeof(FeatureToogleFilter), Arguments = new object [] {"Registration"})]
+    [TypeFilter(typeof(FeatureToggleFilter), Arguments = new object [] {"Registration"})]
     public class RegistrationController : ControllerBase
     {
         private readonly IRegistrationRepository _registrationRepository;
