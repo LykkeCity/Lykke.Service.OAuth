@@ -20,6 +20,7 @@ using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.OAuth.Models.Registration.Countries;
+using Lykke.Service.OAuth.Settings;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
@@ -35,7 +36,7 @@ namespace Lykke.Service.OAuth.Controllers
     /// Registration-related stuff
     /// </summary>
     [Route("api/[controller]")]
-    [TypeFilter(typeof(FeatureToggleFilter), Arguments = new object [] {"Registration"})]
+    [TypeFilter(typeof(FeatureToggleFilter), Arguments = new object [] { Features.Registration })]
     public class RegistrationController : ControllerBase
     {
         private readonly IRegistrationRepository _registrationRepository;
