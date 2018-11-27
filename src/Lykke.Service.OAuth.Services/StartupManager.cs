@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Common.Log;
 using Core.Exceptions;
@@ -57,7 +58,7 @@ namespace Lykke.Service.OAuth.Services
 
                 throw new NoRestrictedCountriesOfResidenceConfiguredException();
             }
-            
+
             _log.Info("Settings checked successfully.");
         }
     }

@@ -37,6 +37,7 @@ using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
+using Lykke.Service.OAuth.Swagger;
 using LykkeApiErrorMiddleware = Lykke.Service.OAuth.Middleware.LykkeApiErrorMiddleware;
 
 namespace WebAuth
@@ -184,6 +185,7 @@ namespace WebAuth
                 services.AddSwaggerGen(opt =>
                 {
                     opt.DefaultLykkeConfiguration("v1", "Lykke OAuth Server");
+                    opt.OperationFilter<ErrorDescriptionOperationFilter>();
                 });
 
                 builder.RegisterModule(new WebModule(settings));

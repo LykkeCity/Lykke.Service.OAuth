@@ -23,7 +23,7 @@ using Lykke.Service.PersonalData.Client;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Lykke.Service.OAuth.Controllers
 {
@@ -101,18 +101,14 @@ namespace Lykke.Service.OAuth.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <response code="200">The id of the registration has been proceeded to the next step</response>
-        /// <response code="400">Invalid country or phone number or phone number is already used. Error codes:ModelValidationFailed, CountryFromRestrictedList, CountryCodeInvalid, InvalidPhoneFormat, PhoneNumberInUse</response>
-        /// <response code="404">
-        ///     When RegistrationId is null, empty or whitespace.
-        ///     When Registration id not found.
-        ///     Error codes: RegistrationNotFound
-        /// </response>
         [HttpPost]
         [Route("accountInfo")]
         [SwaggerOperation("AccountInfo")]
         [ProducesResponseType(typeof(RegistrationResponse), (int) HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
+        [ProducesExceptionType(typeof(CountryFromRestrictedListException))]
+        [ProducesExceptionType(typeof(RegistrationKeyNotFoundException))]
+        [ProducesExceptionType(typeof(InvalidPhoneNumberFormatException))]
+        [ProducesExceptionType(typeof(PhoneNumberAlreadyInUseException))]
         [ValidateApiModel]
         public async Task<IActionResult> AccountInfo([FromBody] AccountInfoRequestModel model)
         {
@@ -131,7 +127,6 @@ namespace Lykke.Service.OAuth.Controllers
             var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
 
             return Ok(new RegistrationResponse(registrationId));
-
         }
 
         /// <summary>
