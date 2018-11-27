@@ -19,5 +19,6 @@ namespace Lykke.Service.OAuth.Settings.ServiceSettings
         public RedisSettings RedisSettings { get; set; }
         public RegistrationProcessSettings RegistrationProcessSettings{get; set; }
         public CqrsSettings Cqrs { get; set; }
+        public FeatureToggleSettings FeatureToggle { get; set; }
     }
 }
