@@ -106,13 +106,7 @@ namespace WebAuth.Tests.Countries
         public async Task GetCountryByIp_CountryFoundInListOfAllCountries_ReturnsFoundCountry()
         {
             // Arrange
-            var fakeCountryItem = new CountryItem
-            {
-                Id = "CHN",
-                Iso2 = "CN",
-                Name = "China",
-                Prefix = "+86"
-            };
+            var fakeCountryItem = new CountryItem("CHN", "+86");
 
             var fakeCountiresList = new List<CountryItem> {fakeCountryItem};
 
