@@ -25,6 +25,7 @@ using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Models;
+using Lykke.Service.Salesforce.Contract.Commands;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -48,6 +49,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly ILog _log;
         private readonly IRegistrationServiceClient _registrationServiceClient;
         private readonly IUserManager _userManager;
+        private readonly ISalesforceService _salesforceService;
 
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
@@ -58,10 +60,12 @@ namespace Lykke.Service.OAuth.Controllers
             ILogFactory logFactory, 
             IPersonalDataService personalDataService,
             IRegistrationServiceClient registrationServiceClient,
-            IUserManager userManager
+            IUserManager userManager,
+            ISalesforceService salesforceService
             )
         {
             _userManager = userManager;
+            _salesforceService = salesforceService;
             _registrationServiceClient = registrationServiceClient;
             _applicationRepository = applicationRepository;
             _countriesService = countriesService;
@@ -105,6 +109,8 @@ namespace Lykke.Service.OAuth.Controllers
             registrationModel.CompleteInitialInfoStep(registrationRequestModel.ToDto());
 
             var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
+            
+            _salesforceService.CreateContact(registrationRequestModel.Email);
 
             return new JsonResult(new RegistrationResponse(registrationId));
         }
@@ -151,6 +157,18 @@ namespace Lykke.Service.OAuth.Controllers
             }
 
             await SignInAsync(registrationServiceResponse, registrationModel);
+            
+            _salesforceService.UpdateContact(new UpdateContactCommand
+            {
+                Email = registrationModel.Email,
+                //TODO: send partnerId once implemented
+                //PartnerId = 
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Phone = model.PhoneNumber,
+                Country = model.CountryCodeIso2,
+                ClientId = registrationServiceResponse.Account.Id
+            });
 
             return Ok(
                 new RegistrationCompleteResponse(registrationServiceResponse.Token,

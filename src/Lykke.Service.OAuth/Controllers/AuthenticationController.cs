@@ -11,6 +11,7 @@ using Core.Email;
 using Core.Extensions;
 using Core.Recaptcha;
 using Core.Registration;
+using Core.Services;
 using Core.VerificationCodes;
 using Lykke.Common;
 using Lykke.Common.Extensions;
@@ -25,6 +26,7 @@ using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Enums;
 using Lykke.Service.Registration.Contract.Client.Models;
+using Lykke.Service.Salesforce.Contract.Commands;
 using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
@@ -60,6 +62,7 @@ namespace WebAuth.Controllers
         private readonly IIpGeoLocationClient _geoLocationClient;
         private readonly IEnumerable<CountryItem> _countries;
         private readonly IRegistrationRepository _registrationRepository;
+        private readonly ISalesforceService _salesforceService;
 
         public AuthenticationController(
             IRegistrationServiceClient registrationClient,
@@ -74,9 +77,12 @@ namespace WebAuth.Controllers
             IIpGeoLocationClient geoLocationClient,
             ILogFactory logFactory,
             IClientSessionsClient clientSessionsClient,
-            IRegistrationRepository registrationRepository)
+            IRegistrationRepository registrationRepository,
+            ISalesforceService salesforceService
+            )
         {
             _registrationRepository = registrationRepository;
+            _salesforceService = salesforceService;
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
             _emailFacadeService = emailFacadeService;
@@ -322,7 +328,13 @@ namespace WebAuth.Controllers
                 result.IsEmailTaken = accountExistsModel.IsClientAccountExisting;
 
                 if (result.IsEmailTaken)
+                {
                     await _verificationCodesService.DeleteCodeAsync(existingCode.Key);
+                }
+                else
+                {
+                    _salesforceService.CreateContact(existingCode.Email);
+                }
             }
 
             return result;
@@ -470,6 +482,18 @@ namespace WebAuth.Controllers
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
+                
+                _salesforceService.UpdateContact(new UpdateContactCommand
+                {
+                    Email = model.Email,
+                    //TODO: send partnerId once implemented
+                    //PartnerId = 
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Phone = model.Phone,
+                    Country = model.CountryOfResidence,
+                    ClientId = result.Account.Id
+                });
             }
             else
             {

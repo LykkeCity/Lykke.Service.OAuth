@@ -8,6 +8,8 @@ using Lykke.Messaging.RabbitMq;
 using Lykke.Messaging.Serialization;
 using Lykke.Service.OAuth.Services;
 using Lykke.Service.Registration.Contract.Events;
+using Lykke.Service.Salesforce.Contract;
+using Lykke.Service.Salesforce.Contract.Commands;
 using Lykke.SettingsReader;
 using RabbitMQ.Client;
 using WebAuth.Settings;
@@ -49,6 +51,7 @@ namespace Lykke.Service.OAuth.Modules
                     ctx.Resolve<MessagingEngine>(),
                     new DefaultEndpointProvider(),
                     true,
+                    false, //disable input messages logging
                     Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver(
                         "RabbitMq",
                         SerializationFormat.MessagePack,
@@ -59,6 +62,13 @@ namespace Lykke.Service.OAuth.Modules
                         .ListeningEvents(typeof(RegistrationFinishedEvent))
                         .From("registration").On("events")
                         .WithProjection(typeof(RegistrationFinishedProjection), "registration")
+                        .PublishingCommands(
+                            typeof(CreateContactCommand),
+                            typeof(UpdateContactCommand)
+                        )
+                        .To(SalesforceBoundedContext.Name)
+                        .With("commands")
+
                 ))
                 .As<ICqrsEngine>()
                 .SingleInstance();
