@@ -15,7 +15,6 @@ using Lykke.Common.ApiLibrary.Contract;
 using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
-using Lykke.Cqrs;
 using Lykke.Service.OAuth.ApiErrorCodes;
 using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Models;
@@ -26,7 +25,6 @@ using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Models;
-using Lykke.Service.Salesforce.Contract;
 using Lykke.Service.Salesforce.Contract.Commands;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
@@ -51,7 +49,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly ILog _log;
         private readonly IRegistrationServiceClient _registrationServiceClient;
         private readonly IUserManager _userManager;
-        private readonly ICqrsEngine _cqrsEngine;
+        private readonly ISalesforceService _salesforceService;
 
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
@@ -63,11 +61,11 @@ namespace Lykke.Service.OAuth.Controllers
             IPersonalDataService personalDataService,
             IRegistrationServiceClient registrationServiceClient,
             IUserManager userManager,
-            ICqrsEngine cqrsEngine
+            ISalesforceService salesforceService
             )
         {
             _userManager = userManager;
-            _cqrsEngine = cqrsEngine;
+            _salesforceService = salesforceService;
             _registrationServiceClient = registrationServiceClient;
             _applicationRepository = applicationRepository;
             _countriesService = countriesService;
@@ -112,12 +110,7 @@ namespace Lykke.Service.OAuth.Controllers
 
             var registrationId = await _registrationRepository.UpdateAsync(registrationModel);
             
-            _cqrsEngine.SendCommand(new CreateContactCommand
-            {
-                Email = registrationRequestModel.Email
-                //TODO: send partnerId once implemented
-                //PartnerId = 
-            }, "oauth", SalesforceBoundedContext.Name);
+            _salesforceService.CreateContact(registrationRequestModel.Email);
 
             return new JsonResult(new RegistrationResponse(registrationId));
         }
@@ -165,7 +158,7 @@ namespace Lykke.Service.OAuth.Controllers
 
             await SignInAsync(registrationServiceResponse, registrationModel);
             
-            _cqrsEngine.SendCommand(new UpdateContactCommand
+            _salesforceService.UpdateContact(new UpdateContactCommand
             {
                 Email = registrationModel.Email,
                 //TODO: send partnerId once implemented
@@ -175,7 +168,7 @@ namespace Lykke.Service.OAuth.Controllers
                 Phone = model.PhoneNumber,
                 Country = model.CountryCodeIso2,
                 ClientId = registrationServiceResponse.Account.Id
-            }, "oauth", SalesforceBoundedContext.Name);
+            });
 
             return Ok(
                 new RegistrationCompleteResponse(registrationServiceResponse.Token,

@@ -51,6 +51,7 @@ namespace Lykke.Service.OAuth.Modules
                     ctx.Resolve<MessagingEngine>(),
                     new DefaultEndpointProvider(),
                     true,
+                    false, //disable input messages logging
                     Register.DefaultEndpointResolver(new RabbitMqConventionEndpointResolver(
                         "RabbitMq",
                         SerializationFormat.MessagePack,

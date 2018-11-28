@@ -56,6 +56,8 @@ namespace Lykke.Service.OAuth.Modules
             builder.RegisterType<PwnedPasswordsValidator>().As<IPasswordValidator>().SingleInstance();
             builder.RegisterType<PasswordValidationService>().As<IPasswordValidationService>().SingleInstance();
             #endregion
+            
+            builder.RegisterType<SalesforceService>().As<ISalesforceService>().SingleInstance();
         }
     }
 }

@@ -11,11 +11,11 @@ using Core.Email;
 using Core.Extensions;
 using Core.Recaptcha;
 using Core.Registration;
+using Core.Services;
 using Core.VerificationCodes;
 using Lykke.Common;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
-using Lykke.Cqrs;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.ConfirmationCodes.Client;
@@ -26,7 +26,6 @@ using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Enums;
 using Lykke.Service.Registration.Contract.Client.Models;
-using Lykke.Service.Salesforce.Contract;
 using Lykke.Service.Salesforce.Contract.Commands;
 using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
@@ -63,7 +62,7 @@ namespace WebAuth.Controllers
         private readonly IIpGeoLocationClient _geoLocationClient;
         private readonly IEnumerable<CountryItem> _countries;
         private readonly IRegistrationRepository _registrationRepository;
-        private readonly ICqrsEngine _cqrsEngine;
+        private readonly ISalesforceService _salesforceService;
 
         public AuthenticationController(
             IRegistrationServiceClient registrationClient,
@@ -79,11 +78,11 @@ namespace WebAuth.Controllers
             ILogFactory logFactory,
             IClientSessionsClient clientSessionsClient,
             IRegistrationRepository registrationRepository,
-            ICqrsEngine cqrsEngine
+            ISalesforceService salesforceService
             )
         {
             _registrationRepository = registrationRepository;
-            _cqrsEngine = cqrsEngine;
+            _salesforceService = salesforceService;
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
             _emailFacadeService = emailFacadeService;
@@ -334,12 +333,7 @@ namespace WebAuth.Controllers
                 }
                 else
                 {
-                    _cqrsEngine.SendCommand(new CreateContactCommand
-                    {
-                        Email = existingCode.Email
-                        //TODO: send partnerId once implemented
-                        //PartnerId = 
-                    }, "oauth", SalesforceBoundedContext.Name);
+                    _salesforceService.CreateContact(existingCode.Email);
                 }
             }
 
@@ -489,7 +483,7 @@ namespace WebAuth.Controllers
 
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
                 
-                _cqrsEngine.SendCommand(new UpdateContactCommand
+                _salesforceService.UpdateContact(new UpdateContactCommand
                 {
                     Email = model.Email,
                     //TODO: send partnerId once implemented
@@ -499,7 +493,7 @@ namespace WebAuth.Controllers
                     Phone = model.Phone,
                     Country = model.CountryOfResidence,
                     ClientId = result.Account.Id
-                }, "oauth", SalesforceBoundedContext.Name);
+                });
             }
             else
             {
