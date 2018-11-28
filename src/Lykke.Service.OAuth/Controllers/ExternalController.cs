@@ -13,6 +13,11 @@ using Lykke.Common.Log;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
+using Core.ExternalProvider.Exceptions;
+using Core.Services;
+using Lykke.Common.Log;
+using Lykke.Service.Session.Client;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using OpenIdConnectMessage = Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectMessage;
 
@@ -44,6 +49,7 @@ namespace Lykke.Service.OAuth.Controllers
             _protector =
                 dataProtectionProvider.CreateProtector(
                     OpenIdConnectConstantsExt.Protectors.ExternalProviderCookieProtector);
+            _mobileSessionLifetime = TimeSpan.FromDays(30);
         }
 
         /// <summary>
@@ -119,6 +125,58 @@ namespace Lykke.Service.OAuth.Controllers
             // Then we should autoprovision user.
             if (string.IsNullOrWhiteSpace(lykkeUserId)) return View("Error", "Here we should autoprovision user.");
 
+            // Autoprovision user.
+            try
+            {
+                var account = await _externalUserService.ProvisionIfNotExistAsync(principal);
+
+                var clientId = account.Id;
+
+                //TODO:@gafanasiev Think how to get already created session and use it.
+                var clientSession =
+                    await _clientSessionsClient.Authenticate(clientId, string.Empty, null, null,
+                        _mobileSessionLifetime);
+
+                if (clientSession == null)
+                {
+                    _log.Warning($"Unable to create client session! ClientId: {account.Id}");
+                    return View("Error", externalAuthenticationError);
+                }
+
+                var sessionId = clientSession.SessionToken;
+
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, clientId),
+                    new Claim(OpenIdConnectConstants.Claims.Email, account.Email),
+                    new Claim(OpenIdConnectConstants.Claims.Subject, clientId)
+                };
+
+                var identity = new ClaimsIdentity(new GenericIdentity(account.Email, "Token"), claims);
+
+                // Add sessionId only to access token.
+                identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, sessionId,
+                    OpenIdConnectConstants.Destinations.AccessToken);
+
+                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
+                    new ClaimsPrincipal(identity));
+
+                // delete temporary cookie used during external authentication
+                await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme);
+
+                return LocalRedirect(afterExternalLoginReturnUrl);
+            }
+            catch (Exception e) when (
+                e is ExternalProviderNotFoundException ||
+                e is ExternalProviderEmailNotVerifiedException ||
+                e is ExternalProviderPhoneNotVerifiedException ||
+                e is ExternalProviderClaimNotFoundException ||
+                e is UserAutoprovisionFailedException)
+            {
+                _log.Warning(e.Message);
+                return View("Error", externalAuthenticationError);
+            }
+
             //TODO:@gafanasiev Think how to get already created session and use it.
             var clientSession =
                 await _clientSessionsClient.Authenticate(lykkeUserId, string.Empty, null, null,
@@ -154,9 +212,7 @@ namespace Lykke.Service.OAuth.Controllers
 
             return LocalRedirect(afterExternalLoginReturnUrl);
         }
-        catch
-
-        private (Exception e) when(
+        catch (Exception e) when(
             e is ExternalProviderNotFoundException ||
         e is ExternalProviderEmailNotVerifiedException ||
         e is ExternalProviderPhoneNotVerifiedException ||

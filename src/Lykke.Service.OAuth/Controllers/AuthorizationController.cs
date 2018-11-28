@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
-using Common;
 using Core.Application;
 using Core.Extensions;
 using Core.ExternalProvider;
@@ -86,9 +85,8 @@ namespace WebAuth.Controllers
             {
                 return View("Error", new OpenIdConnectMessage
                 {
-                    Error = OpenIdConnectConstants.Errors.InvalidClient,
-                    ErrorDescription =
-                        "Details concerning the calling client application cannot be found in the database"
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "An internal error has occurred"
                 });
             }
 
@@ -368,6 +366,7 @@ namespace WebAuth.Controllers
             return jToken.Type == JTokenType.String ? jToken.Value<string>() : string.Empty;
         }
 
+        //TODO:@gafanasiev Move this to separate service?
         private async Task SaveLykkeUserIdAfterExternalLogin()
         {
             var userId = User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;

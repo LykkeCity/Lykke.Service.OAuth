@@ -1,4 +1,7 @@
-﻿using JetBrains.Annotations;
+using JetBrains.Annotations;
+using Lykke.Service.OAuth.Settings;
+using Core.Settings;
+using Lykke.Service.OAuth.Settings.ServiceSettings;
 using Lykke.SettingsReader.Attributes;
 using WebAuth.Settings.ServiceSettings;
 
@@ -20,5 +23,6 @@ namespace Lykke.Service.OAuth.Settings.ServiceSettings
         public RegistrationProcessSettings RegistrationProcessSettings{get; set; }
         public CqrsSettings Cqrs { get; set; }
         public FeatureToggleSettings FeatureToggle { get; set; }
+        public ExternalProvidersSettings ExternalProvidersSettings { get; set; }
     }
 }

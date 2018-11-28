@@ -3,6 +3,7 @@ using Autofac;
 using Core.Countries;
 using Core.ExternalProvider;
 using Core.PasswordValidation;
+using Core.ExternalProvider;
 using Core.Services;
 using Lykke.Common;
 using Lykke.Service.OAuth.Services;
@@ -10,6 +11,7 @@ using Lykke.Service.OAuth.Services.Countries;
 using Lykke.Service.OAuth.Services.ExternalProvider;
 using Lykke.Service.OAuth.Services.PasswordValidation;
 using Lykke.Service.OAuth.Services.PasswordValidation.Validators;
+using Lykke.Service.OAuth.Services.ExternalProvider;
 using Lykke.SettingsReader;
 using WebAuth.Settings;
 
