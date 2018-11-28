@@ -11,6 +11,7 @@ using Common.Log;
 using Core.Extensions;
 using Core.Services;
 using IdentityModel;
+using Core.ExternalProvider;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
@@ -20,7 +21,9 @@ using Lykke.Logs;
 using Lykke.Service.OAuth.Modules;
 using Lykke.SettingsReader;
 using Lykke.SettingsReader.ReloadingManager;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -108,7 +111,7 @@ namespace WebAuth
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
-                services.AddAuthentication(options =>
+                var authenticationBuilder = services.AddAuthentication(options =>
                     {
                         options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
                     })
@@ -124,6 +127,12 @@ namespace WebAuth
                         options.Cookie.HttpOnly = true;
                         options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                         options.EventsType = typeof(CustomCookieAuthenticationEvents);
+                    })
+                    // This cookie is used for external provider authentication.
+                    .AddCookie(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme, options =>
+                    {
+                        options.Cookie.HttpOnly = true;
+                        options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                     })
 
                     // This cookie is used for external provider authentication.
@@ -167,6 +176,7 @@ namespace WebAuth
                     .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
                         options =>
                         {
+
                             var config = settings.Nested(n => n.OAuth.ResourceServerSettings).CurrentValue;
                             options.Authority = config.Authority;
                             options.ApiName = config.ClientId;
@@ -188,6 +198,17 @@ namespace WebAuth
                         options.RefreshTokenLifetime = TimeSpan.FromDays(30);
                         options.UseSlidingExpiration = true;
                     });
+
+                // Add external identity providers dynamically.
+                var externalIdentityProviders =
+                    _settings?.OAuth?.ExternalProvidersSettings?.ExternalIdentityProviders?.Where(provider =>
+                        provider != null);
+                if (externalIdentityProviders != null)
+                    foreach (var externalIdentityProvider in externalIdentityProviders)
+                        authenticationBuilder.AddOpenIdConnect(
+                            externalIdentityProvider.AuthenticationScheme,
+                            externalIdentityProvider.Id,
+                            options => { FillOpenIdConnectOptionsForExternalProvider(externalIdentityProvider, options); });
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
 
@@ -375,6 +396,36 @@ namespace WebAuth
                 new OperationContext()).GetAwaiter().GetResult();
 
             return storageAccount;
+        }
+
+        private void FillOpenIdConnectOptionsForExternalProvider(
+            ExternalIdentityProvider externalIdentityProvider,
+            OpenIdConnectOptions options)
+        {
+            if (externalIdentityProvider == null)
+            {
+                throw new ArgumentNullException(nameof(externalIdentityProvider));
+            }
+
+            // One cookie is used as authentication scheme for all external providers.
+            options.SignInScheme = OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme;
+
+            // Set unique callback path for every provider to eliminate intersection.
+            options.CallbackPath = $"/signin-oidc-{externalIdentityProvider.Id}";
+
+            options.Authority = externalIdentityProvider.Authority;
+            options.ClientId = externalIdentityProvider.ClientId;
+            options.ClientSecret = externalIdentityProvider.ClientSecret;
+            options.ResponseType = externalIdentityProvider.ResponseType;
+            options.TokenValidationParameters.ValidIssuers = externalIdentityProvider.ValidIssuers;
+            options.GetClaimsFromUserInfoEndpoint = externalIdentityProvider.GetClaimsFromUserInfoEndpoint;
+
+            options.Scope.Clear();
+            foreach (var scope in externalIdentityProvider.Scopes) options.Scope.Add(scope);
+
+            options.DisableTelemetry = true;
+
+            options.ClaimActions.MapAllExcept();
         }
     }
 }
