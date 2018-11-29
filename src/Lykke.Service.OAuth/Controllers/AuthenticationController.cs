@@ -482,18 +482,6 @@ namespace WebAuth.Controllers
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
 
                 await _verificationCodesService.DeleteCodeAsync(model.Key);
-                
-                _salesforceService.UpdateContact(new UpdateContactCommand
-                {
-                    Email = model.Email,
-                    //TODO: send partnerId once implemented
-                    //PartnerId = 
-                    FirstName = model.FirstName,
-                    LastName = model.LastName,
-                    Phone = model.Phone,
-                    Country = model.CountryOfResidence,
-                    ClientId = result.Account.Id
-                });
             }
             else
             {

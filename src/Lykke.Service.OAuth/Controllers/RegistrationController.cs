@@ -25,7 +25,6 @@ using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Models;
-using Lykke.Service.Salesforce.Contract.Commands;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -157,18 +156,6 @@ namespace Lykke.Service.OAuth.Controllers
             }
 
             await SignInAsync(registrationServiceResponse, registrationModel);
-            
-            _salesforceService.UpdateContact(new UpdateContactCommand
-            {
-                Email = registrationModel.Email,
-                //TODO: send partnerId once implemented
-                //PartnerId = 
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                Phone = model.PhoneNumber,
-                Country = model.CountryCodeIso2,
-                ClientId = registrationServiceResponse.Account.Id
-            });
 
             return Ok(
                 new RegistrationCompleteResponse(registrationServiceResponse.Token,

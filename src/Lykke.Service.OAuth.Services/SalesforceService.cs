@@ -38,17 +38,5 @@ namespace Lykke.Service.OAuth.Services
                 _log.Error(nameof(CreateContact), ex);
             }
         }
-
-        public void UpdateContact(UpdateContactCommand command)
-        {
-            try
-            {
-                _cqrsEngine.SendCommand(command, "oauth", SalesforceBoundedContext.Name);
-            }
-            catch (Exception ex)
-            {
-                _log.Error(nameof(UpdateContact), ex);
-            }
-        }
     }
 }
