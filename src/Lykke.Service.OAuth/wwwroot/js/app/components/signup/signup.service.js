@@ -71,13 +71,14 @@
                 });
         }
 
-        function sendInitialInfo(email, password) {
+        function sendInitialInfo(email, password, cid) {
             return $http
                 .post('/api/registration/initialInfo', {
                     email: email.toLowerCase(),
                     password: password,
                     registrationId: verifiedEmailIds[email.toLowerCase()],
-                    clientId: env.clientId
+                    clientId: env.clientId,
+                    cid: cid
                 })
                 .then(function (response) {
                     saveRegistrationId(response.data.registrationId);

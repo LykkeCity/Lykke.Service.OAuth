@@ -3,9 +3,9 @@
 
     angular.module('app').controller('initialInfoController', initialInfoController);
 
-    initialInfoController.$inject = ['signupService', 'signupStep', '$scope', 'page', 'signupEvent'];
+    initialInfoController.$inject = ['$window', 'signupService', 'signupStep', '$scope', 'page', 'signupEvent'];
 
-    function initialInfoController(signupService, signupStep, $scope, page, signupEvent) {
+    function initialInfoController($window, signupService, signupStep, $scope, page, signupEvent) {
         var vm = this;
 
         function handleCarouselLoaded() {
@@ -27,10 +27,13 @@
             if (form.$valid) {
                 if (!vm.data.isSubmitting) {
                     vm.data.isSubmitting = true;
+                    var tracker = $window.ga.getAll()[0];
+                    var cid = tracker.get('clientId');
 
                     signupService.sendInitialInfo(
                         vm.data.model.email,
-                        vm.data.model.password
+                        vm.data.model.password,
+                        cid
                     ).then(function (data) {
                         vm.data.isSubmitting = false;
                         $scope.$emit(signupEvent.currentStepChanged, signupStep.accountInformation);

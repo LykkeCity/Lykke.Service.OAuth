@@ -20,6 +20,7 @@ namespace Core.Registration
         public string CountryOfResidenceIso2 { get; private set; }
         public string PhoneNumber { get; private set; }
         public DateTime Started { get; private set; }
+        public string Cid { get; private set; }
 
         public RegistrationModel(string email, DateTime started)
         {
@@ -54,6 +55,8 @@ namespace Core.Registration
             this.SetPassword(context.Password);
 
             CurrentStep = RegistrationStep.AccountInformation;
+
+            Cid = context.Cid;
         }
 
         public void CompleteAccountInfoStep(AccountInfoDto context)

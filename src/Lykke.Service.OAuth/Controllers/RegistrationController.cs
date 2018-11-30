@@ -26,6 +26,7 @@ using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Models;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -180,7 +181,9 @@ namespace Lykke.Service.OAuth.Controllers
             var model = _requestModelFactory.CreateForRegistrationService(
                 registrationModel,
                 HttpContext.GetIp(),
-                HttpContext.GetUserAgent()
+                HttpContext.GetUserAgent(),
+                HttpContext.GetReferer() ?? Request.GetUri().ToString(),
+                Request.Cookies["sbjs_current"]
             );
 
             return _registrationServiceClient.RegistrationApi.RegisterAsync(model);
