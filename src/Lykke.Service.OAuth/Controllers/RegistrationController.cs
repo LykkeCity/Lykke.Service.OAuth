@@ -17,6 +17,7 @@ using Lykke.Common.Extensions;
 using Lykke.Common.Log;
 using Lykke.Service.OAuth.ApiErrorCodes;
 using Lykke.Service.OAuth.Attributes;
+using Lykke.Service.OAuth.Factories;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.OAuth.Models.Registration.Countries;
@@ -49,6 +50,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IRegistrationServiceClient _registrationServiceClient;
         private readonly IUserManager _userManager;
         private readonly ISalesforceService _salesforceService;
+        private readonly IRequestModelFactory _requestModelFactory;
 
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
@@ -60,11 +62,12 @@ namespace Lykke.Service.OAuth.Controllers
             IPersonalDataService personalDataService,
             IRegistrationServiceClient registrationServiceClient,
             IUserManager userManager,
-            ISalesforceService salesforceService
-            )
+            ISalesforceService salesforceService, 
+            IRequestModelFactory requestModelFactory)
         {
             _userManager = userManager;
             _salesforceService = salesforceService;
+            _requestModelFactory = requestModelFactory;
             _registrationServiceClient = registrationServiceClient;
             _applicationRepository = applicationRepository;
             _countriesService = countriesService;
@@ -172,34 +175,15 @@ namespace Lykke.Service.OAuth.Controllers
             await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
         }
 
-        private async Task<AccountsRegistrationResponseModel> CreateUserAsync(RegistrationModel registrationModel)
+        private Task<AccountsRegistrationResponseModel> CreateUserAsync(RegistrationModel registrationModel)
         {
-            var registrationServiceResponse = await _registrationServiceClient.RegistrationApi.RegisterAsync(
-                new SafeAccountRegistrationModel
-                {
-                    Email = registrationModel.Email,
-                    ClientId = registrationModel.ClientId,
-                    CountryFromPOA = registrationModel.CountryOfResidenceIso2,
-                    FullName = registrationModel.FirstName + " " + registrationModel.LastName,
-                    FirstName = registrationModel.FirstName,
-                    LastName = registrationModel.LastName,
-                    ContactPhone = registrationModel.PhoneNumber,
-                    ClientInfo = null,
-                    Changer = null,
-                    PartnerId = null,
-                    Salt = registrationModel.Salt,
-                    Hash = registrationModel.Hash,
-                    Cid = null,
-                    CreatedAt = registrationModel.Started,
-                    Hint = null,
-                    IosVersion = null,
-                    Ttl = TimeSpan.FromDays(3),
-                    Ip = HttpContext.GetIp(),
-                    UserAgent = HttpContext.GetUserAgent(),
-                    RegistrationId = registrationModel.RegistrationId
-                }
+            var model = _requestModelFactory.CreateForRegistrationService(
+                registrationModel,
+                HttpContext.GetIp(),
+                HttpContext.GetUserAgent()
             );
-            return registrationServiceResponse;
+
+            return _registrationServiceClient.RegistrationApi.RegisterAsync(model);
         }
 
         /// <summary>
