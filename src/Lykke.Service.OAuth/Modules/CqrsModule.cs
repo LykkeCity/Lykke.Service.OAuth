@@ -63,8 +63,7 @@ namespace Lykke.Service.OAuth.Modules
                         .From("registration").On("events")
                         .WithProjection(typeof(RegistrationFinishedProjection), "registration")
                         .PublishingCommands(
-                            typeof(CreateContactCommand),
-                            typeof(UpdateContactCommand)
+                            typeof(CreateContactCommand)
                         )
                         .To(SalesforceBoundedContext.Name)
                         .With("commands")
