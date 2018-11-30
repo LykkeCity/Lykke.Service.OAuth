@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Lykke.Service.OAuth.Factories;
 using Lykke.SettingsReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -28,6 +29,7 @@ namespace WebAuth.Modules
             builder.RegisterType<ProfileActionHandler>().AsSelf().SingleInstance();
             builder.RegisterType<AuthorizationProvider>().AsSelf().SingleInstance();
             builder.RegisterType<CustomCookieAuthenticationEvents>().SingleInstance();
+            builder.RegisterType<RequestModelFactory>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(_settings.CurrentValue.OAuth.Security);
             builder.RegisterInstance(_settings.CurrentValue.OAuth.FeatureToggle);
         }
