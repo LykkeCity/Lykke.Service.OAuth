@@ -42,6 +42,11 @@ namespace Lykke.Service.OAuth.Models.Registration
         /// </summary>
         [ValidateRegistrationId]
         public string RegistrationId { get; set; }
+        
+        /// <summary>
+        /// Client id from GA
+        /// </summary>
+        public string Cid { get; set; }
 
         /// <summary>
         /// 

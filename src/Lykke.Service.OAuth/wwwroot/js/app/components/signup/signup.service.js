@@ -85,14 +85,15 @@
                 });
         }
 
-        function sendAccountInfo(firstName, lastName, countryCodeIso2, phoneNumber) {
+        function sendAccountInfo(firstName, lastName, countryCodeIso2, phoneNumber, cid) {
             return $http
                 .post('/api/registration/accountInfo', {
                     firstName: firstName,
                     lastName: lastName,
                     countryCodeIso2: countryCodeIso2,
                     phoneNumber: phoneNumber,
-                    registrationId: getRegistrationId()
+                    registrationId: getRegistrationId(),
+                    cid: cid
                 })
                 .then(function (response) {
                     saveRegistrationId(response.data.registrationId);
