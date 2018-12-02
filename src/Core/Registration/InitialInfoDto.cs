@@ -8,6 +8,5 @@ namespace Core.Registration
         public string Password { get; set; }
         public string ClientId { get; set; }
         public DateTime Started { get; set; }
-        public string Cid { get; set; }
     }
 }

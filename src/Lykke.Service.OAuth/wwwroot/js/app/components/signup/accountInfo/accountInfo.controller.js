@@ -32,12 +32,15 @@
         function handleSubmit(form) {
             if (form.$valid && !vm.data.isSubmitting) {
                 vm.data.isSubmitting = true;
+                var tracker = $window.ga.getAll()[0];
+                var cid = tracker.get('clientId');
 
                 signupService.sendAccountInfo(
                     vm.data.model.firstName,
                     vm.data.model.lastName,
                     vm.data.model.country,
-                    vm.data.model.phonePrefix + vm.data.model.phoneNumber
+                    vm.data.model.phonePrefix + vm.data.model.phoneNumber,
+                    cid
                 ).then(function () {
                     signupService.signOut();
                     $window.location.href = envService.getFundsUrl();
@@ -68,7 +71,7 @@
         function selectPhonePrefix() {
             var selectedCountry = vm.data.countries.find(function (country) {
                 return country.iso2 === vm.data.model.country;
-            })
+            });
 
             vm.data.model.phonePrefix = selectedCountry.phonePrefix;
         }
@@ -76,7 +79,7 @@
         function openRestrictedCountryQuestionModal() {
             var userCountry = vm.data.countries.find(function (country) {
                 return country.iso2 === vm.data.model.country;
-            })
+            });
 
             $dialogs.showConfirmationDialog('', {
                 title: 'Are you a citizen or resident of ' + userCountry.name + '?',
@@ -128,7 +131,7 @@
             },
             countries: [],
             restrictedCountries: []
-        }
+        };
 
         vm.handlers = {
             handleSubmit: handleSubmit,
@@ -145,7 +148,7 @@
             vm.data.restrictedCountries = response.restrictedCountriesOfResidence;
             var userCountry = vm.data.countries.find(function (country) {
                 return country.iso2 === userCountryIso2;
-            })
+            });
 
             vm.data.model.country = userCountryIso2;
             vm.data.model.phonePrefix = userCountry.phonePrefix;

@@ -7,7 +7,7 @@ namespace Lykke.Service.OAuth.Factories
 {
     public class RequestModelFactory : IRequestModelFactory
     {
-        public SafeAccountRegistrationModel CreateForRegistrationService(RegistrationModel registrationModel, string ip, string userAgent, string referrer = null, string traffic = null)
+        public SafeAccountRegistrationModel CreateForRegistrationService(RegistrationModel registrationModel, string ip, string userAgent, string cid = null, string referrer = null, string traffic = null)
         {
             return new SafeAccountRegistrationModel
             {
@@ -23,7 +23,7 @@ namespace Lykke.Service.OAuth.Factories
                 PartnerId = null,
                 Salt = registrationModel.Salt,
                 Hash = registrationModel.Hash,
-                Cid = registrationModel.Cid,
+                Cid = cid,
                 Referer = referrer,
                 Traffic = traffic,
                 CreatedAt = registrationModel.Started,

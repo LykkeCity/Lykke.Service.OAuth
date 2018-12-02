@@ -33,11 +33,6 @@ namespace Lykke.Service.OAuth.Models.Registration
         /// </summary>
         [ValidateRegistrationId]
         public string RegistrationId { get; set; }
-        
-        /// <summary>
-        /// Client id from GA
-        /// </summary>
-        public string Cid { get; set; }
 
         public InitialInfoDto ToDto()
         {
@@ -45,8 +40,7 @@ namespace Lykke.Service.OAuth.Models.Registration
             {
                 Email = Email,
                 Password = Password,
-                ClientId = ClientId,
-                Cid = Cid
+                ClientId = ClientId
             };
         }
     }

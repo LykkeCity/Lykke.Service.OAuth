@@ -17,7 +17,6 @@ namespace AzureDataAccess.Registration
         public string PasswordHash { get; set; }
         public string PasswordSalt { get; set; }
         public string ClientId { get; set; }
-        public string Cid { get; set; }
 
         private RegistrationStep _currentStep;
         public RegistrationStep CurrentStep
@@ -84,7 +83,6 @@ namespace AzureDataAccess.Registration
             LastName = model.LastName;
             CountryOfResidenceIso2 = model.CountryOfResidenceIso2;
             CurrentStep = model.CurrentStep;
-            Cid = model.Cid;
         }
 
         public static class ById

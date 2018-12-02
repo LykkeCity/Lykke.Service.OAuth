@@ -152,7 +152,7 @@ namespace Lykke.Service.OAuth.Controllers
 
             await _registrationRepository.UpdateAsync(registrationModel);
 
-            var registrationServiceResponse = await CreateUserAsync(registrationModel);
+            var registrationServiceResponse = await CreateUserAsync(registrationModel, model.Cid);
 
             if (registrationServiceResponse == null)
             {
@@ -176,12 +176,13 @@ namespace Lykke.Service.OAuth.Controllers
             await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
         }
 
-        private Task<AccountsRegistrationResponseModel> CreateUserAsync(RegistrationModel registrationModel)
+        private Task<AccountsRegistrationResponseModel> CreateUserAsync(RegistrationModel registrationModel, string cid)
         {
             var model = _requestModelFactory.CreateForRegistrationService(
                 registrationModel,
                 HttpContext.GetIp(),
                 HttpContext.GetUserAgent(),
+                cid,
                 HttpContext.GetReferer() ?? Request.GetUri().ToString(),
                 Request.Cookies["sbjs_current"]
             );
