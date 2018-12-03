@@ -8,12 +8,13 @@
             public const string SignType = "SignType";
             public const string PartnerId = "http://lykke.com/oauth/partner_id";
             public const string SessionId = "http://lykke.com/oauth/sessionid";
+            public const string Lsub = "lsub";
         }
 
         public static class Parameters
         {
-            public const string PartnerIdParameter = "partnerId";
-            public const string AfterExternalLoginCallback = "after_external_login_callback";
+            public const string PartnerId = "partnerId";
+            public const string ExternalLoginCallback = "external_login_callback";
             public const string Tenant = "tenant";
         }
 
@@ -32,14 +33,10 @@
             public const string ClientBanned = "lykke_client_banned";
         }
 
-        public static class Tenants
-        {
-            public const string Ironclad = "ironclad";
-        }
-
         public static class Providers
         {
             public const string Ironclad = "ironclad";
+            public const string Lykke = "lykke";
         }
 
         public static class Protectors

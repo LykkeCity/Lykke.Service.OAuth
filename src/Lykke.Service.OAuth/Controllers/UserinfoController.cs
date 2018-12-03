@@ -7,6 +7,7 @@ using Common.Log;
 using Core.Application;
 using Core.Bitcoin;
 using Core.Extensions;
+using Core.Services;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
@@ -27,14 +28,15 @@ namespace WebAuth.Controllers
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IWalletCredentialsRepository _walletCredentialsRepository;
         private readonly IClientAccountClient _clientAccountClient;
-
+        private readonly ITokenService _tokenService;
 
         public UserinfoController(
             ILogFactory logFactory,
             IApplicationRepository applicationRepository,
             IClientSessionsClient clientSessionsClient,
             IWalletCredentialsRepository walletCredentialsRepository,
-            IClientAccountClient clientAccountClient)
+            IClientAccountClient clientAccountClient, 
+            ITokenService tokenService)
 
         {
             _log = logFactory.CreateLog(this);
@@ -42,6 +44,7 @@ namespace WebAuth.Controllers
             _clientSessionsClient = clientSessionsClient;
             _walletCredentialsRepository = walletCredentialsRepository;
             _clientAccountClient = clientAccountClient;
+            _tokenService = tokenService;
         }
 
         [HttpGet("~/getlykkewallettoken")]
