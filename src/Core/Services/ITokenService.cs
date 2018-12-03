@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 
 namespace Core.Services
@@ -29,5 +30,30 @@ namespace Core.Services
         /// <param name="newRefreshToken">New refresh token.</param>
         /// <returns>True if token was replaced.</returns>
         Task UpdateRefreshTokenInWhitelistAsync([CanBeNull]string oldRefreshToken, string newRefreshToken);
+
+        //TODO:@gafanasiev Add summary
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lykkeToken"></param>
+        /// <param name="refreshToken"></param>
+        /// <returns></returns>
+        Task SaveIroncladRefreshTokenAsync(string lykkeToken, string refreshToken);
+
+        //TODO:@gafanasiev Add summary
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lykkeToken"></param>
+        /// <returns></returns>
+        Task<string> GetIroncladRefreshTokenAsync(string lykkeToken);
+
+        //TODO:@gafanasiev Add summary
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lykkeToken"></param>
+        /// <returns></returns>
+        Task<string> GetIroncladAccessTokenAsync(string lykkeToken);
     }
 }

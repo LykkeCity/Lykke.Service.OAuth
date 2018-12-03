@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Core.ExternalProvider.Exceptions;
 using Core.Services;
+using IdentityModel.Client;
 using JetBrains.Annotations;
 using StackExchange.Redis;
 
@@ -13,10 +16,19 @@ namespace Lykke.Service.OAuth.Services
     public class TokenService : ITokenService
     {
         private readonly IDatabase _redisDatabase;
+        private const string RedisPrefixExternalRefreshTokens = "OAuth:ExternalRefreshTokens";
         private static readonly TimeSpan RefreshTokenWhitelistLifetime = TimeSpan.FromDays(30);
+        private static readonly TimeSpan IroncladRefreshTokenLifetime = TimeSpan.FromDays(30);
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IDiscoveryCache _discoveryCache;
 
-        public TokenService(IConnectionMultiplexer connectionMultiplexer)
+        public TokenService(
+            IConnectionMultiplexer connectionMultiplexer, 
+            IHttpClientFactory httpClientFactory, 
+            IDiscoveryCache discoveryCache)
         {
+            _httpClientFactory = httpClientFactory;
+            _discoveryCache = discoveryCache;
             _redisDatabase = connectionMultiplexer.GetDatabase();
         }
 
@@ -71,6 +83,65 @@ namespace Lykke.Service.OAuth.Services
             }
         }
 
+        /// <inheritdoc />
+        public Task SaveIroncladRefreshTokenAsync(string lykkeToken, string refreshToken)
+        {
+            if (string.IsNullOrWhiteSpace(lykkeToken))
+                throw new ArgumentNullException(nameof(lykkeToken));         
+
+            if (string.IsNullOrWhiteSpace(refreshToken))
+                throw new ArgumentNullException(nameof(refreshToken));
+
+            var redisKey = GetExternalRefreshTokensRedisKey(lykkeToken);
+
+            return _redisDatabase.StringSetAsync(redisKey, refreshToken, IroncladRefreshTokenLifetime);
+        }
+
+        /// <inheritdoc />
+        public async Task<string> GetIroncladRefreshTokenAsync(string lykkeToken)
+        {
+            if (string.IsNullOrWhiteSpace(lykkeToken))
+                throw new ArgumentNullException(nameof(lykkeToken));         
+
+            var redisKey = GetExternalRefreshTokensRedisKey(lykkeToken);
+
+            var ironcladRefreshToken = await _redisDatabase.StringGetAsync(redisKey);
+
+            if (ironcladRefreshToken.HasValue)
+                return ironcladRefreshToken;
+
+            throw new TokenNotFoundException("Ironclad refresh token not found!");
+        }
+
+        /// <inheritdoc />
+        public async Task<string> GetIroncladAccessTokenAsync(string lykkeToken)
+        {
+            if (string.IsNullOrWhiteSpace(lykkeToken))
+                throw new ArgumentNullException(nameof(lykkeToken));
+
+            var ironcladRefreshToken = await GetIroncladRefreshTokenAsync(lykkeToken);
+
+            var httpClient = _httpClientFactory.CreateClient();
+
+            var discoveryResponse = await _discoveryCache.GetAsync();
+
+            var tokenResponse = await httpClient.RequestRefreshTokenAsync(new RefreshTokenRequest
+            {
+                Address = discoveryResponse.TokenEndpoint,
+                RefreshToken = ironcladRefreshToken
+            });
+
+            //TODO:@gafanasiev Add error handling.
+            //if (tokenResponse.IsError)
+            //{
+            //    throw 
+            //}
+
+            await SaveIroncladRefreshTokenAsync(lykkeToken, tokenResponse.RefreshToken);
+
+            return tokenResponse.AccessToken;
+        }
+
         private static string GetRefreshTokenWhitelistRedisKey(string refreshToken)
         {
             return "OAuth:RefreshTokens:Whitelist:" + CreateMd5(refreshToken);
@@ -88,6 +159,14 @@ namespace Lykke.Service.OAuth.Services
 
                 return Convert.ToBase64String(hash);
             }
+        }
+
+        private static string GetExternalRefreshTokensRedisKey(string lykkeToken)
+        {
+            if (string.IsNullOrWhiteSpace(lykkeToken))
+                throw new ArgumentNullException(nameof(lykkeToken));      
+            
+            return $"{RedisPrefixExternalRefreshTokens}:{lykkeToken}";
         }
     }
 }
