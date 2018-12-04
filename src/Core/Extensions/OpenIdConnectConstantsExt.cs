@@ -21,7 +21,6 @@
         public static class Auth
         {
             public const string DefaultScheme = "ServerCookie";
-            //TODO:@gafanasiev May be remove, as Ironclad would be the only provider.
             public const string ExternalAuthenticationScheme = "ExternalAuthenticationScheme";
             public const string IroncladAuthenticationScheme = "IroncladAuthenticationScheme";
         }
