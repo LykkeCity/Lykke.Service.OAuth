@@ -38,6 +38,11 @@ namespace Lykke.Service.OAuth.Modules
 
             builder.RegisterType<ExternalUserService>().As<IExternalUserService>().SingleInstance();
 
+            builder.RegisterType<IroncladService>().As<IIroncladService>()
+                //TODO:@gafanasiev Change to separate client.
+                .WithParameter("ironcladSettings", _settings.CurrentValue.OAuth.ExternalProvidersSettings.Ironclad)
+                .SingleInstance();
+
             builder.RegisterType<CountriesService>()
                 .WithParameter(TypedParameter.From(new CountryPhoneCodes().GetCountries()))
                 .WithParameter(TypedParameter.From(_restrictedCountriesOfResidenceIso2))

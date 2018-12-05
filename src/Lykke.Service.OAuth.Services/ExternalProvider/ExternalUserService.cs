@@ -37,11 +37,10 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private readonly IDatabase _database;
         private readonly IClientAccountClient _clientAccountClient;
         private readonly IPersonalDataService _personalDataService;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IDiscoveryCache _discoveryCache;
         private readonly IDataProtector _dataProtector;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly ITokenService _tokenService;
+        private readonly IIroncladService _ironcladService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         
         public ExternalUserService(
@@ -49,20 +48,18 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             IClientAccountClient clientAccountClient,
             IPersonalDataService personalDataService,
             IDataProtectionProvider dataProtectionProvider,
-            IHttpClientFactory httpClientFactory, 
-            IDiscoveryCache discoveryCache, 
             IHttpContextAccessor httpContextAccessor,
             IClientSessionsClient clientSessionsClient,
-            ITokenService tokenService)
+            ITokenService tokenService, 
+            IIroncladService ironcladService)
         {
             _database = connectionMultiplexer.GetDatabase();
             _clientAccountClient = clientAccountClient;
             _personalDataService = personalDataService;
-            _httpClientFactory = httpClientFactory;
-            _discoveryCache = discoveryCache;
             _httpContextAccessor = httpContextAccessor;
             _clientSessionsClient = clientSessionsClient;
             _tokenService = tokenService;
+            _ironcladService = ironcladService;
             _dataProtector =
                 dataProtectionProvider.CreateProtector(OpenIdConnectConstantsExt.Protectors.ExternalProviderCookieProtector);
         }
@@ -86,52 +83,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             return _database.StringSetAsync(redisKey, lykkeUserId);
         }
-
-        private async Task AddClaimToIroncladUser(string ironcladUserId, string type, object value)
-        {
-            var httpClient = _httpClientFactory.CreateClient();
-            const string authority = "http://localhost:5005";
-            
-            var discoveryResponse = await _discoveryCache.GetAsync();
-
-            //TODO:@gafanasiev Add error handling.
-            //if (!discoveryResponse.IsError)
-            //{
-
-            //}
-
-            var tokenResponse = await httpClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
-            {
-                Address = discoveryResponse.TokenEndpoint,
-                ClientId = "sample_mvc",
-                ClientSecret = "secret",
-                Scope = "sample_api"
-            });
-
-            //TODO:@gafanasiev Refactor this!
-            using (var tokenClient = new TokenClient(discoveryResponse.TokenEndpoint, "auth_console"))
-            using (var refreshTokenHandler = new RefreshTokenDelegatingHandler(tokenClient, tokenResponse.RefreshToken, tokenResponse.AccessToken) { InnerHandler = new HttpClientHandler() })
-            using (var usersClient = new UsersHttpClient(authority, refreshTokenHandler))
-            {
-                var claims = new Dictionary<string, object>
-                {
-                    {type, value}
-                };
-
-                await usersClient.ModifyUserAsync(new User
-                {
-                    Id = ironcladUserId,
-                    Roles = null,
-                    Claims = claims
-                });
-            }
-
-            //TODO:@gafanasiev Add error handling.
-            //if (tokenResponse.IsError)
-            //{
-            //    throw 
-            //}
-        } 
 
         /// <inheritdoc />
         public async Task<string> GetAssociatedLykkeUserIdAsync(string provider, string externalUserId)
@@ -215,7 +166,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 externalUserId,
                 lykkeUserId);
 
-            await AddClaimToIroncladUser(externalUserId, OpenIdConnectConstantsExt.Claims.Lsub, lykkeUserId);
+            await _ironcladService.AddClaim(externalUserId, OpenIdConnectConstantsExt.Claims.Lsub, lykkeUserId);
 
             return newLykkeUser;
         }
@@ -259,14 +210,13 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie,
                 out var protectedGuid);
 
-            // TODO:@gafanasiev Think how to solve this.
             /* Cookie could be empty if user is already authenticated in Ironclad.
              * This means Ironclad would not redirect to Lykke OAuth but immediately return authenticated user.
              * Thus cookie would not be created during login.
              */
             if (!guidExists || string.IsNullOrWhiteSpace(protectedGuid))
             {
-                throw new AuthenticationException("Lykke was used to login, and guid is not saved to cookie.");
+                throw new AuthenticationException("Authenticated through Lykke, but guid is not saved to cookie.");
             }
 
             var guid = _dataProtector.Unprotect(protectedGuid);
@@ -275,7 +225,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             if (string.IsNullOrWhiteSpace(lykkeUserId))
             {
-                throw new AuthenticationException($"Lykke was used to login, but lykkeUserId was not found for guid:{guid}.");
+                throw new AuthenticationException($"Authenticated through Lykke, but lykkeUserId was not found for guid:{guid}.");
             }
 
             return lykkeUserId;
