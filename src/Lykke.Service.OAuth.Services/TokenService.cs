@@ -16,7 +16,7 @@ namespace Lykke.Service.OAuth.Services
     public class TokenService : ITokenService
     {
         private readonly IDatabase _redisDatabase;
-        private const string RedisPrefixExternalRefreshTokens = "OAuth:ExternalRefreshTokens";
+        private const string RedisPrefixIroncladRefreshTokens = "OAuth:ExternalRefreshTokens";
         private static readonly TimeSpan RefreshTokenWhitelistLifetime = TimeSpan.FromDays(30);
         private static readonly TimeSpan IroncladRefreshTokenLifetime = TimeSpan.FromDays(30);
         private readonly IHttpClientFactory _httpClientFactory;
@@ -92,7 +92,7 @@ namespace Lykke.Service.OAuth.Services
             if (string.IsNullOrWhiteSpace(refreshToken))
                 throw new ArgumentNullException(nameof(refreshToken));
 
-            var redisKey = GetExternalRefreshTokensRedisKey(lykkeToken);
+            var redisKey = GetIroncladRefreshTokensRedisKey(lykkeToken);
 
             return _redisDatabase.StringSetAsync(redisKey, refreshToken, IroncladRefreshTokenLifetime);
         }
@@ -103,7 +103,7 @@ namespace Lykke.Service.OAuth.Services
             if (string.IsNullOrWhiteSpace(lykkeToken))
                 throw new ArgumentNullException(nameof(lykkeToken));         
 
-            var redisKey = GetExternalRefreshTokensRedisKey(lykkeToken);
+            var redisKey = GetIroncladRefreshTokensRedisKey(lykkeToken);
 
             var ironcladRefreshToken = await _redisDatabase.StringGetAsync(redisKey);
 
@@ -116,7 +116,6 @@ namespace Lykke.Service.OAuth.Services
         /// <inheritdoc />
         public async Task<string> GetIroncladAccessTokenAsync(string lykkeToken)
         {
-
             if (string.IsNullOrWhiteSpace(lykkeToken))
                 throw new ArgumentNullException(nameof(lykkeToken));
 
@@ -132,11 +131,10 @@ namespace Lykke.Service.OAuth.Services
                 RefreshToken = ironcladRefreshToken
             });
 
-            //TODO:@gafanasiev Add error handling.
-            //if (tokenResponse.IsError)
-            //{
-            //    throw 
-            //}
+            if (tokenResponse.IsError)
+            {
+                throw new TokenNotFoundException(tokenResponse.Error);
+            }
 
             await SaveIroncladRefreshTokenAsync(lykkeToken, tokenResponse.RefreshToken);
 
@@ -162,12 +160,12 @@ namespace Lykke.Service.OAuth.Services
             }
         }
 
-        private static string GetExternalRefreshTokensRedisKey(string lykkeToken)
+        private static string GetIroncladRefreshTokensRedisKey(string lykkeToken)
         {
             if (string.IsNullOrWhiteSpace(lykkeToken))
                 throw new ArgumentNullException(nameof(lykkeToken));      
             
-            return $"{RedisPrefixExternalRefreshTokens}:{lykkeToken}";
+            return $"{RedisPrefixIroncladRefreshTokens}:{lykkeToken}";
         }
     }
 }
