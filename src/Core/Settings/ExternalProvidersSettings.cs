@@ -8,8 +8,13 @@ namespace Core.Settings
     public class ExternalProvidersSettings
     {
         /// <summary>
-        ///     List of configuration for external providers.
+        ///     Ironclad client for user authentication.
         /// </summary>
-        public IdentityProviderSettings Ironclad { get; set; }
+        public IdentityProviderSettings IroncladAuth { get; set; }
+
+        /// <summary>
+        ///     Ironclad client for ironclad api.
+        /// </summary>
+        public IdentityProviderSettings IroncladApi { get; set; }
     }
 }

@@ -110,7 +110,7 @@ namespace WebAuth
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
-                services.AddDiscoveryCache(_settings.OAuth.ExternalProvidersSettings.Ironclad.Authority);
+                services.AddDiscoveryCache(_settings.OAuth.ExternalProvidersSettings.IroncladAuth.Authority);
 
                 services.AddAuthentication(options =>
                     {
@@ -137,7 +137,7 @@ namespace WebAuth
                         options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                     })
 
-                    .AddIronclad(_settings.OAuth.ExternalProvidersSettings.Ironclad)
+                    .AddIronclad(_settings.OAuth.ExternalProvidersSettings.IroncladAuth)
 
                     .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
                         options =>
@@ -147,7 +147,11 @@ namespace WebAuth
                             options.ApiName = config.ClientId;
                             options.ApiSecret = config.ClientSecret;
                         })
-                    .AddScheme<LykkeAuthOptions, LykkeAuthHandler>("LykkeScheme", null)
+                    .AddScheme<LykkeAuthOptions, LykkeAuthHandler>(OpenIdConnectConstantsExt.Auth.LykkeScheme,
+                        options =>
+                        {
+
+                        })
                     .AddOpenIdConnectServer(options =>
                     {
                         options.ProviderType = typeof(AuthorizationProvider);

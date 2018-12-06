@@ -1,35 +1,30 @@
-﻿using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
-using AspNet.Security.OpenIdConnect.Primitives;
+﻿using System;
+using System.Threading.Tasks;
 using Common.Log;
-using Core.Application;
-using Core.Bitcoin;
 using Core.Extensions;
+using Core.ExternalProvider.Exceptions;
 using Core.Services;
 using IdentityServer4.AccessTokenValidation;
-using Lykke.Service.OAuth.Providers;
 using Lykke.Common.Log;
-using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebAuth.Models;
 
 namespace Lykke.Service.OAuth.Controllers
 {
     [ApiExplorerSettings(IgnoreApi = true)]
     public class UserinfoController : Controller
     {
+        private readonly ILog _log;
         private readonly IClientSessionsClient _clientSessionsClient;
-        private readonly IKycTokenProvider _kycTokenProvider;
         private readonly ITokenService _tokenService;
 
         public UserinfoController(
+            ILogFactory logFactory,
             IClientSessionsClient clientSessionsClient,
-            ITokenService tokenService,
-            IKycTokenProvider kycTokenProvider)
+            ITokenService tokenService)
         {
-            _kycTokenProvider = kycTokenProvider;
+            _log = logFactory.CreateLog(this);
             _clientSessionsClient = clientSessionsClient;
             _tokenService = tokenService;
         }
@@ -49,19 +44,25 @@ namespace Lykke.Service.OAuth.Controllers
             return await GetToken();
         }
 
-        //TODO@gafanasiev Remove.
-        //[HttpGet("~/testironclad")]
-        //public async Task<IActionResult> TestIronclad()
-        //{
-        //    await _ironcladService.AddClaim("a789e8b658624329a7053187fc5de5b6", "lsub", "test_id");
-        //    return Ok();
-        //}
-
         [HttpGet("~/token/kyc")]
         [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.LykkeScheme)]
         public async Task<IActionResult> GetKycToken()
         {
-            return Json(await _kycTokenProvider.GetKycTokenAsync());
+            try
+            {
+                var sessionId = User.GetTokenClaim(OpenIdConnectConstantsExt.Claims.SessionId);
+
+                var accessToken = await _tokenService.GetIroncladAccessTokenAsync(sessionId);
+
+                return Json(new {Token = accessToken});
+            }
+            catch (Exception e)
+                when (e is ClaimNotFoundException ||
+                      e is TokenNotFoundException)
+            {
+                _log.Warning("Token not found.", e);
+                return BadRequest("Token not found.");
+            }
         }
 
         private async Task<IActionResult> GetToken()
