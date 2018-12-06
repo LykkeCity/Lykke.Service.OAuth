@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -16,46 +17,34 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
         private readonly string _clientId;
         private readonly string _clientSecret;
-        private readonly string _authority ;
-        
+        private readonly string _authority;
+        private readonly string _scope;
+        private TokenResponse _accessTokenResponse;
+        private DateTime _accessTokenExpiryTime;
+
         public IroncladService(
             IdentityProviderSettings ironcladSettings,
             IHttpClientFactory httpClientFactory,
             IDiscoveryCache discoveryCache)
         {
+            var ironcladSettings1 = ironcladSettings;
             _httpClientFactory = httpClientFactory;
             _discoveryCache = discoveryCache;
 
             if (ironcladSettings != null)
             {
-                _clientId = ironcladSettings.ClientId;
-                _clientSecret = ironcladSettings.ClientSecret;
-                _authority = ironcladSettings.Authority;
+                _clientId = ironcladSettings1.ClientId;
+                _clientSecret = ironcladSettings1.ClientSecret;
+                _authority = ironcladSettings1.Authority;
+                _scope = string.Join(' ', ironcladSettings1.Scopes);
             }
         }
 
         public async Task AddClaim(string ironcladUserId, string type, string value)
         {
-            var httpClient = _httpClientFactory.CreateClient();
+            var accessToken = await GetAccessToken();
 
-            var discoveryResponse = await _discoveryCache.GetAsync();
-
-            if (discoveryResponse.IsError)
-            {
-                _discoveryCache.Refresh();
-                discoveryResponse = await _discoveryCache.GetAsync();
-            }
-
-            ///GET FROM CACHE AND CHECK TTL
-            var tokenResponse = await httpClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
-            {
-                Address = discoveryResponse.TokenEndpoint,
-                ClientId = _clientId,
-                ClientSecret = _clientSecret,
-                Scope = "sample_api auth_api auth_api:write"
-            });
-
-            HttpMessageHandler handler = new BearerTokenHandler(tokenResponse.AccessToken);
+            var handler = new BearerTokenHandler(accessToken.AccessToken);
 
             using (var usersClient = new UsersHttpClient(_authority, handler))
             {
@@ -65,20 +54,53 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 };
 
                 await usersClient.ModifyUserAsync(new User
-                {
-                    Id = ironcladUserId,
-                    //TODO:@gafanasiev Change it to userId, when it would be ready on Ironclad.
-                    Username = "gmaf_dev_4@example.com",
-                    Roles = null,
-                    Claims = claims
-                });
+                    {
+                        Id = ironcladUserId,
+                        //FIXME: @gafanasiev Could be removed after fixing ironclad usersClient.
+                        Username = ironcladUserId,
+                        Roles = null,
+                        Claims = claims
+                    },
+                    ironcladUserId);
+            }
+        }
+
+        private async Task<TokenResponse> GetAccessToken()
+        {
+            var httpClient = _httpClientFactory.CreateClient();
+
+            var discoveryResponse = await _discoveryCache.GetAsync();
+
+            if (discoveryResponse.IsError)
+            {
+                _discoveryCache.Refresh();
+                throw discoveryResponse.Exception;
             }
 
-            //TODO:@gafanasiev Add error handling.
-            //if (tokenResponse.IsError)
-            //{
-            //    throw 
-            //}
+            //use token if it exists and is still fresh
+            if (_accessTokenResponse != null)
+                if (_accessTokenExpiryTime > DateTime.UtcNow)
+                    return _accessTokenResponse;
+
+            //else get a new token
+
+            var tokenResponse = await httpClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+            {
+                Address = discoveryResponse.TokenEndpoint,
+                ClientId = _clientId,
+                ClientSecret = _clientSecret,
+                Scope = _scope
+            });
+
+            if (tokenResponse.IsError) throw tokenResponse.Exception;
+
+            //set Token to the new token and set the expiry time to the new expiry time
+            _accessTokenResponse = tokenResponse;
+
+            _accessTokenExpiryTime = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
+
+            //return fresh token
+            return _accessTokenResponse;
         }
     }
 
@@ -89,9 +111,11 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         public BearerTokenHandler(string token)
         {
             _token = token;
+            InnerHandler = new HttpClientHandler();
         }
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
             return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);

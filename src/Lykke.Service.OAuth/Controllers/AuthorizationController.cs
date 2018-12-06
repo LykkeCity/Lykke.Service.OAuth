@@ -33,18 +33,18 @@ namespace WebAuth.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserManager _userManager;
         private readonly IClientSessionsClient _clientSessionsClient;
-        private readonly IExternalUserService _externalUserService;
+        private readonly IExternalUserOperator _externalUserOperator;
         
         public AuthorizationController(
             IApplicationRepository applicationRepository,
             IUserManager userManager, 
             IClientSessionsClient clientSessionsClient,
-            IExternalUserService externalUserService)
+            IExternalUserOperator externalUserOperator)
         {
             _applicationRepository = applicationRepository;
             _userManager = userManager;
             _clientSessionsClient = clientSessionsClient;
-            _externalUserService = externalUserService;
+            _externalUserOperator = externalUserOperator;
         }
 
         [HttpGet("~/connect/authorize")]
@@ -87,10 +87,9 @@ namespace WebAuth.Controllers
                 });
             }
 
-            //TODO:@gafanasiev Check that it works.
             var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
 
-            if (tenant == OpenIdConnectConstantsExt.Providers.Ironclad)
+            if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
             {
                 return await HandleLykkeAuthorize(request);
             }
@@ -302,7 +301,7 @@ namespace WebAuth.Controllers
                 {
                     RedirectUri = Url.Action("ExternalLoginCallback", "External"),
                     // We need to save original redirectUrl, later get it in AfterExternalLoginCallback and redirect back to it.
-                    Items = { { OpenIdConnectConstantsExt.Parameters.ExternalLoginCallback, externalRedirectUrl } }
+                    Items = { { OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl, externalRedirectUrl } }
                 };
 
                 return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
@@ -324,7 +323,7 @@ namespace WebAuth.Controllers
 
             if (!User.Identities.Any(identity => identity.IsAuthenticated))
             {
-                var identifier = Guid.NewGuid().ToString();
+                var identifier = StringUtils.GenerateId();
 
                 // Store the authorization request in the user session.
                 HttpContext.Session.Set("authorization-request:" + identifier, request.ToJson().ToUtf8Bytes());
@@ -346,7 +345,7 @@ namespace WebAuth.Controllers
                 return Challenge(authenticationProperties);
             }
 
-            await _externalUserService.SaveLykkeUserIdAfterExternalLoginAsync(User);
+            await _externalUserOperator.SaveLykkeUserIdAfterExternalLoginAsync(User);
 
             var acceptUri = Url.Action("Accept");
             redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);

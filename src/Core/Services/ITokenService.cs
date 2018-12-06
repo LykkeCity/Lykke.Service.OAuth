@@ -31,7 +31,6 @@ namespace Core.Services
         /// <returns>True if token was replaced.</returns>
         Task UpdateRefreshTokenInWhitelistAsync([CanBeNull]string oldRefreshToken, string newRefreshToken);
 
-        //TODO:@gafanasiev Add summary
         /// <summary>
         /// 
         /// </summary>

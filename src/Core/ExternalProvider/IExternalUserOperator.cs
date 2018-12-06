@@ -10,7 +10,7 @@ namespace Core.ExternalProvider
     /// <summary>
     ///     External user operations.
     /// </summary>
-    public interface IExternalUserService
+    public interface IExternalUserOperator
     {
         /// <summary>
         ///     Get associated lykke user id.
@@ -32,13 +32,13 @@ namespace Core.ExternalProvider
         ///     Account information of created user, or existing user, if it has been already linked to external provider.
         ///     null if failed to create or retrieve user.
         /// </returns>
-        /// <exception cref="ExternalProviderNotFoundException">Thrown when external provider could not be found.</exception>
         /// <exception cref="ExternalProviderPhoneNotVerifiedException">Thrown when phone is not verified by external provider.</exception>
         /// <exception cref="ClaimNotFoundException">Thrown when required claim is missing.</exception>
         /// <exception cref="AutoprovisionException">
         ///     Thrown when user autoprovisioning failed, based on external provider
         ///     data .
         /// </exception>
+        Task<ClientAccountInformationModel> ProvisionIfNotExistAsync(ClaimsPrincipal principal);
 
         /// <summary>
         ///     Save lykke user id by random guid, during login process through ironclad.
@@ -49,9 +49,15 @@ namespace Core.ExternalProvider
         Task<string> SaveLykkeUserIdForExternalLoginAsync(string lykkeUserId, TimeSpan ttl);
 
         //TODO:@gafanasiev add summary.
-        Task<LykkeUserAuthenticationContext> HandleExternalUserLogin(ClaimsPrincipal principal);
+        Task<LykkeUserAuthenticationContext> AuthenticateAsync(ClaimsPrincipal principal);
 
         //TODO:@gafanasiev add summary.
         Task SaveLykkeUserIdAfterExternalLoginAsync(ClaimsPrincipal principal);
+
+        //TODO:@gafanasiev add summary.
+        Task<ClaimsPrincipal> GetCurrentUserAsync();
+
+        //TODO:@gafanasiev add summary.
+        Task SignInAsync(LykkeUserAuthenticationContext context);
     }
 }
