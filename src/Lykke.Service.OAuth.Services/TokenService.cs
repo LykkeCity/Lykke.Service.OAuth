@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Core.ExternalProvider;
 using Core.ExternalProvider.Exceptions;
 using Core.Services;
 using IdentityModel.Client;
@@ -18,16 +19,17 @@ namespace Lykke.Service.OAuth.Services
         private readonly IDatabase _redisDatabase;
         private const string RedisPrefixIroncladRefreshTokens = "OAuth:IroncladRefreshTokens";
         private static readonly TimeSpan RefreshTokenWhitelistLifetime = TimeSpan.FromDays(30);
-        //TODO:@gafanasiev get lifetime dynamically.
-        private static readonly TimeSpan IroncladRefreshTokenLifetime = TimeSpan.FromDays(30);
+        private readonly IdentityProviderSettings _ironcladAuth;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IDiscoveryCache _discoveryCache;
 
         public TokenService(
+            IdentityProviderSettings ironcladAuth,
             IConnectionMultiplexer connectionMultiplexer, 
             IHttpClientFactory httpClientFactory, 
             IDiscoveryCache discoveryCache)
         {
+            _ironcladAuth = ironcladAuth;
             _httpClientFactory = httpClientFactory;
             _discoveryCache = discoveryCache;
             _redisDatabase = connectionMultiplexer.GetDatabase();
@@ -95,7 +97,7 @@ namespace Lykke.Service.OAuth.Services
 
             var redisKey = GetIroncladRefreshTokensRedisKey(lykkeToken);
 
-            return _redisDatabase.StringSetAsync(redisKey, refreshToken, IroncladRefreshTokenLifetime);
+            return _redisDatabase.StringSetAsync(redisKey, refreshToken);
         }
 
         /// <inheritdoc />
@@ -132,13 +134,12 @@ namespace Lykke.Service.OAuth.Services
                 throw discoveryResponse.Exception;
             }
 
-            //TODO:@gafanasiev get from settings
             var tokenResponse = await httpClient.RequestRefreshTokenAsync(new RefreshTokenRequest
             {
                 Address = discoveryResponse.TokenEndpoint,
                 RefreshToken = ironcladRefreshToken,
-                ClientId = "sample_mvc",
-                ClientSecret = "secret"
+                ClientId = _ironcladAuth.ClientId,
+                ClientSecret = _ironcladAuth.ClientSecret
             });
 
             if (tokenResponse.IsError)
@@ -165,7 +166,6 @@ namespace Lykke.Service.OAuth.Services
             {
                 var bytes = Encoding.UTF8.GetBytes(input);
                 var hash = md5.ComputeHash(bytes);
-
                 return Convert.ToBase64String(hash);
             }
         }

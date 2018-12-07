@@ -27,17 +27,13 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             IHttpClientFactory httpClientFactory,
             IDiscoveryCache discoveryCache)
         {
-            var ironcladSettings1 = ironcladSettings;
             _httpClientFactory = httpClientFactory;
             _discoveryCache = discoveryCache;
 
-            if (ironcladSettings != null)
-            {
-                _clientId = ironcladSettings1.ClientId;
-                _clientSecret = ironcladSettings1.ClientSecret;
-                _authority = ironcladSettings1.Authority;
-                _scope = string.Join(' ', ironcladSettings1.Scopes);
-            }
+            _clientId = ironcladSettings.ClientId;
+            _clientSecret = ironcladSettings.ClientSecret;
+            _authority = ironcladSettings.Authority;
+            _scope = string.Join(' ', ironcladSettings.Scopes);
         }
 
         public async Task AddClaim(string ironcladUserId, string type, string value)
@@ -78,12 +74,11 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             }
 
             //use token if it exists and is still fresh
-            if (_accessTokenResponse != null)
-                if (_accessTokenExpiryTime > DateTime.UtcNow)
-                    return _accessTokenResponse;
+            if (_accessTokenResponse != null && 
+                _accessTokenExpiryTime > DateTime.UtcNow)
+                return _accessTokenResponse;
 
             //else get a new token
-
             var tokenResponse = await httpClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
                 Address = discoveryResponse.TokenEndpoint,
@@ -92,7 +87,8 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 Scope = _scope
             });
 
-            if (tokenResponse.IsError) throw tokenResponse.Exception;
+            if (tokenResponse.IsError) 
+                throw tokenResponse.Exception;
 
             //set Token to the new token and set the expiry time to the new expiry time
             _accessTokenResponse = tokenResponse;
