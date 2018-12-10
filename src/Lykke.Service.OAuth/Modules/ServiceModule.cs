@@ -5,6 +5,7 @@ using Core.ExternalProvider;
 using Core.PasswordValidation;
 using Core.Services;
 using Lykke.Common;
+using Lykke.Common.ApiLibrary.Authentication;
 using Lykke.Service.OAuth.Middleware;
 using Lykke.Service.OAuth.Services;
 using Lykke.Service.OAuth.Services.Countries;
@@ -39,7 +40,7 @@ namespace Lykke.Service.OAuth.Modules
 
             builder.RegisterType<ExternalUserOperator>().As<IExternalUserOperator>().SingleInstance();
 
-            builder.RegisterType<IroncladService>().As<IIroncladService>()
+            builder.RegisterType<IroncladFacade>().As<IIroncladFacade>()
                 .WithParameter("ironcladSettings", _settings.CurrentValue.OAuth.ExternalProvidersSettings.IroncladApi)
                 .SingleInstance();
 

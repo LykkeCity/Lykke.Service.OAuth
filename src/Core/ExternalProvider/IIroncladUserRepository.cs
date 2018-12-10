@@ -4,10 +4,18 @@ namespace Core.ExternalProvider
 {
     public interface IIroncladUserRepository
     {
-        //TODO:@gafanasiev Add summary
+        /// <summary>
+        ///     Add binding between ironclad user and lykke user.
+        /// </summary>
+        /// <param name="ironcladUser">Ironclad user.</param>
+        /// <returns>True if binding was added successfully.</returns>
         Task<bool> AddAsync(IroncladUser ironcladUser);
 
-        //TODO:@gafanasiev Add summary
+        /// <summary>
+        ///     Get associated user.
+        /// </summary>
+        /// <param name="ironcladUserId">Ironclad user id.</param>
+        /// <returns>Associated user.</returns>
         Task<IroncladUser> GetByIdAsync(string ironcladUserId);
     }
 }

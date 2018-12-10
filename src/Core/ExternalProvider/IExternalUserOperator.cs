@@ -1,8 +1,8 @@
-﻿using System;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Threading.Tasks;
 using Core.ExternalProvider.Exceptions;
 using Lykke.Service.ClientAccount.Client.Models;
+using Microsoft.AspNetCore.Authentication;
 
 namespace Core.ExternalProvider
 {
@@ -11,24 +11,6 @@ namespace Core.ExternalProvider
     /// </summary>
     public interface IExternalUserOperator
     {
-        /// <summary>
-        /// Create association 
-        /// </summary>
-        /// <param name="ironcladUserId">Ironclad user id.</param>
-        /// <param name="lykkeUserId">Lykke user id.</param>
-        /// <returns>True is association is successful.</returns>
-        Task<bool> AssociateIroncladUserAsync(string ironcladUserId, string lykkeUserId);
-
-        /// <summary>
-        ///     Get associated lykke user id.
-        /// </summary>
-        /// <param name="ironcladUserId">Ironclad user id.</param>
-        /// <returns>
-        ///     Lykke user id if it was already associated.
-        ///     Empty string if user is not associated.
-        /// </returns>
-        Task<string> GetIroncladAssociatedLykkeUserIdAsync(string ironcladUserId);
-
         /// <summary>
         ///     Create new lykke user from external provider data.
         ///     Or get existing user, if it has been already linked to external provider.
@@ -47,9 +29,9 @@ namespace Core.ExternalProvider
         /// <summary>
         ///     Authenticate ironclad user.
         /// </summary>
-        /// <param name="principal">Ironclad user principal.</param>
+        /// <param name="lykkeUser">Lykke user.</param>
         /// <returns>Lykke user authentication context.</returns>
-        Task<LykkeUserAuthenticationContext> AuthenticateAsync(ClaimsPrincipal principal);
+        Task<LykkeUserAuthenticationContext> AuthenticateAsync(LykkeUser lykkeUser);
 
         /// <summary>
         ///     When user is authenticated.
@@ -66,8 +48,16 @@ namespace Core.ExternalProvider
         /// <summary>
         ///     Get current external user.
         /// </summary>
+        /// <param name="authenticateResult">External authentication result.</param>
         /// <returns>Currently authenticated external user.</returns>
-        Task<ClaimsPrincipal> GetCurrentUserAsync();
+        Task<LykkeUser> GetCurrentUserAsync(AuthenticateResult authenticateResult);
+
+        /// <summary>
+        ///     Get redirect url after external login.
+        /// </summary>
+        /// <param name="authenticateResult">External authentication result.</param>
+        /// <returns>Url to which user shoul be redirected.</returns>
+        string GetRedirectUrl(AuthenticateResult authenticateResult);
 
         /// <summary>
         ///     Signin user through default scheme.
