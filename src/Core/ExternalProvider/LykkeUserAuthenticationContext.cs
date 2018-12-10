@@ -2,8 +2,8 @@
 {
     public class LykkeUserAuthenticationContext
     {
-        public string UserId { get; set; }
-        public string Email { get; set; }
+        public LykkeUser LykkeUser { get; set; }
+
         public string SessionId { get; set; }
     }
 }

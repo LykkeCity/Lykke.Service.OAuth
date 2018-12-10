@@ -44,15 +44,9 @@ namespace Lykke.Service.OAuth.Controllers
             {
                 var authenticateResult = await HttpContext.AuthenticateAsync(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme);
 
-                authenticateResult.Properties.Items.TryGetValue(
-                    OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
-                    out var externalLoginReturnUrl);
+                var externalLoginReturnUrl = _externalUserOperator.GetRedirectUrl(authenticateResult);
 
-                if (!Url.IsLocalUrl(externalLoginReturnUrl))
-                    throw new AuthenticationException(
-                        $"External login callback url is invalid: {externalLoginReturnUrl}");
-
-                var ironcladUser = await _externalUserOperator.GetCurrentUserAsync();
+                var ironcladUser = await _externalUserOperator.GetCurrentUserAsync(authenticateResult);
 
                 var lykkeUserAuthenticationContext = await _externalUserOperator.AuthenticateAsync(ironcladUser);
 

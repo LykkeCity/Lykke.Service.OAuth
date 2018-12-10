@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
-using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -11,8 +10,8 @@ using Common;
 using Common.Log;
 using Core.Extensions;
 using Core.Services;
-using IdentityModel.Client;
 using IdentityServer4.AccessTokenValidation;
+using Lykke.Common.ApiLibrary.Authentication;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Common.Log;
@@ -41,7 +40,6 @@ using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
-using Lykke.Service.OAuth.Middleware;
 using LykkeApiErrorMiddleware = Lykke.Service.OAuth.Middleware.LykkeApiErrorMiddleware;
 
 namespace WebAuth
@@ -147,11 +145,7 @@ namespace WebAuth
                             options.ApiName = config.ClientId;
                             options.ApiSecret = config.ClientSecret;
                         })
-                    .AddScheme<LykkeAuthOptions, LykkeAuthHandler>(OpenIdConnectConstantsExt.Auth.LykkeScheme,
-                        options =>
-                        {
-
-                        })
+                    .AddLykkeAuthentication(OpenIdConnectConstantsExt.Auth.LykkeScheme, null)
                     .AddOpenIdConnectServer(options =>
                     {
                         options.ProviderType = typeof(AuthorizationProvider);
