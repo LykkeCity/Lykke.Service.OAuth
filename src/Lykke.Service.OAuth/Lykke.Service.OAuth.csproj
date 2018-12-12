@@ -31,7 +31,6 @@
     <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc3-final" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
-    <PackageReference Include="IdentityModel" Version="3.10.2" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="2.6.0" />
     <PackageReference Include="Lykke.Common" Version="7.3.1" />
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.12.0" />
