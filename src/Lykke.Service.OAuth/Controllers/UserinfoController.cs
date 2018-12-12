@@ -44,6 +44,19 @@ namespace WebAuth.Controllers
             _clientAccountClient = clientAccountClient;
         }
 
+        [HttpGet("~/connect/userinfo")]
+        [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
+        public IActionResult GetUserInfo()
+        {
+            var userInfo = new UserInfoViewModel
+            {
+                Email = User.GetClaim(OpenIdConnectConstants.Claims.Email),
+                FirstName = User.GetClaim(OpenIdConnectConstants.Claims.GivenName),
+                LastName = User.GetClaim(OpenIdConnectConstants.Claims.FamilyName)
+            };
+            return Json(userInfo);
+        }
+
         [HttpGet("~/getlykkewallettoken")]
         [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetLykkewalletToken()
@@ -70,9 +83,6 @@ namespace WebAuth.Controllers
             }
 
             var session = await _clientSessionsClient.GetAsync(sessionId);
-            
-            if (session == null) 
-                return NotFound("Session not found.");
 
             return Json(new { Token = sessionId, session.AuthId });
         }

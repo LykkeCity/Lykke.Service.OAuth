@@ -1,12 +1,8 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
-using Core.ExternalProvider.Exceptions;
 
 namespace Core.ExternalProvider
 {
-        /// <summary>
-    ///     Service for operations with External identity providers.
-    /// </summary>
     public interface IExternalProviderService
     {
         /// <summary>
@@ -23,21 +19,5 @@ namespace Core.ExternalProvider
         /// <param name="guid">Previously generated guid.</param>
         /// <returns>Saved user id, if it still exists in database. Or empty string if user id not exist.</returns>
         Task<string> GetLykkeUserIdForExternalLoginAsync(string guid);
-
-        /// <summary>
-        ///     Get provider id by <paramref name="iss" /> issuer claim value.
-        /// </summary>
-        /// <param name="iss">Iss claim value.</param>
-        /// <returns>Provider id.</returns>
-        /// <exception cref="ExternalProviderNotFoundException">Thrown when provider is not found by <paramref name="iss" />.</exception>
-        string GetProviderId(string iss);
-
-        /// <summary>
-        ///     Get provider configuration by <paramref name="providerId" /> - provider id.
-        /// </summary>
-        /// <param name="providerId">Provider id.</param>
-        /// <returns>Provider configuration.</returns>
-        /// <exception cref="ExternalProviderNotFoundException">Thrown when provider is not found by <paramref name="providerId" />.</exception>
-        ExternalIdentityProvider GetProviderConfiguration(string providerId);
     }
 }
