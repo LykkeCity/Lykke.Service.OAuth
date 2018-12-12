@@ -16,9 +16,8 @@ namespace Lykke.Service.OAuth.Services
     public class TokenService : ITokenService
     {
         private readonly IDatabase _redisDatabase;
-        private const string RedisPrefixIroncladRefreshTokens = "OAuth:IroncladRefreshTokens";
+        private const string RedisPrefixIroncladRefreshTokens = "OAuth:ExternalRefreshTokens";
         private static readonly TimeSpan RefreshTokenWhitelistLifetime = TimeSpan.FromDays(30);
-        //TODO:@gafanasiev get lifetime dynamically.
         private static readonly TimeSpan IroncladRefreshTokenLifetime = TimeSpan.FromDays(30);
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IDiscoveryCache _discoveryCache;
@@ -126,19 +125,10 @@ namespace Lykke.Service.OAuth.Services
 
             var discoveryResponse = await _discoveryCache.GetAsync();
 
-            if (discoveryResponse.IsError)
-            {
-                _discoveryCache.Refresh();
-                throw discoveryResponse.Exception;
-            }
-
-            //TODO:@gafanasiev get from settings
             var tokenResponse = await httpClient.RequestRefreshTokenAsync(new RefreshTokenRequest
             {
                 Address = discoveryResponse.TokenEndpoint,
-                RefreshToken = ironcladRefreshToken,
-                ClientId = "sample_mvc",
-                ClientSecret = "secret"
+                RefreshToken = ironcladRefreshToken
             });
 
             if (tokenResponse.IsError)

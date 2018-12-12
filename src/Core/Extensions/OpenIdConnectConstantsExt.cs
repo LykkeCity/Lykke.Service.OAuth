@@ -15,12 +15,8 @@
         public static class Parameters
         {
             public const string PartnerId = "partnerId";
+            public const string ExternalLoginCallback = "external_login_callback";
             public const string Tenant = "tenant";
-        }
-
-        public static class AuthenticationProperties
-        {
-            public const string ExternalLoginRedirectUrl = "externalLoginRedirectUrl";
         }
 
         public static class Auth

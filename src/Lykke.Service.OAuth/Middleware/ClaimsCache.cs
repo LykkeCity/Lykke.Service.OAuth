@@ -7,14 +7,14 @@ namespace Lykke.Service.OAuth.Middleware
 {
     internal class ClaimsCache
     {
-        public class PrincipalCacheItem
+        public class PrincipalCashItem
         {
             public ClaimsPrincipal ClaimsPrincipal { get; set; }
             public DateTime LastRefresh { get; private set; }
 
-            public static PrincipalCacheItem Create(ClaimsPrincipal src)
+            public static PrincipalCashItem Create(ClaimsPrincipal src)
             {
-                return new PrincipalCacheItem
+                return new PrincipalCashItem
                 {
                     LastRefresh = DateTime.UtcNow,
                     ClaimsPrincipal = src
@@ -23,24 +23,25 @@ namespace Lykke.Service.OAuth.Middleware
         }
 
         private readonly int _secondsToExpire;
-
-        private readonly Dictionary<string, PrincipalCacheItem> _claimsCache =
-            new Dictionary<string, PrincipalCacheItem>();
-
+        
+        private readonly Dictionary<string, PrincipalCashItem> _claimsCache = new Dictionary<string, PrincipalCashItem>();
         private readonly ReaderWriterLockSlim _cacheLock = new ReaderWriterLockSlim();
 
         public ClaimsCache(int secondsToExpire = 60)
         {
             _secondsToExpire = secondsToExpire;
         }
-
+        
         public ClaimsPrincipal Get(string token)
         {
             _cacheLock.EnterUpgradeableReadLock();
 
             try
             {
-                if (!_claimsCache.TryGetValue(token, out var result)) return null;
+                if (!_claimsCache.TryGetValue(token, out PrincipalCashItem result))
+                {
+                    return null;
+                }
 
                 if ((DateTime.UtcNow - result.LastRefresh).TotalSeconds < _secondsToExpire)
                     return result.ClaimsPrincipal;
@@ -71,9 +72,9 @@ namespace Lykke.Service.OAuth.Middleware
             try
             {
                 if (_claimsCache.ContainsKey(token))
-                    _claimsCache[token] = PrincipalCacheItem.Create(principal);
+                    _claimsCache[token] = PrincipalCashItem.Create(principal);
                 else
-                    _claimsCache.Add(token, PrincipalCacheItem.Create(principal));
+                    _claimsCache.Add(token, PrincipalCashItem.Create(principal));
             }
             finally
             {

@@ -6,6 +6,7 @@ using Core.PasswordValidation;
 using Core.Services;
 using Lykke.Common;
 using Lykke.Service.OAuth.Middleware;
+using Lykke.Service.OAuth.Providers;
 using Lykke.Service.OAuth.Services;
 using Lykke.Service.OAuth.Services.Countries;
 using Lykke.Service.OAuth.Services.ExternalProvider;
@@ -37,10 +38,11 @@ namespace Lykke.Service.OAuth.Modules
 
             builder.RegisterType<ValidationService>().As<IValidationService>().SingleInstance();
 
-            builder.RegisterType<ExternalUserOperator>().As<IExternalUserOperator>().SingleInstance();
+            builder.RegisterType<ExternalUserService>().As<IExternalUserService>().SingleInstance();
 
             builder.RegisterType<IroncladService>().As<IIroncladService>()
-                .WithParameter("ironcladSettings", _settings.CurrentValue.OAuth.ExternalProvidersSettings.IroncladApi)
+                //TODO:@gafanasiev Change to separate client.
+                .WithParameter("ironcladSettings", _settings.CurrentValue.OAuth.ExternalProvidersSettings.Ironclad)
                 .SingleInstance();
 
             builder.RegisterType<CountriesService>()
@@ -62,6 +64,7 @@ namespace Lykke.Service.OAuth.Modules
                 .SingleInstance();
 
             builder.RegisterType<LykkePrincipal>().As<ILykkePrincipal>().SingleInstance();
+            builder.RegisterType<KycTokenProvider>().As<IKycTokenProvider>().SingleInstance();
 
             #region PasswordValidators
             builder.RegisterType<PwnedPasswordsValidator>().As<IPasswordValidator>().SingleInstance();

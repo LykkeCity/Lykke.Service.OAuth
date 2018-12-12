@@ -1,6 +1,5 @@
 ﻿using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Core.Extensions;
 using IdentityModel.AspNetCore.OAuth2Introspection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
@@ -37,7 +36,7 @@ namespace Lykke.Service.OAuth.Middleware
             if (principal == null)
                 return AuthenticateResult.NoResult();
 
-            var ticket = new AuthenticationTicket(principal, OpenIdConnectConstantsExt.Auth.LykkeScheme);
+            var ticket = new AuthenticationTicket(principal, "LykkeScheme");
 
             return AuthenticateResult.Success(ticket);
         }

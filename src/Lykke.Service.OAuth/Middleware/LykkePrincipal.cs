@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Core.Extensions;
 using IdentityModel.AspNetCore.OAuth2Introspection;
-using Lykke.Common.Extensions;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Http;
 
@@ -25,7 +24,7 @@ namespace Lykke.Service.OAuth.Middleware
         {
             var context = _httpContextAccessor.HttpContext;
 
-            var header = context.GetHeaderValueAs<string>("Authorization");
+            var header = context.Request.Headers["Authorization"].ToString();
 
             if (string.IsNullOrEmpty(header))
                 return null;
