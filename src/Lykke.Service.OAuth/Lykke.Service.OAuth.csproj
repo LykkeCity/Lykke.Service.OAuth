@@ -25,7 +25,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="2.1.2" />
     <PackageReference Include="AspNet.Security.OpenIdConnect.Extensions" Version="2.0.0-rc3-final" />
     <PackageReference Include="AspNet.Security.OpenIdConnect.Server" Version="2.0.0-rc3-final" />
     <PackageReference Include="AutoMapper" Version="7.0.1" />
