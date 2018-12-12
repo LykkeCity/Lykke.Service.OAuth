@@ -6,7 +6,7 @@ namespace Core.ExternalProvider
     /// <summary>
     ///     External identity provider configuration.
     /// </summary>
-    public class IdentityProviderSettings
+    public class ExternalIdentityProvider
     {
         public string Id { get; set; }
         public string ClientId { get; set; }

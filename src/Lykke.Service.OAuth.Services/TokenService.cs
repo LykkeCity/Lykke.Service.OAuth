@@ -116,7 +116,6 @@ namespace Lykke.Service.OAuth.Services
         /// <inheritdoc />
         public async Task<string> GetIroncladAccessTokenAsync(string lykkeToken)
         {
-
             if (string.IsNullOrWhiteSpace(lykkeToken))
                 throw new ArgumentNullException(nameof(lykkeToken));
 

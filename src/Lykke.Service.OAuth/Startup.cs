@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
@@ -11,6 +12,8 @@ using Common;
 using Common.Log;
 using Core.Extensions;
 using Core.Services;
+using IdentityModel;
+using Core.ExternalProvider;
 using IdentityModel.Client;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.ApiLibrary.Middleware;
@@ -18,11 +21,12 @@ using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Logs;
-using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.OAuth.Modules;
 using Lykke.SettingsReader;
 using Lykke.SettingsReader.ReloadingManager;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -41,6 +45,7 @@ using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
+using Newtonsoft.Json.Linq;
 using LykkeApiErrorMiddleware = Lykke.Service.OAuth.Middleware.LykkeApiErrorMiddleware;
 
 namespace WebAuth
@@ -109,7 +114,12 @@ namespace WebAuth
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
-                services.AddDiscoveryCache(_settings.OAuth.ExternalProvidersSettings.Ironclad.Authority);
+                //TODO:@gafanasiev Move to Module.
+                services.AddSingleton<IDiscoveryCache>(r =>
+                {
+                    var factory = r.GetRequiredService<IHttpClientFactory>();
+                    return new DiscoveryCache(_settings.OAuth.ExternalProvidersSettings.Ironclad.Authority, () => factory.CreateClient());
+                });
 
                 services.AddAuthentication(options =>
                     {
@@ -136,7 +146,15 @@ namespace WebAuth
                         options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                     })
 
-                    .AddIronclad(_settings.OAuth.ExternalProvidersSettings.Ironclad)
+                    .AddOpenIdConnect(
+                        OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme,
+                        OpenIdConnectConstantsExt.Providers.Ironclad,
+                        options =>
+                        {
+                            FillOpenIdConnectOptionsForExternalProvider(
+                                _settings.OAuth.ExternalProvidersSettings.Ironclad, 
+                                options);
+                        })
 
                     .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
                         options =>
@@ -350,6 +368,86 @@ namespace WebAuth
                 new OperationContext()).GetAwaiter().GetResult();
 
             return storageAccount;
+        }
+
+        private void FillOpenIdConnectOptionsForExternalProvider(
+            ExternalIdentityProvider provider,
+            OpenIdConnectOptions options)
+        {
+            if (provider == null) throw new ArgumentNullException(nameof(provider));
+
+            // One cookie is used as authentication scheme for all external providers.
+            options.SignInScheme = OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme;
+
+            options.DisableTelemetry = true;
+
+            options.ClaimActions.MapAllExcept();
+
+            // Set unique callback path for every provider to eliminate intersection.
+            options.CallbackPath = string.IsNullOrWhiteSpace(provider.CallbackPath)
+                ? $"/signin-oidc-{provider.Id}"
+                : provider.CallbackPath;
+
+            options.Authority = provider.Authority;
+            options.ClientId = provider.ClientId;
+            options.ResponseType = provider.ResponseType;
+
+            if (!string.IsNullOrWhiteSpace(provider.ClientSecret))
+                options.ClientSecret = provider.ClientSecret;
+
+            if (provider.ValidIssuers != null)
+                options.TokenValidationParameters.ValidIssuers = provider.ValidIssuers;
+
+            if (provider.RequireHttpsMetadata.HasValue)
+                options.RequireHttpsMetadata = provider.RequireHttpsMetadata.Value;
+
+            if (provider.GetClaimsFromUserInfoEndpoint.HasValue)
+                options.GetClaimsFromUserInfoEndpoint = provider.GetClaimsFromUserInfoEndpoint.Value;
+
+            if (provider.Scopes != null)
+            {
+                options.Scope.Clear();
+                foreach (var scope in provider.Scopes) options.Scope.Add(scope);
+            }
+
+            if (!string.IsNullOrWhiteSpace(provider.AcrValues))
+            {
+                options.Events.OnRedirectToIdentityProvider = context =>
+                {
+                    context.ProtocolMessage.AcrValues = provider.AcrValues;
+                    return Task.CompletedTask;
+                };
+            }
+
+            options.SaveTokens = true;
+
+            //TODO:@gafanasiev We could save in Items to get in ExternalController.
+            //options.Events.OnTokenResponseReceived += context =>
+            //{
+            //    context.HttpContext.Items.Add("RefreshToken", context.TokenEndpointResponse.RefreshToken);
+            //    context.HttpContext.Items.Add("IdToken", context.TokenEndpointResponse.IdToken);
+            //    context.HttpContext.Items.Add("AccessToken", context.TokenEndpointResponse.AccessToken);
+
+            //    return Task.CompletedTask;
+            //};
+
+            //options.Events.OnUserInformationReceived += context =>
+            //{
+            //    Console.WriteLine(context.ProtocolMessage.IdToken);
+            //    Console.WriteLine(context.ProtocolMessage.AccessToken);
+            //    Console.WriteLine(context.ProtocolMessage.RefreshToken);
+
+            //    return Task.CompletedTask;
+            //};
+
+            //options.Events.OnTokenValidated += context =>
+            //{
+            //    Console.WriteLine(context.ProtocolMessage.IdToken);
+            //    Console.WriteLine(context.ProtocolMessage.AccessToken);
+            //    Console.WriteLine(context.ProtocolMessage.RefreshToken);
+
+            //    return Task.CompletedTask;
+            //};
         }
     }
 }

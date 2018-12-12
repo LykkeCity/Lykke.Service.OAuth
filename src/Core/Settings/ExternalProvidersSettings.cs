@@ -10,6 +10,6 @@ namespace Core.Settings
         /// <summary>
         ///     List of configuration for external providers.
         /// </summary>
-        public IdentityProviderSettings Ironclad { get; set; }
+        public ExternalIdentityProvider Ironclad { get; set; }
     }
 }

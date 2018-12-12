@@ -31,10 +31,10 @@ namespace Lykke.Service.OAuth.Controllers
         [Authorize(AuthenticationSchemes = OpenIdConnectServerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> GetKycToken()
         {
+            //TODO:@gafanasiev Move GetToken() to separate service and refactor
             var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
 
-            if (sessionId == null)
-                return BadRequest("Session id is empty");
+            if (sessionId == null) return BadRequest("Session id is empty");
 
             var session = await _clientSessionsClient.GetAsync(sessionId);
 

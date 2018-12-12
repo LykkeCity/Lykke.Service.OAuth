@@ -10,10 +10,8 @@ using Common;
 using Core.Application;
 using Core.Extensions;
 using Core.ExternalProvider;
-using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
@@ -33,18 +31,22 @@ namespace WebAuth.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserManager _userManager;
         private readonly IClientSessionsClient _clientSessionsClient;
+        private readonly IDataProtector _dataProtector;
         private readonly IExternalUserService _externalUserService;
         
         public AuthorizationController(
             IApplicationRepository applicationRepository,
             IUserManager userManager, 
             IClientSessionsClient clientSessionsClient,
+            //TODO:@gafanasiev Move protection and cookie creation to service
+            IDataProtectionProvider dataProtectionProvider, 
             IExternalUserService externalUserService)
         {
             _applicationRepository = applicationRepository;
             _userManager = userManager;
             _clientSessionsClient = clientSessionsClient;
             _externalUserService = externalUserService;
+            _dataProtector = dataProtectionProvider.CreateProtector(OpenIdConnectConstantsExt.Protectors.ExternalProviderCookieProtector);
         }
 
         [HttpGet("~/connect/authorize")]
@@ -87,18 +89,16 @@ namespace WebAuth.Controllers
                 });
             }
 
-            //TODO:@gafanasiev Check that it works.
-            var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
+            var tenent = GetTenant(request);
 
-            if (tenant == OpenIdConnectConstantsExt.Providers.Ironclad)
+            if (tenent == OpenIdConnectConstantsExt.Providers.Ironclad)
             {
-                return await HandleLykkeAuthorize(request);
+                return HandleLykkeAuthorize(request);
             }
 
             return HandleIroncladAuthorize(request);
         }
 
-        //[Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme)]
         [Authorize]
         [HttpPost("~/connect/authorize/external")]
         [HttpGet("~/connect/authorize/external")]
@@ -315,7 +315,7 @@ namespace WebAuth.Controllers
             return LocalRedirect(redirectUrl);
         }
 
-        private async Task<IActionResult> HandleLykkeAuthorize(OpenIdConnectRequest request)
+        private IActionResult HandleLykkeAuthorize(OpenIdConnectRequest request)
         {
             var parameters = request.GetParameters()
                 .ToDictionary(item => item.Key, item => item.Value.Value.ToString());
@@ -346,12 +346,44 @@ namespace WebAuth.Controllers
                 return Challenge(authenticationProperties);
             }
 
-            await _externalUserService.SaveLykkeUserIdAfterExternalLoginAsync(User);
+            SaveLykkeUserIdAfterExternalLogin();
 
             var acceptUri = Url.Action("Accept");
             redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
 
             return Redirect(redirectUrl);
+        }
+
+        private string GetTenant(OpenIdConnectRequest request)
+        {
+            if (request.AcrValues == null) return string.Empty;
+
+            var acrValuesJson = JObject.Parse(request.AcrValues);
+
+            var jToken = acrValuesJson.GetValue(OpenIdConnectConstantsExt.Parameters.Tenant);
+
+            return jToken.Type == JTokenType.String ? jToken.Value<string>() : string.Empty;
+        }
+
+        //TODO:@gafanasiev Move this to separate service?
+        private async Task SaveLykkeUserIdAfterExternalLogin()
+        {
+            var userId = User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userId)) return;
+
+            var guid = await _externalUserService.SaveLykkeUserIdForExternalLoginAsync(userId, TimeSpan.FromMinutes(3));
+
+            // TODO:@gafanasiev check if this supports multiple instances.
+            var protectedGuid = _dataProtector.Protect(guid);
+
+            HttpContext.Response.Cookies.Append(OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie, protectedGuid, new CookieOptions
+            {
+                HttpOnly = true,
+                MaxAge = TimeSpan.FromMinutes(2)
+                //TODO:@gafanasiev uncomment in production
+                //Secure = true
+            });
         }
     }
 }
