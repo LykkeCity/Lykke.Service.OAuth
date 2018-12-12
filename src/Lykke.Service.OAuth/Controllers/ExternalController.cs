@@ -19,7 +19,6 @@ namespace Lykke.Service.OAuth.Controllers
     {
         private readonly ILog _log;
         private readonly IExternalUserOperator _externalUserOperator;
-
         private static readonly OpenIdConnectMessage AuthenticationError = new OpenIdConnectMessage
         {
             Error = OpenIdConnectConstants.Errors.ServerError,
@@ -43,10 +42,9 @@ namespace Lykke.Service.OAuth.Controllers
         {
             try
             {
-                var authenticateResult =
-                    await HttpContext.AuthenticateAsync(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme);
+                var authenticateResult = await HttpContext.AuthenticateAsync(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme);
 
-                var externalLoginReturnUrl = GetRedirectUrl(authenticateResult);
+                var externalLoginReturnUrl = _externalUserOperator.GetRedirectUrl(authenticateResult);
 
                 var ironcladUser = await _externalUserOperator.GetCurrentUserAsync(authenticateResult);
 
@@ -64,19 +62,6 @@ namespace Lykke.Service.OAuth.Controllers
                 _log.Warning(e.Message);
                 return View("Error", AuthenticationError);
             }
-        }
-
-        private string GetRedirectUrl(AuthenticateResult authenticateResult)
-        {
-            authenticateResult.Properties.Items.TryGetValue(
-                OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
-                out var externalLoginReturnUrl);
-
-            if (!Url.IsLocalUrl(externalLoginReturnUrl))
-                throw new AuthenticationException(
-                    $"External login callback url is invalid: {externalLoginReturnUrl}");
-
-            return externalLoginReturnUrl;
         }
     }
 }

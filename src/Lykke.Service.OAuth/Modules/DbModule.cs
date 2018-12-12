@@ -8,7 +8,6 @@ using AzureStorage.Tables;
 using AzureStorage.Tables.Templates.Index;
 using Core.Application;
 using Core.Bitcoin;
-using Core.ExternalProvider;
 using Core.Registration;
 using Lykke.Common.Log;
 using Lykke.SettingsReader;
@@ -81,7 +80,7 @@ namespace WebAuth.Modules
                     AzureTableStorage<IroncladUserEntity>.Create(
                         ironcladUserStorageConnString,
                         ironcladUsersTableName, c.Resolve<ILogFactory>())
-                )).As<IIroncladUserRepository>()
+                )).As<IRegistrationRepository>()
                 .SingleInstance();
         }
     }

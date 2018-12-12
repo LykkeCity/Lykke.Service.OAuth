@@ -45,7 +45,6 @@ namespace Core.Services
         /// <param name="lykkeToken">Lykke token.</param>
         /// <returns>Ironclad refresh token.</returns>
         /// <exception cref="TokenNotFoundException">Thrown when token not found.</exception>
-        /// <exception cref="TokenNotFoundException">Thrown when there were an error during token retrieval process.</exception>
         Task<string> GetIroncladRefreshTokenAsync(string lykkeToken);
 
         /// <summary>
@@ -54,7 +53,6 @@ namespace Core.Services
         /// <param name="lykkeToken">Lykke token.</param>
         /// <returns>Ironclad access token.</returns>
         /// <exception cref="TokenNotFoundException">Thrown when token not found.</exception>
-        /// <exception cref="TokenNotFoundException">Thrown when there were an error during token retrieval process.</exception>
         Task<string> GetIroncladAccessTokenAsync(string lykkeToken);
     }
 }

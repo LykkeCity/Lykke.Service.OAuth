@@ -34,9 +34,7 @@ namespace Lykke.Service.OAuth.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<TokenService>()
-                .WithParameter("ironcladAuth", _settings.CurrentValue.OAuth.ExternalProvidersSettings.IroncladAuth)
-                .As<ITokenService>().SingleInstance();
+            builder.RegisterType<TokenService>().As<ITokenService>().SingleInstance();
 
             builder.RegisterType<ValidationService>().As<IValidationService>().SingleInstance();
 
