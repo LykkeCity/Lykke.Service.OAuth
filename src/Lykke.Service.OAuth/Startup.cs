@@ -141,6 +141,7 @@ namespace WebAuth
                     .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
                         options =>
                         {
+
                             var config = settings.Nested(n => n.OAuth.ResourceServerSettings).CurrentValue;
                             options.Authority = config.Authority;
                             options.ApiName = config.ClientId;

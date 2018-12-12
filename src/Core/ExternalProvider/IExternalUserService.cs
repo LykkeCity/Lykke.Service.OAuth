@@ -51,7 +51,6 @@ namespace Core.ExternalProvider
         //TODO:@gafanasiev add summary.
         Task<LykkeUserAuthenticationContext> HandleExternalUserLogin(ClaimsPrincipal principal);
 
-        //TODO:@gafanasiev add summary.
         Task SaveLykkeUserIdAfterExternalLoginAsync(ClaimsPrincipal principal);
     }
 }

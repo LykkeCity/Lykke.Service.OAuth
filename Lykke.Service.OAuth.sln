@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureDataAccess", "src\Azur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BusinessService", "src\BusinessService\BusinessService.csproj", "{586E5F89-4B36-4185-870D-A033D426BA22}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lykke.Service.OAuth.Services", "src\Lykke.Service.OAuth.Services\Lykke.Service.OAuth.Services.csproj", "{CE199D15-AD61-4ADF-9CEF-0B7558420258}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lykke.Service.OAuth.Services", "src\Lykke.Service.OAuth.Services\Lykke.Service.OAuth.Services.csproj", "{CE199D15-AD61-4ADF-9CEF-0B7558420258}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
