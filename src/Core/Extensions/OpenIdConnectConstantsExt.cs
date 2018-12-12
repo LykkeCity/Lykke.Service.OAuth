@@ -21,6 +21,7 @@
         public static class AuthenticationProperties
         {
             public const string ExternalLoginRedirectUrl = "externalLoginRedirectUrl";
+            public const string AcrValues = "acrValues";
         }
 
         public static class Auth
@@ -52,7 +53,6 @@
         public static class Cookies
         {
             public const string TemporaryUserIdCookie = "TemporaryUserIdCookie";
-
         }
     }
 }

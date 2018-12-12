@@ -23,10 +23,9 @@ namespace AzureDataAccess.ExternalProvider
         public async Task<IroncladUser> GetByIdAsync(string ironcladUserId)
         {
             var partitionKey = IroncladUserEntity.GeneratePartitionKey(ironcladUserId);
-            var rowKey = IroncladUserEntity.GeneratePartitionKey(ironcladUserId);
+            var rowKey = IroncladUserEntity.GenerateRowKey(ironcladUserId);
             var entity = await _storage.GetDataAsync(partitionKey, rowKey);
             return IroncladUserEntity.ToDomain(entity);
         }
     }
-
 }

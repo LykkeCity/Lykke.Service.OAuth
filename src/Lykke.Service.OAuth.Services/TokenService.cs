@@ -25,8 +25,8 @@ namespace Lykke.Service.OAuth.Services
 
         public TokenService(
             IdentityProviderSettings ironcladAuth,
-            IConnectionMultiplexer connectionMultiplexer, 
-            IHttpClientFactory httpClientFactory, 
+            IConnectionMultiplexer connectionMultiplexer,
+            IHttpClientFactory httpClientFactory,
             IDiscoveryCache discoveryCache)
         {
             _ironcladAuth = ironcladAuth;
@@ -90,13 +90,14 @@ namespace Lykke.Service.OAuth.Services
         public Task SaveIroncladRefreshTokenAsync(string lykkeToken, string refreshToken)
         {
             if (string.IsNullOrWhiteSpace(lykkeToken))
-                throw new ArgumentNullException(nameof(lykkeToken));         
+                throw new ArgumentNullException(nameof(lykkeToken));
 
             if (string.IsNullOrWhiteSpace(refreshToken))
                 throw new ArgumentNullException(nameof(refreshToken));
 
             var redisKey = GetIroncladRefreshTokensRedisKey(lykkeToken);
 
+            //NOTE:@gafanasiev For now ironclad refresh token lifetime is endless. But may be we will change it in future.
             return _redisDatabase.StringSetAsync(redisKey, refreshToken);
         }
 
@@ -104,7 +105,7 @@ namespace Lykke.Service.OAuth.Services
         public async Task<string> GetIroncladRefreshTokenAsync(string lykkeToken)
         {
             if (string.IsNullOrWhiteSpace(lykkeToken))
-                throw new ArgumentNullException(nameof(lykkeToken));         
+                throw new ArgumentNullException(nameof(lykkeToken));
 
             var redisKey = GetIroncladRefreshTokensRedisKey(lykkeToken);
 
@@ -131,7 +132,7 @@ namespace Lykke.Service.OAuth.Services
             if (discoveryResponse.IsError)
             {
                 _discoveryCache.Refresh();
-                throw discoveryResponse.Exception;
+                throw new TokenNotFoundException(discoveryResponse.Error);
             }
 
             var tokenResponse = await httpClient.RequestRefreshTokenAsync(new RefreshTokenRequest
@@ -142,10 +143,8 @@ namespace Lykke.Service.OAuth.Services
                 ClientSecret = _ironcladAuth.ClientSecret
             });
 
-            if (tokenResponse.IsError)
-            {
+            if (tokenResponse.IsError) 
                 throw new TokenNotFoundException(tokenResponse.Error);
-            }
 
             await SaveIroncladRefreshTokenAsync(lykkeToken, tokenResponse.RefreshToken);
 
@@ -173,8 +172,8 @@ namespace Lykke.Service.OAuth.Services
         private static string GetIroncladRefreshTokensRedisKey(string lykkeToken)
         {
             if (string.IsNullOrWhiteSpace(lykkeToken))
-                throw new ArgumentNullException(nameof(lykkeToken));      
-            
+                throw new ArgumentNullException(nameof(lykkeToken));
+
             return $"{RedisPrefixIroncladRefreshTokens}:{lykkeToken}";
         }
     }

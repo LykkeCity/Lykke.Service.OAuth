@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -297,8 +296,11 @@ namespace WebAuth.Controllers
                 {
                     RedirectUri = Url.Action("ExternalLoginCallback", "External"),
                     // We need to save original redirectUrl, later get it in AfterExternalLoginCallback and redirect back to it.
-                    Items = { { OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl, externalRedirectUrl } }
                 };
+
+                properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl, externalRedirectUrl);
+
+                properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues, request.AcrValues);
 
                 return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
             }
