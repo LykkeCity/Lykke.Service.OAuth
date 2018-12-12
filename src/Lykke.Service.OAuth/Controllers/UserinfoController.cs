@@ -49,15 +49,7 @@ namespace Lykke.Service.OAuth.Controllers
             return await GetToken();
         }
 
-        //TODO@gafanasiev Remove.
-        //[HttpGet("~/testironclad")]
-        //public async Task<IActionResult> TestIronclad()
-        //{
-        //    await _ironcladService.AddClaim("a789e8b658624329a7053187fc5de5b6", "lsub", "test_id");
-        //    return Ok();
-        //}
-
-        [HttpGet("~/token/kyc")]
+        [HttpGet("~/getkyctoken")]
         [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.LykkeScheme)]
         public async Task<IActionResult> GetKycToken()
         {
