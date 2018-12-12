@@ -50,7 +50,7 @@ namespace Lykke.Service.OAuth.Controllers
         {
             try
             {
-                var sessionId = User.GetClaimValue(OpenIdConnectConstantsExt.Claims.SessionId);
+                var sessionId = User.GetTokenClaim(OpenIdConnectConstantsExt.Claims.SessionId);
 
                 var accessToken = await _tokenService.GetIroncladAccessTokenAsync(sessionId);
 

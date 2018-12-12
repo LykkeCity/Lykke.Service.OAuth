@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using Common;
 using Core.ExternalProvider;
 using Lykke.AzureStorage.Tables;
 
@@ -19,7 +18,7 @@ namespace AzureDataAccess.ExternalProvider
             {
                 var hashedBytes = algorithm.ComputeHash(Encoding.UTF8.GetBytes(ironcladUserId));
 
-                return BitConverter.ToString(hashedBytes).RefinePartitionOrRowKey().ToLower().Substring(3);
+                return BitConverter.ToString(hashedBytes).Replace("-", "").ToLower().Substring(3);
             }
         }
 

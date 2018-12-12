@@ -13,10 +13,14 @@ using Core.ExternalProvider;
 using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using WebAuth.Managers;
 using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 using OpenIdConnectMessage = Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectMessage;
@@ -122,7 +126,7 @@ namespace WebAuth.Controllers
                 new AuthenticationProperties(),
                 OpenIdConnectServerDefaults.AuthenticationScheme);
 
-            //FIXME:@gafanasiev add allowed scopes for client application.
+            //TODO:@gafanasiev add allowed scopes for client application.
             ticket.SetScopes(new[]
             {
                 OpenIdConnectConstants.Scopes.OpenId,
@@ -281,7 +285,7 @@ namespace WebAuth.Controllers
             {
                 await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
             }
-            //FIXME:@gafanasiev Fix bug with logout 
+            //TODO:@gafanasiev Fix bug with logout 
             return SignOut(OpenIdConnectServerDefaults.AuthenticationScheme);
         }
 
@@ -341,7 +345,7 @@ namespace WebAuth.Controllers
                 return Challenge(authenticationProperties);
             }
 
-            var userId = ClaimsPrincipalExtensions.GetClaimValue(User, ClaimTypes.NameIdentifier);
+            var userId = User.GetTokenClaim(ClaimTypes.NameIdentifier);
 
             await _externalUserOperator.SaveLykkeUserIdAfterIroncladlLoginAsync(userId);
 

@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Lykke.Service.OAuth.Models;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using WebAuth.Settings.ServiceSettings;
 
 namespace Lykke.Service.OAuth.Controllers

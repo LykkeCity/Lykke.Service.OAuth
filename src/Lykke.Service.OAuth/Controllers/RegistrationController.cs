@@ -29,7 +29,7 @@ using Lykke.Service.Registration.Contract.Client.Models;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using WebAuth.Managers;
 
 namespace Lykke.Service.OAuth.Controllers

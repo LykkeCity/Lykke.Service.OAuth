@@ -10,7 +10,7 @@ using Ironclad.Client;
 
 namespace Lykke.Service.OAuth.Services.ExternalProvider
 {
-    public class IroncladFacade : IIroncladFacade
+    public class IroncladService : IIroncladService
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IDiscoveryCache _discoveryCache;
@@ -22,7 +22,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private TokenResponse _accessTokenResponse;
         private DateTime _accessTokenExpiryTime;
 
-        public IroncladFacade(
+        public IroncladService(
             IdentityProviderSettings ironcladSettings,
             IHttpClientFactory httpClientFactory,
             IDiscoveryCache discoveryCache)
@@ -36,7 +36,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             _scope = string.Join(' ', ironcladSettings.Scopes);
         }
 
-        public async Task AddUserClaim(string ironcladUserId, string type, string value)
+        public async Task AddClaim(string ironcladUserId, string type, string value)
         {
             var accessToken = await GetAccessToken();
 

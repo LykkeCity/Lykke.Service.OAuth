@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Core.ExternalProvider;
 using FluentAssertions;
 using IdentityModel.Client;
 using Lykke.Service.OAuth.Services;
@@ -17,6 +16,7 @@ namespace WebAuth.Tests.Services
         private readonly TokenService _tokenService;
 
         private const string TestRefreshToken = "test_refresh_token";
+        private const string TestSessionId = "test_session_id";
 
         public TokenServiceTests()
         {
@@ -25,14 +25,9 @@ namespace WebAuth.Tests.Services
             var multiplexer = Substitute.For<IConnectionMultiplexer>();
             var clientFactory = Substitute.For<IHttpClientFactory>();
             var discoveryCache = Substitute.For<IDiscoveryCache>();
-            var ironcladAuth = new IdentityProviderSettings();
             multiplexer.GetDatabase().ReturnsForAnyArgs(_redisDatabase);
 
-            _tokenService = new TokenService(
-                ironcladAuth,
-                multiplexer, 
-                clientFactory, 
-                discoveryCache);
+            _tokenService = new TokenService(multiplexer, clientFactory, discoveryCache);
         }
 
         [Theory]
