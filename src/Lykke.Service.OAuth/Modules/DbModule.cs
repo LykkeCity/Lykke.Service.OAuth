@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using AzureDataAccess.Application;
 using AzureDataAccess.Bitcoin;
-using AzureDataAccess.ExternalProvider;
 using AzureDataAccess.Registration;
 using AzureStorage;
 using AzureStorage.Tables;
@@ -71,16 +70,6 @@ namespace WebAuth.Modules
                         registrationUserStorageConnString,
                         registrationUsersTableName, c.Resolve<ILogFactory>())))
                 .As<IRegistrationRepository>()
-                .SingleInstance();
-
-            const string ironcladUsersTableName = "IroncladUsers";
-
-            var ironcladUserStorageConnString = _settings.ConnectionString(x => x.OAuth.Db.IroncladUserStorageConnString);
-            builder.Register(c => new IroncladUserRepository(
-                    AzureTableStorage<IroncladUserEntity>.Create(
-                        ironcladUserStorageConnString,
-                        ironcladUsersTableName, c.Resolve<ILogFactory>())
-                )).As<IRegistrationRepository>()
                 .SingleInstance();
         }
     }

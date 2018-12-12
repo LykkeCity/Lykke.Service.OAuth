@@ -345,9 +345,7 @@ namespace WebAuth.Controllers
                 return Challenge(authenticationProperties);
             }
 
-            var userId = User.GetTokenClaim(ClaimTypes.NameIdentifier);
-
-            await _externalUserOperator.SaveLykkeUserIdAfterIroncladlLoginAsync(userId);
+            await _externalUserOperator.SaveLykkeUserIdAfterExternalLoginAsync(User);
 
             var acceptUri = Url.Action("Accept");
             redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);

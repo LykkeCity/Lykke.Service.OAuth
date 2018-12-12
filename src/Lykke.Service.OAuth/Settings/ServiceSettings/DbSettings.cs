@@ -15,8 +15,6 @@ namespace WebAuth.Settings.ServiceSettings
         [AzureBlobCheck]
         public string CertStorageConnectionString { get; set; }
         [AzureTableCheck]
-        public string RegistrationUserStorageConnString { get; set; }    
-        [AzureTableCheck]
-        public string IroncladUserStorageConnString { get; set; }
+        public string RegistrationUserStorageConnString { get; set; }
     }
 }
