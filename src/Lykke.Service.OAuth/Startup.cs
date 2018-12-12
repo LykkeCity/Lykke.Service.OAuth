@@ -41,7 +41,6 @@ using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
-using Lykke.Service.OAuth.Middleware;
 using LykkeApiErrorMiddleware = Lykke.Service.OAuth.Middleware.LykkeApiErrorMiddleware;
 
 namespace WebAuth
@@ -147,7 +146,7 @@ namespace WebAuth
                             options.ApiName = config.ClientId;
                             options.ApiSecret = config.ClientSecret;
                         })
-                    .AddScheme<LykkeAuthOptions, LykkeAuthHandler>("LykkeScheme", null)
+
                     .AddOpenIdConnectServer(options =>
                     {
                         options.ProviderType = typeof(AuthorizationProvider);
