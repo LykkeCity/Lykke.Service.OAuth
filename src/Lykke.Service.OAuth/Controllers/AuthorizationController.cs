@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
-using Common;
 using Core.Application;
 using Core.Extensions;
 using Core.ExternalProvider;
@@ -32,20 +31,22 @@ namespace WebAuth.Controllers
         private readonly IUserManager _userManager;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IDataProtector _dataProtector;
-        private readonly IExternalUserService _externalUserService;
-        
+        private readonly IExternalProviderService _externalProviderService;
+
+
+
         public AuthorizationController(
             IApplicationRepository applicationRepository,
             IUserManager userManager, 
             IClientSessionsClient clientSessionsClient,
             //TODO:@gafanasiev Move protection and cookie creation to service
             IDataProtectionProvider dataProtectionProvider, 
-            IExternalUserService externalUserService)
+            IExternalProviderService externalProviderService)
         {
             _applicationRepository = applicationRepository;
             _userManager = userManager;
             _clientSessionsClient = clientSessionsClient;
-            _externalUserService = externalUserService;
+            _externalProviderService = externalProviderService;
             _dataProtector = dataProtectionProvider.CreateProtector(OpenIdConnectConstantsExt.Protectors.ExternalProviderCookieProtector);
         }
 
@@ -91,7 +92,7 @@ namespace WebAuth.Controllers
 
             var tenent = GetTenant(request);
 
-            if (tenent == OpenIdConnectConstantsExt.Providers.Ironclad)
+            if (tenent == OpenIdConnectConstantsExt.Tenants.Ironclad)
             {
                 return HandleLykkeAuthorize(request);
             }
@@ -300,9 +301,9 @@ namespace WebAuth.Controllers
 
                 var properties = new AuthenticationProperties
                 {
-                    RedirectUri = Url.Action("ExternalLoginCallback", "External"),
+                    RedirectUri = Url.Action("AfterExternalLoginCallback", "External"),
                     // We need to save original redirectUrl, later get it in AfterExternalLoginCallback and redirect back to it.
-                    Items = { { OpenIdConnectConstantsExt.Parameters.ExternalLoginCallback, externalRedirectUrl } }
+                    Items = { { OpenIdConnectConstantsExt.Parameters.AfterExternalLoginCallback, externalRedirectUrl } }
                 };
 
                 return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
@@ -333,7 +334,7 @@ namespace WebAuth.Controllers
                 redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
 
                 // this parameter added for authentification on login page with PartnerId
-                parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerId, out var partnerId);
+                parameters.TryGetValue(CommonConstants.PartnerIdParameter, out var partnerId);
 
                 var authenticationProperties = new AuthenticationProperties
                 {
@@ -341,7 +342,7 @@ namespace WebAuth.Controllers
                 };
 
                 if (!string.IsNullOrWhiteSpace(partnerId))
-                    authenticationProperties.Parameters.Add(OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
+                    authenticationProperties.Parameters.Add(CommonConstants.PartnerIdParameter, partnerId);
 
                 return Challenge(authenticationProperties);
             }
@@ -372,7 +373,7 @@ namespace WebAuth.Controllers
 
             if (string.IsNullOrWhiteSpace(userId)) return;
 
-            var guid = await _externalUserService.SaveLykkeUserIdForExternalLoginAsync(userId, TimeSpan.FromMinutes(3));
+            var guid = await _externalProviderService.SaveLykkeUserIdForExternalLoginAsync(userId, TimeSpan.FromMinutes(3));
 
             // TODO:@gafanasiev check if this supports multiple instances.
             var protectedGuid = _dataProtector.Protect(guid);
@@ -380,7 +381,7 @@ namespace WebAuth.Controllers
             HttpContext.Response.Cookies.Append(OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie, protectedGuid, new CookieOptions
             {
                 HttpOnly = true,
-                MaxAge = TimeSpan.FromMinutes(2)
+                MaxAge = TimeSpan.FromMinutes(1)
                 //TODO:@gafanasiev uncomment in production
                 //Secure = true
             });

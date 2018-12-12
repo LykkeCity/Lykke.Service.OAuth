@@ -1,4 +1,5 @@
-﻿using Core.ExternalProvider;
+﻿using System.Collections.Generic;
+using Core.ExternalProvider;
 
 namespace Core.Settings
 {
@@ -10,6 +11,6 @@ namespace Core.Settings
         /// <summary>
         ///     List of configuration for external providers.
         /// </summary>
-        public ExternalIdentityProvider Ironclad { get; set; }
+        public List<ExternalIdentityProvider> ExternalIdentityProviders { get; set; }
     }
 }

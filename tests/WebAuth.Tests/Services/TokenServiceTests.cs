@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using FluentAssertions;
-using IdentityModel.Client;
 using Lykke.Service.OAuth.Services;
 using NSubstitute;
 using StackExchange.Redis;
@@ -23,11 +21,9 @@ namespace WebAuth.Tests.Services
             _redisDatabase = Substitute.For<IDatabase>();
 
             var multiplexer = Substitute.For<IConnectionMultiplexer>();
-            var clientFactory = Substitute.For<IHttpClientFactory>();
-            var discoveryCache = Substitute.For<IDiscoveryCache>();
             multiplexer.GetDatabase().ReturnsForAnyArgs(_redisDatabase);
 
-            _tokenService = new TokenService(multiplexer, clientFactory, discoveryCache);
+            _tokenService = new TokenService(multiplexer);
         }
 
         [Theory]

@@ -32,12 +32,12 @@ namespace WebAuth
         public override async Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
         {
             // this parameter added for authentification on login page with PartnerId
-            context.Properties.Parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerId, out var partnerIdValue);
+            context.Properties.Parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerIdParameter, out var partnerIdValue);
 
             var partnerId = partnerIdValue as string;
 
             if (!string.IsNullOrWhiteSpace(partnerId))
-                context.RedirectUri = QueryHelpers.AddQueryString(context.RedirectUri, OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
+                context.RedirectUri = QueryHelpers.AddQueryString(context.RedirectUri, OpenIdConnectConstantsExt.Parameters.PartnerIdParameter, partnerId);
 
             await base.RedirectToLogin(context);
         }
