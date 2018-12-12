@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Core.Extensions;
 using Core.ExternalProvider;
 using IdentityModel.Client;
@@ -85,17 +86,31 @@ namespace Lykke.Service.OAuth.Extensions
             if (ironcladSettings.Scopes != null)
             {
                 options.Scope.Clear();
-                foreach (var scope in ironcladSettings.Scopes) options.Scope.Add(scope);
+                foreach (var scope in ironcladSettings.Scopes)
+                    options.Scope.Add(scope);
             }
 
+            options.SaveTokens = true;
+
             if (!string.IsNullOrWhiteSpace(ironcladSettings.AcrValues))
-                options.Events.OnRedirectToIdentityProvider = context =>
+                options.Events.OnRedirectToIdentityProvider += context =>
                 {
-                    context.ProtocolMessage.AcrValues = ironcladSettings.AcrValues;
+                    var acrValuesFromRequest =
+                        context.Properties.GetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues);
+
+                    var acrValuesFromSettings = ironcladSettings.AcrValues;
+
+                    var shouldGetFromRequest = !string.IsNullOrEmpty(acrValuesFromRequest);
+
+                    var shouldGetFromSettings = !string.IsNullOrEmpty(acrValuesFromSettings);
+
+                    if (shouldGetFromRequest)
+                        context.ProtocolMessage.AcrValues = acrValuesFromRequest;
+                    else if (shouldGetFromSettings)
+                        context.ProtocolMessage.AcrValues = acrValuesFromSettings;
+
                     return Task.CompletedTask;
                 };
-
-            options.SaveTokens = true;
         }
     }
 }

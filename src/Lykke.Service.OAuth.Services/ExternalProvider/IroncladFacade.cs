@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Core.ExternalProvider;
+using Core.ExternalProvider.Exceptions;
 using IdentityModel.Client;
 using Ironclad.Client;
 
@@ -70,11 +71,11 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             if (discoveryResponse.IsError)
             {
                 _discoveryCache.Refresh();
-                throw discoveryResponse.Exception;
+                throw new AuthenticationException(discoveryResponse.Error);
             }
 
             //use token if it exists and is still fresh
-            if (_accessTokenResponse != null && 
+            if (_accessTokenResponse != null &&
                 _accessTokenExpiryTime > DateTime.UtcNow)
                 return _accessTokenResponse;
 
@@ -87,8 +88,8 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 Scope = _scope
             });
 
-            if (tokenResponse.IsError) 
-                throw tokenResponse.Exception;
+            if (tokenResponse.IsError)
+                throw new AuthenticationException(tokenResponse.Error);
 
             //set Token to the new token and set the expiry time to the new expiry time
             _accessTokenResponse = tokenResponse;

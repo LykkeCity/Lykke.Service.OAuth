@@ -145,7 +145,16 @@ namespace WebAuth
                             options.ApiName = config.ClientId;
                             options.ApiSecret = config.ClientSecret;
                         })
-                    .AddLykkeAuthentication(OpenIdConnectConstantsExt.Auth.LykkeScheme, null)
+                    .AddLykkeAuthentication(OpenIdConnectConstantsExt.Auth.LykkeScheme, options =>
+                    {
+                        options.Authority = _settings.OAuth.ResourceServerSettings.Authority;
+                        options.ClientId = _settings.OAuth.ResourceServerSettings.ClientId;
+                        options.ClientSecret = _settings.OAuth.ResourceServerSettings.ClientSecret;
+                        options.NameClaimType = _settings.OAuth.ResourceServerSettings.NameClaimType;
+                        options.EnableCaching = _settings.OAuth.ResourceServerSettings.EnableCaching;
+                        options.CacheDuration = _settings.OAuth.ResourceServerSettings.CacheDuration;
+                        options.SkipTokensWithDots = _settings.OAuth.ResourceServerSettings.SkipTokensWithDots;
+                    })
                     .AddOpenIdConnectServer(options =>
                     {
                         options.ProviderType = typeof(AuthorizationProvider);

@@ -23,7 +23,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis;
 
 namespace Lykke.Service.OAuth.Services.ExternalProvider
@@ -36,7 +35,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private readonly TimeSpan _mobileSessionLifetime = TimeSpan.FromDays(30);
 
         private readonly IDatabase _database;
-        private readonly IUrlHelper _urlHelper;
         private readonly IIroncladUserRepository _ironcladUserRepository;
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IClientAccountClient _clientAccountClient;
@@ -48,7 +46,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public ExternalUserOperator(
-            IUrlHelper urlHelper,
             IIroncladUserRepository ironcladUserRepository,
             IHostingEnvironment hostingEnvironment,
             IConnectionMultiplexer connectionMultiplexer,
@@ -61,7 +58,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             IIroncladFacade ironcladFacade)
         {
             _database = connectionMultiplexer.GetDatabase();
-            _urlHelper = urlHelper;
             _ironcladUserRepository = ironcladUserRepository;
             _hostingEnvironment = hostingEnvironment;
             _clientAccountClient = clientAccountClient;
@@ -89,13 +85,13 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             if (existingLykkeUser != null)
                 return existingLykkeUser;
 
-            var email = principal.GetClaimValue(JwtClaimTypes.Email);
-
             if (!principal.IsEmailVerified())
-                throw new AuthenticationException("Email is not verified on provider side!");
+                throw new AutoprovisionException("Email is not verified on provider side!");
 
             if (!principal.IsPhoneNumberVerified())
-                throw new AuthenticationException("Phone is not verified on provider side!");
+                throw new AutoprovisionException("Phone is not verified on provider side!");
+
+            var email = principal.GetClaimValue(JwtClaimTypes.Email);
 
             var phone = principal.GetClaimValue(JwtClaimTypes.PhoneNumber);
 
@@ -112,8 +108,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 throw new AutoprovisionException(
                     $"Could not provision external user, idp:{idp}, externalUserId:{externalUserId}");
 
-            var lykkeUserId = newLykkeUser.Id;
-
             var claims = principal.Claims.Select(claim => new IdentityProviderOriginalClaim
             {
                 Name = claim.Type,
@@ -129,14 +123,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 PhoneClaim = newLykkeUser.Phone,
                 OriginalClaims = claims
             });
-
-            await _ironcladUserRepository.AddAsync(new IroncladUser
-            {
-                LykkeUserId = lykkeUserId,
-                IroncladUserId = externalUserId
-            });
-
-            await _ironcladFacade.AddUserClaim(externalUserId, OpenIdConnectConstantsExt.Claims.Lsub, lykkeUserId);
 
             return newLykkeUser;
         }
@@ -201,7 +187,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             var principal = authenticateResult.Principal;
 
-                        var ironcladUserId = principal.GetClaimValue(JwtClaimTypes.Subject);
+            var ironcladUserId = principal.GetClaimValue(JwtClaimTypes.Subject);
 
             var identityProvider =
                 principal.GetClaimValue("http://schemas.microsoft.com/identity/claims/identityprovider");
@@ -209,17 +195,13 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             //Try to find id in lsub.
             var lsub = principal.FindFirst(OpenIdConnectConstantsExt.Claims.Lsub)?.Value;
 
-            ClientAccountInformationModel lykkeUser = null;
-
-            string lykkeUserId = null;
+            ClientAccountInformationModel lykkeUser;
 
             var associatedUser = await _ironcladUserRepository.GetByIdAsync(ironcladUserId);
 
             var userAssociated = associatedUser != null;
 
             var ironcladUserHasLsubClaim = !string.IsNullOrWhiteSpace(lsub);
-
-            var isNewUser = false;
 
             var userIdsAreEqual = string.Equals(lsub, associatedUser?.LykkeUserId);
 
@@ -228,13 +210,13 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             if (ironcladUserHasLsubClaim)
             {
-                lykkeUserId = lsub;
+                lykkeUser = await _clientAccountClient.GetClientByIdAsync(lsub);
             }
             else
             {
                 if (userAssociated)
                 {
-                    lykkeUserId = associatedUser.LykkeUserId;
+                    lykkeUser = await _clientAccountClient.GetClientByIdAsync(associatedUser.LykkeUserId);
                 }
                 // If user is not associated and does not have lsub.
                 else
@@ -243,57 +225,39 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                     if (identityProvider.Equals(OpenIdConnectConstantsExt.Providers.Lykke))
                     {
                         // User id should be stored inside a cookie.
-                        lykkeUserId = await GetLykkeUserIdFromCookieAsync();
+                        var lykkeUserIdFromCookie = await GetLykkeUserIdFromCookieAsync();
+                        lykkeUser = await _clientAccountClient.GetClientByIdAsync(lykkeUserIdFromCookie);
                     }
                     else
                     {
                         // If authenticated through external identity provider.
                         // Should autoprovision user.
                         lykkeUser = await ProvisionIfNotExistAsync(principal);
-                        isNewUser = true;
                     }
                 }
             }
 
-            if (!isNewUser) lykkeUser = await _clientAccountClient.GetClientByIdAsync(lykkeUserId);
-
             // We must be sure that user exists.
             if (lykkeUser == null)
-                throw new AuthenticationException($"Lykke user does not exist. lykkeUserId: {lykkeUserId}");
+                throw new AuthenticationException("Lykke user does not exist.");
 
-            // If user is new, these steps are inside ProvisionIfNotExistAsync.
-            if (!isNewUser)
-            {
-                if (!ironcladUserHasLsubClaim)
-                    await _ironcladFacade.AddUserClaim(ironcladUserId, OpenIdConnectConstantsExt.Claims.Lsub, lykkeUserId);
+            var lykkeUserId = lykkeUser.Id;
 
-                if (!userAssociated)
-                    await _ironcladUserRepository.AddAsync(new IroncladUser
-                    {
-                        LykkeUserId = lykkeUserId,
-                        IroncladUserId = ironcladUserId
-                    });
-            }
+            if (!ironcladUserHasLsubClaim)
+                await _ironcladFacade.AddUserClaim(ironcladUserId, OpenIdConnectConstantsExt.Claims.Lsub, lykkeUserId);
+
+            if (!userAssociated)
+                await _ironcladUserRepository.AddAsync(new IroncladUser
+                {
+                    LykkeUserId = lykkeUserId,
+                    IroncladUserId = ironcladUserId
+                });
 
             return new LykkeUser
             {
-                Id = lykkeUser.Id,
+                Id = lykkeUserId,
                 Email = lykkeUser.Email
             };
-        }
-
-        /// <inheritdoc />
-        public string GetRedirectUrl(AuthenticateResult authenticateResult)
-        {
-            authenticateResult.Properties.Items.TryGetValue(
-                OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
-                out var externalLoginReturnUrl);
-
-            if (!_urlHelper.IsLocalUrl(externalLoginReturnUrl))
-                throw new AuthenticationException(
-                    $"External login callback url is invalid: {externalLoginReturnUrl}");
-
-            return externalLoginReturnUrl;
         }
 
         /// <inheritdoc />
@@ -338,10 +302,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             var lykkeUserId = await _database.StringGetAsync(redisKey);
 
-            if (lykkeUserId.HasValue)
-            {
-                return lykkeUserId;
-            }
+            if (lykkeUserId.HasValue) return lykkeUserId;
 
             return string.Empty;
         }

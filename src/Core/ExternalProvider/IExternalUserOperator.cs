@@ -19,7 +19,6 @@ namespace Core.ExternalProvider
         /// <returns>
         ///     Account information of created user, or existing user, if it has been already linked to external provider.
         /// </returns>
-        /// <exception cref="ExternalProviderPhoneNotVerifiedException">Thrown when phone is not verified by external provider.</exception>
         /// <exception cref="ClaimNotFoundException">Thrown when required claim is missing.</exception>
         /// <exception cref="AutoprovisionException">
         ///     Thrown when user autoprovisioning failed, based on external provider data.
@@ -31,6 +30,7 @@ namespace Core.ExternalProvider
         /// </summary>
         /// <param name="lykkeUser">Lykke user.</param>
         /// <returns>Lykke user authentication context.</returns>
+        /// <exception cref="AuthenticationException">Thrown when user authentication fails.</exception>
         Task<LykkeUserAuthenticationContext> AuthenticateAsync(LykkeUser lykkeUser);
 
         /// <summary>
@@ -50,14 +50,8 @@ namespace Core.ExternalProvider
         /// </summary>
         /// <param name="authenticateResult">External authentication result.</param>
         /// <returns>Currently authenticated external user.</returns>
+        /// <exception cref="AuthenticationException">Thrown when external user authentication fails.</exception>
         Task<LykkeUser> GetCurrentUserAsync(AuthenticateResult authenticateResult);
-
-        /// <summary>
-        ///     Get redirect url after external login.
-        /// </summary>
-        /// <param name="authenticateResult">External authentication result.</param>
-        /// <returns>Url to which user shoul be redirected.</returns>
-        string GetRedirectUrl(AuthenticateResult authenticateResult);
 
         /// <summary>
         ///     Signin user through default scheme.
