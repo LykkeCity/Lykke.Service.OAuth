@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Lykke.SettingsReader.Attributes;
 
-namespace Core.ExternalProvider
+namespace Core.ExternalProvider.Settings
 {
     /// <summary>
     ///     External identity provider configuration.

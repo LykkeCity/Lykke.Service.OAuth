@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Core.Extensions;
 using Core.ExternalProvider;
+using Core.ExternalProvider.Settings;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;

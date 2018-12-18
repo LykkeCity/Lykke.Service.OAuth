@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Core.ExternalProvider;
+using Core.ExternalProvider.Settings;
 using FluentAssertions;
 using IdentityModel.Client;
 using Lykke.Service.OAuth.Services;

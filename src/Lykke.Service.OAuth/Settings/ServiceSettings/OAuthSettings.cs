@@ -1,7 +1,5 @@
+﻿using Core.ExternalProvider.Settings;
 using JetBrains.Annotations;
-using Lykke.Service.OAuth.Settings;
-using Core.Settings;
-using Lykke.Service.OAuth.Settings.ServiceSettings;
 using Lykke.SettingsReader.Attributes;
 using WebAuth.Settings.ServiceSettings;
 

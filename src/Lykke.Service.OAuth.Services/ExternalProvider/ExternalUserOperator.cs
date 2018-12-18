@@ -10,6 +10,7 @@ using Common;
 using Core.Extensions;
 using Core.ExternalProvider;
 using Core.ExternalProvider.Exceptions;
+using Core.ExternalProvider.Settings;
 using Core.Services;
 using IdentityModel;
 using Lykke.Service.ClientAccount.Client;
@@ -45,6 +46,8 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private readonly IIroncladFacade _ironcladFacade;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        private readonly ValidationSettings _validationSettings;
+
         public ExternalUserOperator(
             IIroncladUserRepository ironcladUserRepository,
             IHostingEnvironment hostingEnvironment,
@@ -55,7 +58,8 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             IHttpContextAccessor httpContextAccessor,
             IClientSessionsClient clientSessionsClient,
             ITokenService tokenService,
-            IIroncladFacade ironcladFacade)
+            IIroncladFacade ironcladFacade,
+            ValidationSettings validationSettings)
         {
             _database = connectionMultiplexer.GetDatabase();
             _ironcladUserRepository = ironcladUserRepository;
@@ -66,6 +70,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             _clientSessionsClient = clientSessionsClient;
             _tokenService = tokenService;
             _ironcladFacade = ironcladFacade;
+            _validationSettings = validationSettings;
             _dataProtector =
                 dataProtectionProvider.CreateProtector(OpenIdConnectConstantsExt.Protectors
                     .ExternalProviderCookieProtector);
@@ -74,6 +79,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         /// <inheritdoc />
         public async Task<ClientAccountInformationModel> ProvisionIfNotExistAsync(ClaimsPrincipal principal)
         {
+
             var externalUserId = principal.GetClaimValue(ClaimTypes.NameIdentifier);
 
             var idp = principal.GetClaimValue("http://schemas.microsoft.com/identity/claims/identityprovider");
@@ -85,15 +91,21 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             if (existingLykkeUser != null)
                 return existingLykkeUser;
 
-            if (!principal.IsEmailVerified())
-                throw new AutoprovisionException("Email is not verified on provider side!");
+            string email;
 
-            if (!principal.IsPhoneNumberVerified())
-                throw new AutoprovisionException("Phone is not verified on provider side!");
+            string phone;
 
-            var email = principal.GetClaimValue(JwtClaimTypes.Email);
+            try
+            {
+                email = principal.GetEmail(_validationSettings.RequireEmailVerification);
 
-            var phone = principal.GetClaimValue(JwtClaimTypes.PhoneNumber);
+                phone = principal.GetPhone(_validationSettings.RequirePhoneVerification);
+            }
+            catch (ClaimNotVerifiedException e)
+            {
+                throw new AutoprovisionException(
+                    $"Could not provision external user, idp:{idp}, externalUserId:{externalUserId}", e);
+            }
 
             var newLykkeUser =
                 await _clientAccountClient.ProvisionAsync(new ExternalClientProvisionModel
@@ -222,7 +234,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 else
                 {
                     // If authenticated through lykke.
-                    if (identityProvider.Equals(OpenIdConnectConstantsExt.Providers.Lykke))
+                    if (_validationSettings.LykkeIdpValidNames.Contains(identityProvider))
                     {
                         // User id should be stored inside a cookie.
                         var lykkeUserIdFromCookie = await GetLykkeUserIdFromCookieAsync();

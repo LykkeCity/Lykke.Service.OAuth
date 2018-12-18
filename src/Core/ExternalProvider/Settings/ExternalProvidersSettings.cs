@@ -1,6 +1,6 @@
-﻿using Core.ExternalProvider;
+﻿using Lykke.SettingsReader.Attributes;
 
-namespace Core.Settings
+namespace Core.ExternalProvider.Settings
 {
     /// <summary>
     ///     External providers settings section.
@@ -16,5 +16,11 @@ namespace Core.Settings
         ///     Ironclad client for ironclad api.
         /// </summary>
         public IdentityProviderSettings IroncladApi { get; set; }
+
+        /// <summary>
+        /// External provider validation settings.
+        /// </summary>
+        [Optional]
+        public ValidationSettings ValidationSettings { get; set; }
     }
 }

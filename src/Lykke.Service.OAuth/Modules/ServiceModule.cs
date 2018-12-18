@@ -40,7 +40,10 @@ namespace Lykke.Service.OAuth.Modules
 
             builder.RegisterType<ValidationService>().As<IValidationService>().SingleInstance();
 
-            builder.RegisterType<ExternalUserOperator>().As<IExternalUserOperator>().SingleInstance();
+            builder.RegisterType<ExternalUserOperator>()
+                .WithParameter("validationSettings", _settings.CurrentValue.OAuth.ExternalProvidersSettings.ValidationSettings)
+                .As<IExternalUserOperator>()
+                .SingleInstance();
 
             builder.RegisterType<IroncladFacade>().As<IIroncladFacade>()
                 .WithParameter("ironcladSettings", _settings.CurrentValue.OAuth.ExternalProvidersSettings.IroncladApi)

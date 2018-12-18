@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Core.ExternalProvider;
 using Core.ExternalProvider.Exceptions;
+using Core.ExternalProvider.Settings;
 using Core.Services;
 using IdentityModel.Client;
 using JetBrains.Annotations;
