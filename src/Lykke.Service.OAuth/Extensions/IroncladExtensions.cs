@@ -45,7 +45,10 @@ namespace Lykke.Service.OAuth.Extensions
             return serviceCollection.AddSingleton<IDiscoveryCache>(r =>
             {
                 var factory = r.GetRequiredService<IHttpClientFactory>();
-                return new DiscoveryCache(authority, () => factory.CreateClient());
+                return new DiscoveryCache(authority, () => factory.CreateClient(), new DiscoveryPolicy
+                {
+                    ValidateIssuerName = false
+                });
             });
         }
 
