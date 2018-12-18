@@ -22,7 +22,7 @@
                     <input
                         name="firstName"
                         id="firstName"
-                        class="lykke-input"
+                        class="lykke-input lykke-input_capitalize"
                         type="text"
                         placeholder="Enter your first name"
                         required
@@ -37,7 +37,7 @@
                     <input
                         name="lastName"
                         id="lastName"
-                        class="lykke-input"
+                        class="lykke-input lykke-input_capitalize"
                         type="text"
                         placeholder="Enter your last name"
                         required
@@ -60,16 +60,15 @@
                 <div class="lykke-form-group">
                     <label for="phone" class="lykke-label">Your phone number*</label>
                     <div class="lykke-input-phone">
-                        <div class="lykke-input-phone__value">
-                            <div><span>{{vm.data.model.phonePrefix}}</span> <img src="/images/group-2.svg" /></div>
-                            <select
-                                data-ng-model="vm.data.model.phonePrefix"
-                                data-ng-change="vm.handlers.handlePhonePrefixChanged()"
-                                class="phone-prefix-select"
-                            >
-                                <option data-ng-repeat="country in vm.data.countries" value="{{country.phonePrefix}}">{{country.name}}</option>
-                            </select>
-                        </div>
+                        <ui-select name="phonePrefix" ng-required="true" ng-model="vm.data.model.phonePrefix" theme="select2" class="lykke-input" on-select="vm.handlers.handlePhonePrefixChanged()">
+                            <ui-select-match>{{$select.selected.phonePrefix}} <img src="/images/group-2.svg" /></ui-select-match>
+                            <ui-select-choices position="down" repeat="country.phonePrefix as country in vm.data.countries | filter: $select.search">
+                                <div>
+                                    <span ng-bind-html="country.name | highlight: $select.search"></span>
+                                    <div class="phone-prefix" ng-bind-html="country.phonePrefix | highlight: $select.search"></div>
+                                </div>
+                            </ui-select-choices>
+                        </ui-select>
                         <input
                             name="phoneNumber"
                             id="phoneNumber"

@@ -91,6 +91,10 @@ input::-webkit-credentials-auto-fill-button {
   &:disabled {
     background-color: $gray-5;
   }
+
+  &_capitalize {
+    text-transform: capitalize;
+  }
 }
 
 .ng-submitted {

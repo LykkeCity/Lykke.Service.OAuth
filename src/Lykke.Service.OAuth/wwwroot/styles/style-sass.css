@@ -76,6 +76,8 @@ input::-webkit-credentials-auto-fill-button {
     border-color: #0da7fc; }
   .lykke-input:disabled {
     background-color: #f5f6f7; }
+  .lykke-input_capitalize {
+    text-transform: capitalize; }
 
 .ng-submitted .ng-invalid, .ng-submitted .lykke-input_error {
   border-color: #ff3e2e; }
@@ -361,7 +363,23 @@ input::-webkit-credentials-auto-fill-button {
       position: relative; }
       .signup-page .signup-form .lykke-input-phone input {
         padding-left: 98px; }
-      .signup-page .signup-form .lykke-input-phone__value {
+        .signup-page .signup-form .lykke-input-phone input.ui-select-search {
+          padding-left: 15px; }
+      .signup-page .signup-form .lykke-input-phone .phone-prefix {
+        float: right; }
+      .signup-page .signup-form .lykke-input-phone .ui-select-container {
+        border: none;
+        padding: 13px 0;
+        width: 88px;
+        position: absolute;
+        z-index: 1111; }
+        .signup-page .signup-form .lykke-input-phone .ui-select-container.open {
+          width: 100%; }
+      .signup-page .signup-form .lykke-input-phone .ui-select-match {
+        width: 88px; }
+      .signup-page .signup-form .lykke-input-phone .ui-select-toggle {
+        background: none; }
+      .signup-page .signup-form .lykke-input-phone .select2-chosen {
         font-size: 16px;
         text-align: right;
         cursor: pointer;
@@ -370,10 +388,7 @@ input::-webkit-credentials-auto-fill-button {
         height: 50px;
         color: #0da7fc;
         padding-left: 16px; }
-        .signup-page .signup-form .lykke-input-phone__value div {
-          top: 15px;
-          position: relative; }
-        .signup-page .signup-form .lykke-input-phone__value img {
+        .signup-page .signup-form .lykke-input-phone .select2-chosen img {
           margin-left: 4px; }
     .signup-page .signup-form .phone-prefix-select {
       position: absolute;

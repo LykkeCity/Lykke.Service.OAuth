@@ -91,7 +91,7 @@
                     } else {
                         vm.data.model.country = null;
                         $timeout(function () {
-                            angular.element('.ui-select-toggle').click();
+                            angular.element('.ui-select-toggle').first().click();
                         });
                     }
                 }
