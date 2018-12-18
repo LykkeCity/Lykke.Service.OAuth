@@ -179,9 +179,37 @@
 
       input {
         padding-left: 98px;
+
+        &.ui-select-search {
+          padding-left: 15px;
+        }
       }
 
-      &__value {
+      .phone-prefix {
+        float: right;
+      }
+
+      .ui-select-container {
+        border: none;
+        padding: 13px 0;
+        width: 88px;
+        position: absolute;
+        z-index: 1111;
+
+        &.open {
+          width: 100%;
+        }
+      }
+
+      .ui-select-match {
+        width: 88px;
+      }
+
+      .ui-select-toggle {
+        background: none;
+      }
+
+      .select2-chosen {
         font-size: 16px;
         text-align: right;
         cursor: pointer;
@@ -190,11 +218,6 @@
         height: 50px;
         color: $azure;
         padding-left: 16px;
-
-        div {
-          top: 15px;
-          position: relative;
-        }
 
         img {
           margin-left: 4px;

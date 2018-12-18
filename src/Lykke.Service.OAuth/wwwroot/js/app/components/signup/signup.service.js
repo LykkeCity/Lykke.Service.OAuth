@@ -85,11 +85,18 @@
                 });
         }
 
+        function capitalizeName(name) {
+            return name.toLowerCase()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+
         function sendAccountInfo(firstName, lastName, countryCodeIso2, phoneNumber, cid) {
             return $http
                 .post('/api/registration/accountInfo', {
-                    firstName: firstName,
-                    lastName: lastName,
+                    firstName: capitalizeName(firstName),
+                    lastName: capitalizeName(lastName),
                     countryCodeIso2: countryCodeIso2,
                     phoneNumber: phoneNumber,
                     registrationId: getRegistrationId(),
