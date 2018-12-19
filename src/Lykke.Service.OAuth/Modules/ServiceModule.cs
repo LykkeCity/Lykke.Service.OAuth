@@ -2,6 +2,7 @@
 using Autofac;
 using Core.Countries;
 using Core.ExternalProvider;
+using Core.ExternalProvider.Settings;
 using Core.PasswordValidation;
 using Core.Services;
 using Lykke.Common;
@@ -41,7 +42,6 @@ namespace Lykke.Service.OAuth.Modules
             builder.RegisterType<ValidationService>().As<IValidationService>().SingleInstance();
 
             builder.RegisterType<ExternalUserOperator>()
-                .WithParameter("validationSettings", _settings.CurrentValue.OAuth.ExternalProvidersSettings.ValidationSettings)
                 .As<IExternalUserOperator>()
                 .SingleInstance();
 
@@ -49,6 +49,12 @@ namespace Lykke.Service.OAuth.Modules
                 .WithParameter("ironcladSettings", _settings.CurrentValue.OAuth.ExternalProvidersSettings.IroncladApi)
                 .SingleInstance();
 
+            builder.Register(context =>
+                    new ExternalProvidersValidation(
+                        _settings.CurrentValue.OAuth.ExternalProvidersSettings.ValidationSettings))
+                .As<IExternalProvidersValidation>()
+                .SingleInstance();
+            
             builder.RegisterType<CountriesService>()
                 .WithParameter(TypedParameter.From(new CountryPhoneCodes().GetCountries()))
                 .WithParameter(TypedParameter.From(_restrictedCountriesOfResidenceIso2))

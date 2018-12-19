@@ -9,6 +9,7 @@ using Common;
 using Core.Application;
 using Core.Extensions;
 using Core.ExternalProvider;
+using Core.ExternalProvider.Settings;
 using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
@@ -29,17 +30,21 @@ namespace WebAuth.Controllers
         private readonly IUserManager _userManager;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IExternalUserOperator _externalUserOperator;
-        
+        private readonly IExternalProvidersValidation _validation;
+
+
         public AuthorizationController(
             IApplicationRepository applicationRepository,
             IUserManager userManager, 
             IClientSessionsClient clientSessionsClient,
-            IExternalUserOperator externalUserOperator)
+            IExternalUserOperator externalUserOperator,
+            IExternalProvidersValidation validation)
         {
             _applicationRepository = applicationRepository;
             _userManager = userManager;
             _clientSessionsClient = clientSessionsClient;
             _externalUserOperator = externalUserOperator;
+            _validation = validation;
         }
 
         [HttpGet("~/connect/authorize")]
@@ -84,7 +89,7 @@ namespace WebAuth.Controllers
 
             var idp = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Idp);
             
-            if (!string.IsNullOrWhiteSpace(idp))
+            if (_validation.IsValidLykkeIdp(idp) || _validation.IsValidExternalIdp(idp))
             {
                 return HandleIroncladAuthorize(request);
             }

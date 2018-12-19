@@ -9,14 +9,22 @@ namespace Core.ExternalProvider.Settings
     public class ValidationSettings
     {
         /// <summary>
-        ///     Valid identity provider names for lykke identity provider.
+        ///     Valid lykke identity provider names.
+        ///     It should be only one valid idp name for lykke in production,
+        ///     but for testing purposes there could be more than one.
         ///     Default: ["lykke"]
         /// </summary>
         [Optional]
-        public List<string> LykkeIdpValidNames { get; set; } = new List<string>
+        public List<string> ValidLykkeIdps { get; set; } = new List<string>
         {
             "lykke"
         };
+
+        /// <summary>
+        ///     Valid extrenal identity provider names.
+        ///     Default: null
+        /// </summary>
+        public List<string> ValidExternalIdps { get; set; }
 
         /// <summary>
         ///     Indicates if phone verification is required for external users.

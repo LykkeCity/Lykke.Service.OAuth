@@ -44,9 +44,8 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly ITokenService _tokenService;
         private readonly IIroncladFacade _ironcladFacade;
+        private readonly IExternalProvidersValidation _validation;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
-        private readonly ValidationSettings _validationSettings;
 
         public ExternalUserOperator(
             IIroncladUserRepository ironcladUserRepository,
@@ -59,7 +58,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             IClientSessionsClient clientSessionsClient,
             ITokenService tokenService,
             IIroncladFacade ironcladFacade,
-            ValidationSettings validationSettings)
+            IExternalProvidersValidation validation)
         {
             _database = connectionMultiplexer.GetDatabase();
             _ironcladUserRepository = ironcladUserRepository;
@@ -70,7 +69,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             _clientSessionsClient = clientSessionsClient;
             _tokenService = tokenService;
             _ironcladFacade = ironcladFacade;
-            _validationSettings = validationSettings;
+            _validation = validation;
             _dataProtector =
                 dataProtectionProvider.CreateProtector(OpenIdConnectConstantsExt.Protectors
                     .ExternalProviderCookieProtector);
@@ -97,9 +96,9 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             try
             {
-                email = principal.GetEmail(_validationSettings.RequireEmailVerification);
+                email = principal.GetEmail(_validation.RequireEmailVerification);
 
-                phone = principal.GetPhone(_validationSettings.RequirePhoneVerification);
+                phone = principal.GetPhone(_validation.RequirePhoneVerification);
             }
             catch (ClaimNotVerifiedException e)
             {
@@ -207,7 +206,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             //Try to find id in lsub.
             var lsub = principal.FindFirst(OpenIdConnectConstantsExt.Claims.Lsub)?.Value;
 
-            ClientAccountInformationModel lykkeUser;
+            ClientAccountInformationModel lykkeUser = null;
 
             var associatedUser = await _ironcladUserRepository.GetByIdAsync(ironcladUserId);
 
@@ -234,17 +233,21 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 else
                 {
                     // If authenticated through lykke.
-                    if (_validationSettings.LykkeIdpValidNames.Contains(identityProvider))
+                    if (_validation.IsValidLykkeIdp(identityProvider))
                     {
                         // User id should be stored inside a cookie.
                         var lykkeUserIdFromCookie = await GetLykkeUserIdFromCookieAsync();
                         lykkeUser = await _clientAccountClient.GetClientByIdAsync(lykkeUserIdFromCookie);
                     }
-                    else
+                    else if (_validation.IsValidExternalIdp(identityProvider))
                     {
                         // If authenticated through external identity provider.
                         // Should autoprovision user.
                         lykkeUser = await ProvisionIfNotExistAsync(principal);
+                    }
+                    else
+                    {
+                        throw new AuthenticationException($"Identity provider is 41not allowed: {identityProvider}");
                     }
                 }
             }
