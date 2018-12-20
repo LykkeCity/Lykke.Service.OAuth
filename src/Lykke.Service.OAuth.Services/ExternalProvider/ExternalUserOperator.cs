@@ -247,7 +247,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                     }
                     else
                     {
-                        throw new AuthenticationException($"Identity provider is 41not allowed: {identityProvider}");
+                        throw new AuthenticationException($"Identity provider is not allowed: {identityProvider}");
                     }
                 }
             }
