@@ -129,23 +129,16 @@ namespace Lykke.Service.OAuth.Managers
             {
                 new Claim(ClaimTypes.NameIdentifier, clientId),
                 new Claim(OpenIdConnectConstants.Claims.Email, email),
+                new Claim(OpenIdConnectConstants.Claims.EmailVerified, clientAccount.IsEmailVerified.ToString()),
                 new Claim(OpenIdConnectConstants.Claims.Subject, clientId),
                 new Claim(OpenIdConnectConstantsExt.Claims.SessionId,sessionId)
             };
-
-            if (clientAccount.IsEmailVerified)
-            {
-                claims.Add(new Claim(OpenIdConnectConstants.Claims.EmailVerified, "true"));
-            }
 
             if (!string.IsNullOrEmpty(personalData.ContactPhone))
             {
                 claims.Add(new Claim(OpenIdConnectConstants.Claims.PhoneNumber, personalData.ContactPhone));
 
-                if (clientAccount.IsPhoneVerified)
-                {
-                    claims.Add(new Claim(OpenIdConnectConstants.Claims.PhoneNumberVerified, "true"));
-                }
+                claims.Add(new Claim(OpenIdConnectConstants.Claims.PhoneNumberVerified, clientAccount.IsPhoneVerified.ToString()));
             }
 
             if (!string.IsNullOrEmpty(personalData.FirstName))
