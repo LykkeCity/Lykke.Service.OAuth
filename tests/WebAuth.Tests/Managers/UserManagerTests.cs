@@ -8,6 +8,8 @@ using AspNet.Security.OpenIdConnect.Primitives;
 using Common.Log;
 using Core.Extensions;
 using Lykke.Logs;
+using Lykke.Service.ClientAccount.Client;
+using Lykke.Service.OAuth.Managers;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +21,7 @@ namespace WebAuth.Tests.Managers
 {
     public class UserManagerTests
     {
-        private static UserManager CreateUserManager(IPersonalDataService personalDataService = null)
+        private static UserManager CreateUserManager(IPersonalDataService personalDataService = null, IClientAccountClient clientAccountClient = null)
         {
             if (personalDataService == null)
             {
@@ -27,7 +29,7 @@ namespace WebAuth.Tests.Managers
             }
 
             var httpAccessor = Substitute.For<IHttpContextAccessor>();
-            var userManager = new UserManager(personalDataService, httpAccessor);
+            var userManager = new UserManager(personalDataService, httpAccessor, clientAccountClient);
             return userManager;
         }
 
