@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using Core.Extensions;
-using Core.ExternalProvider;
 using Core.ExternalProvider.Settings;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
@@ -96,25 +95,24 @@ namespace Lykke.Service.OAuth.Extensions
 
             options.SaveTokens = true;
 
-            if (!string.IsNullOrWhiteSpace(ironcladSettings.AcrValues))
-                options.Events.OnRedirectToIdentityProvider += context =>
-                {
-                    var acrValuesFromRequest =
-                        context.Properties.GetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues);
+            options.Events.OnRedirectToIdentityProvider += context =>
+            {
+                var acrValuesFromRequest =
+                    context.Properties.GetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues);
 
-                    var acrValuesFromSettings = ironcladSettings.AcrValues;
+                var acrValuesFromSettings = ironcladSettings.AcrValues;
 
-                    var shouldGetFromRequest = !string.IsNullOrEmpty(acrValuesFromRequest);
+                var shouldGetFromRequest = !string.IsNullOrEmpty(acrValuesFromRequest);
 
-                    var shouldGetFromSettings = !string.IsNullOrEmpty(acrValuesFromSettings);
+                var shouldGetFromSettings = !string.IsNullOrEmpty(acrValuesFromSettings);
 
-                    if (shouldGetFromRequest)
-                        context.ProtocolMessage.AcrValues = acrValuesFromRequest;
-                    else if (shouldGetFromSettings)
-                        context.ProtocolMessage.AcrValues = acrValuesFromSettings;
+                if (shouldGetFromRequest)
+                    context.ProtocolMessage.AcrValues = acrValuesFromRequest;
+                else if (shouldGetFromSettings)
+                    context.ProtocolMessage.AcrValues = acrValuesFromSettings;
 
-                    return Task.CompletedTask;
-                };
+                return Task.CompletedTask;
+            };
         }
     }
 }
