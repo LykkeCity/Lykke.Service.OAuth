@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Lykke.Service.OAuth.Factories;
+using Lykke.Service.OAuth.Managers;
 using Lykke.SettingsReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
