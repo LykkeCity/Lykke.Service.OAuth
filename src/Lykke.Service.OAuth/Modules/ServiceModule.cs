@@ -1,11 +1,16 @@
 ﻿using System.Collections.Generic;
 using Autofac;
 using Core.Countries;
+using Core.ExternalProvider;
+using Core.ExternalProvider.Settings;
 using Core.PasswordValidation;
 using Core.Services;
 using Lykke.Common;
+using Lykke.Common.ApiLibrary.Authentication;
+using Lykke.Service.OAuth.Middleware;
 using Lykke.Service.OAuth.Services;
 using Lykke.Service.OAuth.Services.Countries;
+using Lykke.Service.OAuth.Services.ExternalProvider;
 using Lykke.Service.OAuth.Services.PasswordValidation;
 using Lykke.Service.OAuth.Services.PasswordValidation.Validators;
 using Lykke.SettingsReader;
@@ -30,10 +35,26 @@ namespace Lykke.Service.OAuth.Modules
 
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<TokenService>().As<ITokenService>().SingleInstance();
+            builder.RegisterType<TokenService>()
+                .WithParameter("ironcladAuth", _settings.CurrentValue.OAuth.ExternalProvidersSettings.IroncladAuth)
+                .As<ITokenService>().SingleInstance();
 
             builder.RegisterType<ValidationService>().As<IValidationService>().SingleInstance();
 
+            builder.RegisterType<ExternalUserOperator>()
+                .As<IExternalUserOperator>()
+                .SingleInstance();
+
+            builder.RegisterType<IroncladFacade>().As<IIroncladFacade>()
+                .WithParameter("ironcladSettings", _settings.CurrentValue.OAuth.ExternalProvidersSettings.IroncladApi)
+                .SingleInstance();
+
+            builder.Register(context =>
+                    new ExternalProvidersValidation(
+                        _settings.CurrentValue.OAuth.ExternalProvidersSettings.ValidationSettings))
+                .As<IExternalProvidersValidation>()
+                .SingleInstance();
+            
             builder.RegisterType<CountriesService>()
                 .WithParameter(TypedParameter.From(new CountryPhoneCodes().GetCountries()))
                 .WithParameter(TypedParameter.From(_restrictedCountriesOfResidenceIso2))
@@ -51,6 +72,8 @@ namespace Lykke.Service.OAuth.Modules
                 .WithParameter(TypedParameter.From(_restrictedCountriesOfResidenceIso2))
                 .As<IStartupManager>()
                 .SingleInstance();
+
+            builder.RegisterType<LykkePrincipal>().As<ILykkePrincipal>().SingleInstance();
 
             #region PasswordValidators
             builder.RegisterType<PwnedPasswordsValidator>().As<IPasswordValidator>().SingleInstance();

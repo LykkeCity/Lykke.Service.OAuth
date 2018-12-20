@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Net.Http;
 using System.Threading.Tasks;
+using Core.ExternalProvider;
+using Core.ExternalProvider.Settings;
 using FluentAssertions;
+using IdentityModel.Client;
 using Lykke.Service.OAuth.Services;
 using NSubstitute;
 using StackExchange.Redis;
@@ -14,16 +18,22 @@ namespace WebAuth.Tests.Services
         private readonly TokenService _tokenService;
 
         private const string TestRefreshToken = "test_refresh_token";
-        private const string TestSessionId = "test_session_id";
 
         public TokenServiceTests()
         {
             _redisDatabase = Substitute.For<IDatabase>();
 
             var multiplexer = Substitute.For<IConnectionMultiplexer>();
+            var clientFactory = Substitute.For<IHttpClientFactory>();
+            var discoveryCache = Substitute.For<IDiscoveryCache>();
+            var ironcladAuth = new IdentityProviderSettings();
             multiplexer.GetDatabase().ReturnsForAnyArgs(_redisDatabase);
 
-            _tokenService = new TokenService(multiplexer);
+            _tokenService = new TokenService(
+                ironcladAuth,
+                multiplexer, 
+                clientFactory, 
+                discoveryCache);
         }
 
         [Theory]

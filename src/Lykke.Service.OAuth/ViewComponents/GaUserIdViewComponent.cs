@@ -20,7 +20,11 @@ namespace WebAuth.ViewComponents
             ViewBag.UserId = string.Empty;
 
             if (User.Identity.IsAuthenticated)
-                ViewBag.UserId = await _gaWaraWrapperClient.GetGaUserIdAsync(Request.HttpContext.User.GetClaim(ClaimTypes.NameIdentifier));
+            {
+                var userId = UserClaimsPrincipal.GetClaim(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrWhiteSpace(userId))
+                    ViewBag.UserId = await _gaWaraWrapperClient.GetGaUserIdAsync(userId);
+            }
 
             return View();
         }

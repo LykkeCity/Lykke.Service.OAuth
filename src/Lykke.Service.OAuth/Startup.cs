@@ -11,11 +11,13 @@ using Common.Log;
 using Core.Extensions;
 using Core.Services;
 using IdentityServer4.AccessTokenValidation;
+using Lykke.Common.ApiLibrary.Authentication;
 using Lykke.Common.ApiLibrary.Middleware;
 using Lykke.Common.ApiLibrary.Swagger;
 using Lykke.Common.Log;
 using Lykke.Cqrs;
 using Lykke.Logs;
+using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.OAuth.Modules;
 using Lykke.SettingsReader;
 using Lykke.SettingsReader.ReloadingManager;
@@ -106,6 +108,8 @@ namespace WebAuth
 
                 var xcert = new X509Certificate2(cert, _settings.OAuth.Certificates.OpenIdConnectCertPassword);
 
+                services.AddDiscoveryCache(_settings.OAuth.ExternalProvidersSettings.IroncladAuth.Authority);
+
                 services.AddAuthentication(options =>
                     {
                         options.DefaultScheme = OpenIdConnectConstantsExt.Auth.DefaultScheme;
@@ -124,6 +128,15 @@ namespace WebAuth
                         options.EventsType = typeof(CustomCookieAuthenticationEvents);
                     })
 
+                    // This cookie is used for external provider authentication.
+                    .AddCookie(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme, options =>
+                    {
+                        options.Cookie.HttpOnly = true;
+                        options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
+                    })
+
+                    .AddIronclad(_settings.OAuth.ExternalProvidersSettings.IroncladAuth)
+
                     .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
                         options =>
                         {
@@ -132,7 +145,16 @@ namespace WebAuth
                             options.ApiName = config.ClientId;
                             options.ApiSecret = config.ClientSecret;
                         })
-
+                    .AddLykkeAuthentication(OpenIdConnectConstantsExt.Auth.LykkeScheme, options =>
+                    {
+                        options.Authority = _settings.OAuth.ResourceServerSettings.Authority;
+                        options.ClientId = _settings.OAuth.ResourceServerSettings.ClientId;
+                        options.ClientSecret = _settings.OAuth.ResourceServerSettings.ClientSecret;
+                        options.NameClaimType = _settings.OAuth.ResourceServerSettings.NameClaimType;
+                        options.EnableCaching = _settings.OAuth.ResourceServerSettings.EnableCaching;
+                        options.CacheDuration = _settings.OAuth.ResourceServerSettings.CacheDuration;
+                        options.SkipTokensWithDots = _settings.OAuth.ResourceServerSettings.SkipTokensWithDots;
+                    })
                     .AddOpenIdConnectServer(options =>
                     {
                         options.ProviderType = typeof(AuthorizationProvider);
