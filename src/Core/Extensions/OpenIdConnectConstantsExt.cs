@@ -54,6 +54,8 @@
         public static class Cookies
         {
             public const string TemporaryUserIdCookie = "TemporaryUserIdCookie";
+            public const string SignInContextCookie = "SignInContextCookie";
+            public const string IroncladRequestCookie = "IroncladRequestCookie";
         }
     }
 }

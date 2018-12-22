@@ -13,6 +13,6 @@ namespace Core.ExternalProvider
         /// <param name="value">Claim value.</param>
         /// <returns>Completed task if everything was successful.</returns>
         /// <exception cref="AuthenticationException">Thrown when ironclad api access token could not retrieved.</exception>
-        Task AddUserClaim(string ironcladUserId, string type, string value);
+        Task AddUserClaimAsync(string ironcladUserId, string type, string value);
     }
 }

@@ -313,6 +313,8 @@ namespace WebAuth.Providers
 
         public override async Task ApplyTokenResponse(ApplyTokenResponseContext context)
         {
+            //TODO:@gafanasiev Think what we could get here
+
             await UpdateRefreshToken(context);
         }
 

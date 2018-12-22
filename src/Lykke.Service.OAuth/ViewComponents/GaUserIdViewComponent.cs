@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
+using Core.Extensions;
 using Lykke.Service.GoogleAnalyticsWrapper.Client;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAuth.ViewComponents
@@ -19,9 +21,11 @@ namespace WebAuth.ViewComponents
         {
             ViewBag.UserId = string.Empty;
 
-            if (User.Identity.IsAuthenticated)
+            var authenticateResult = await HttpContext.AuthenticateAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
+
+            if (authenticateResult.Succeeded)
             {
-                var userId = UserClaimsPrincipal.GetClaim(ClaimTypes.NameIdentifier);
+                var userId = authenticateResult.Principal.GetClaim(ClaimTypes.NameIdentifier);
                 if (!string.IsNullOrWhiteSpace(userId))
                     ViewBag.UserId = await _gaWaraWrapperClient.GetGaUserIdAsync(userId);
             }

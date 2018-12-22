@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,11 +10,11 @@ using Common;
 using Core.Application;
 using Core.Extensions;
 using Core.ExternalProvider;
-using Core.ExternalProvider.Settings;
 using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,6 +88,29 @@ namespace WebAuth.Controllers
                 });
             }
 
+            //TODO:@gafanasiev Remove
+            var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
+
+            if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
+            {
+                var lifetime = TimeSpan.FromMinutes(10);
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    //TODO:@gafanasiev Fix datetime
+                    Expires = DateTimeOffset.UtcNow.Add(lifetime),
+                    MaxAge = lifetime,
+                    //TODO:@gafanasiev Fix cookie options
+                    Secure = false
+                };
+
+                HttpContext.Response.Cookies.Append(
+                    OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie,
+                    request.ToJson(),
+                    cookieOptions);
+                // Save to cookie.
+            }
+
             var idp = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Idp);
             
             if (_validation.IsValidLykkeIdp(idp) || _validation.IsValidExternalIdp(idp))
@@ -100,7 +124,7 @@ namespace WebAuth.Controllers
         [HttpPost("~/connect/authorize/external")]
         [HttpGet("~/connect/authorize/external")]
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true, Duration = 0)]
-        public IActionResult AuthorizeExternal()
+        public async Task<IActionResult> AuthorizeExternal()
         {
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null)
@@ -132,8 +156,32 @@ namespace WebAuth.Controllers
                 OpenIdConnectConstants.Scopes.Profile
             }.Intersect(request.GetScopes()));
 
+            //TODO:@gafanasiev uncomment
+            // Remove the authorization request from the user session.
+            //if (!string.IsNullOrEmpty(request.RequestId))
+            //{
+            //    HttpContext.Session.Remove("authorization-request:" + request.RequestId);
+            //}
+
+            //TODO:@gafanasiev Move to separate connect/authorize method, special for ironclad.
+            var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
+
+            var userId = User.GetClaimValue(ClaimTypes.NameIdentifier);
+            
+            if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
+            {
+                await _externalUserOperator.SaveLykkeUserIdAfterIroncladlLoginAsync(userId);
+            }
+            
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
+
+            //TODO:@gafanasiev If browser, then return normal token.
+            //await HttpContext.SignInAsync(ticket.AuthenticationScheme, ticket.Principal, ticket.Properties);
+
+
+            //TODO:@gafanasiev Redirect to ironclad if platform anroid||ios / Get from cookie.    
         }
+
 
         [Authorize]
         [HttpPost("~/connect/authorize/accept")]
@@ -325,10 +373,10 @@ namespace WebAuth.Controllers
             if (!User.Identities.Any(identity => identity.IsAuthenticated))
             {
                 var identifier = StringUtils.GenerateId();
-
+                
                 // Store the authorization request in the user session.
                 HttpContext.Session.Set("authorization-request:" + identifier, request.ToJson().ToUtf8Bytes());
-                parameters.Add("request_id", identifier);
+                request.RequestId = identifier;
 
                 redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
 
@@ -346,7 +394,7 @@ namespace WebAuth.Controllers
                 return Challenge(authenticationProperties);
             }
 
-            var userId = ClaimsPrincipalExtensions.GetClaimValue(User, ClaimTypes.NameIdentifier);
+            var userId = User.GetClaimValue(ClaimTypes.NameIdentifier);
 
             var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
             

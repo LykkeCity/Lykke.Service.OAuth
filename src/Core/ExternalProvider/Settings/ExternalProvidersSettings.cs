@@ -22,5 +22,10 @@ namespace Core.ExternalProvider.Settings
         /// </summary>
         [Optional]
         public ValidationSettings ValidationSettings { get; set; }
+
+        //TODO:@gafanasiev Add summary.
+        [Optional]
+        public RedirectSettings RedirectSettings { get; set; }
+
     }
 }
