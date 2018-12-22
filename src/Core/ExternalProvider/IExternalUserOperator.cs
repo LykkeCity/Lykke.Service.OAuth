@@ -59,11 +59,5 @@ namespace Core.ExternalProvider
         /// <param name="context">Lykke user authentication context.</param>
         /// <returns>Completed task if everything is ok.</returns>
         Task SignInAsync(LykkeUserAuthenticationContext context);
-
-        //TODO:@gafanasiev Add descr. Move to extension
-        void SaveLykkeSignInContext(LykkeSignInContext context);
-
-        //TODO:@gafanasiev Add descr. Move to extension
-        LykkeSignInContext GetLykkeSignInContext();
     }
 }

@@ -2,8 +2,9 @@
 {
     public class RedirectSettings
     {
-        public string AndroidRedirectUri { get; set; }
-
-        public string IosRedirectUri { get; set; }
+        /// <summary>
+        ///     Acr values used during old lykke flow, passed to ironclad authentication.
+        /// </summary>
+        public string OldLykkeSignInIroncladAuthAcrValues { get; set; }
     }
 }

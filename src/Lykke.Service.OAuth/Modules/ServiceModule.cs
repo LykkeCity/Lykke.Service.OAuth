@@ -60,7 +60,6 @@ namespace Lykke.Service.OAuth.Modules
                         _settings.CurrentValue.OAuth.ExternalProvidersSettings.RedirectSettings))
                 .As<IRedirectSettingsAccessor>()
                 .SingleInstance();
-
             
             builder.RegisterType<CountriesService>()
                 .WithParameter(TypedParameter.From(new CountryPhoneCodes().GetCountries()))

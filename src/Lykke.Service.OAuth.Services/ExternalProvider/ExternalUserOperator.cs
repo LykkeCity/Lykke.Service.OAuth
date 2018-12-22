@@ -20,7 +20,6 @@ using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Contract.Models;
 using Lykke.Service.Session.Client;
-using MessagePack;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -34,8 +33,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private const string RedisPrefixIroncladLykkeLogins = "OAuth:IroncladLykkeLogins";
 
         private readonly TimeSpan _ironcladLykkeLoginsLifetime = TimeSpan.FromMinutes(2);
-        //TODO:@gafanasiev change cookie lifetime
-        private readonly TimeSpan _lykkeSignInContextCookieLifetime= TimeSpan.FromMinutes(10);
         private readonly TimeSpan _mobileSessionLifetime = TimeSpan.FromDays(30);
 
         private readonly IDatabase _database;
@@ -281,10 +278,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         /// <inheritdoc />
         public async Task SignInAsync(LykkeUserAuthenticationContext context)
         {
-            // delete temporary cookie used during external authentication
-            await _httpContextAccessor.HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth
-                .ExternalAuthenticationScheme);
-
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, context.LykkeUser.Id),
@@ -298,49 +291,13 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, context.SessionId,
                 OpenIdConnectConstants.Destinations.AccessToken);
             
+            // delete temporary cookie used during external authentication
+            await _httpContextAccessor.HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth
+                .ExternalAuthenticationScheme);
+
             // TODO: Think if we need to remove this step and authenticate directly with ASOS to issue tokens.
             await _httpContextAccessor.HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
                 new ClaimsPrincipal(identity));
-        }
-
-        public void SaveLykkeSignInContext(LykkeSignInContext context)
-        {
-            // TODO:@gafanasiev check if this supports multiple instances.
-            var serializedData = MessagePackSerializer.Serialize(context);
-
-            var protectedData = _dataProtector.Protect(serializedData);
-
-            var bitString = Convert.ToBase64String(protectedData);  
-
-            var useHttps = !_hostingEnvironment.IsDevelopment();
-
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = DateTimeOffset.UtcNow.Add(_lykkeSignInContextCookieLifetime),
-                MaxAge = _lykkeSignInContextCookieLifetime,
-                Secure = useHttps
-            };
-            _httpContextAccessor.HttpContext.Response.Cookies.Append(
-                OpenIdConnectConstantsExt.Cookies.SignInContextCookie,
-                bitString,
-                cookieOptions);
-        }
-
-        public LykkeSignInContext GetLykkeSignInContext()
-        {
-            var cookieExist = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(
-                OpenIdConnectConstantsExt.Cookies.SignInContextCookie,
-                out var protectedData);
-
-            if (!cookieExist)
-                return null;
-            
-            var bytes = Convert.FromBase64String(protectedData);  
-            
-            var unprotectedData = _dataProtector.Unprotect(bytes);
-
-            return MessagePackSerializer.Deserialize<LykkeSignInContext>(unprotectedData);
         }
         
         private string GetIroncladLykkeLoginsRedisKey(string guid)

@@ -1,12 +1,8 @@
-﻿using System.Security.Policy;
-using System.Threading.Tasks;
-using Common;
+﻿using System.Threading.Tasks;
 using Core.Extensions;
-using Core.ExternalProvider;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace WebAuth
@@ -14,14 +10,10 @@ namespace WebAuth
     internal class CustomCookieAuthenticationEvents : CookieAuthenticationEvents
     {
         private readonly IClientSessionsClient _clientSessionsClient;
-        private readonly IExternalUserOperator _externalUserOperator;
 
-        public CustomCookieAuthenticationEvents(
-            IClientSessionsClient clientSessionsClient,
-            IExternalUserOperator externalUserOperator)
+        public CustomCookieAuthenticationEvents(IClientSessionsClient clientSessionsClient)
         {
             _clientSessionsClient = clientSessionsClient;
-            _externalUserOperator = externalUserOperator;
         }
 
         public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
@@ -42,21 +34,10 @@ namespace WebAuth
             // this parameter added for authentification on login page with PartnerId
             context.Properties.Parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerId, out var partnerIdValue);
 
-            var partnerIdString = partnerIdValue as string;
+            var partnerId = partnerIdValue as string;
 
-            //var savedContext = _externalUserOperator.GetLykkeSignInContext();
-          
-            //var partnerId = string.IsNullOrWhiteSpace(partnerIdString) ? savedContext?.Partnerid : partnerIdString;
-
-            //var platform = savedContext?.Platform;
-
-            if (!string.IsNullOrWhiteSpace(partnerIdString))
-                context.RedirectUri = QueryHelpers.AddQueryString(context.RedirectUri, OpenIdConnectConstantsExt.Parameters.PartnerId, partnerIdString);
-
-            //if (!string.IsNullOrEmpty(platform))
-            //{
-            //    context.RedirectUri = context.RedirectUri.Replace(@"/signin?", $@"/signin/{platform}?");
-            //}
+            if (!string.IsNullOrWhiteSpace(partnerId))
+                context.RedirectUri = QueryHelpers.AddQueryString(context.RedirectUri, OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
 
             await base.RedirectToLogin(context);
         }
