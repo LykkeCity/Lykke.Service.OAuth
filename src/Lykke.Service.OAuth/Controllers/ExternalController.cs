@@ -43,7 +43,6 @@ namespace Lykke.Service.OAuth.Controllers
         {
             try
             {
-
                 var authenticateResult =
                     await HttpContext.AuthenticateAsync(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme);
 
@@ -55,13 +54,6 @@ namespace Lykke.Service.OAuth.Controllers
 
                 await _externalUserOperator.SignInAsync(lykkeUserAuthenticationContext);
 
-                var lykkeSignInContext = _externalUserOperator.GetLykkeSignInContext();
-
-                if (lykkeSignInContext != null)
-                {
-                    return LocalRedirect(lykkeSignInContext.AfterLykkeLoginReturnUrl);
-                }
-                
                 return LocalRedirect(externalLoginReturnUrl);
             }
             catch (Exception e) when (

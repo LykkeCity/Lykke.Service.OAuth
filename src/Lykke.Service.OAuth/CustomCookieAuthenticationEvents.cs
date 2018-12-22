@@ -44,19 +44,19 @@ namespace WebAuth
 
             var partnerIdString = partnerIdValue as string;
 
-            var savedContext = _externalUserOperator.GetLykkeSignInContext();
+            //var savedContext = _externalUserOperator.GetLykkeSignInContext();
           
-            var partnerId = string.IsNullOrWhiteSpace(partnerIdString) ? savedContext?.Partnerid : partnerIdString;
+            //var partnerId = string.IsNullOrWhiteSpace(partnerIdString) ? savedContext?.Partnerid : partnerIdString;
 
-            var platform = savedContext?.Platform;
+            //var platform = savedContext?.Platform;
 
-            if (!string.IsNullOrWhiteSpace(partnerId))
-                context.RedirectUri = QueryHelpers.AddQueryString(context.RedirectUri, OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
+            if (!string.IsNullOrWhiteSpace(partnerIdString))
+                context.RedirectUri = QueryHelpers.AddQueryString(context.RedirectUri, OpenIdConnectConstantsExt.Parameters.PartnerId, partnerIdString);
 
-            if (!string.IsNullOrEmpty(platform))
-            {
-                context.RedirectUri = context.RedirectUri.Replace(@"/signin?", $@"/signin/{platform}?");
-            }
+            //if (!string.IsNullOrEmpty(platform))
+            //{
+            //    context.RedirectUri = context.RedirectUri.Replace(@"/signin?", $@"/signin/{platform}?");
+            //}
 
             await base.RedirectToLogin(context);
         }
