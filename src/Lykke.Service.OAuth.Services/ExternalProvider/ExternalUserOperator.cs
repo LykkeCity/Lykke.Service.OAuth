@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
@@ -10,7 +11,6 @@ using Common;
 using Core.Extensions;
 using Core.ExternalProvider;
 using Core.ExternalProvider.Exceptions;
-using Core.ExternalProvider.Settings;
 using Core.Services;
 using IdentityModel;
 using Lykke.Service.ClientAccount.Client;
@@ -259,7 +259,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             var lykkeUserId = lykkeUser.Id;
 
             if (!ironcladUserHasLsubClaim)
-                await _ironcladFacade.AddUserClaim(ironcladUserId, OpenIdConnectConstantsExt.Claims.Lsub, lykkeUserId);
+                await _ironcladFacade.AddUserClaimAsync(ironcladUserId, OpenIdConnectConstantsExt.Claims.Lsub, lykkeUserId);
 
             if (!userAssociated)
                 await _ironcladUserRepository.AddAsync(new IroncladUser
@@ -290,7 +290,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             // Add sessionId only to access token.
             identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, context.SessionId,
                 OpenIdConnectConstants.Destinations.AccessToken);
-
+            
             // delete temporary cookie used during external authentication
             await _httpContextAccessor.HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth
                 .ExternalAuthenticationScheme);
@@ -299,7 +299,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             await _httpContextAccessor.HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
                 new ClaimsPrincipal(identity));
         }
-
+        
         private string GetIroncladLykkeLoginsRedisKey(string guid)
         {
             if (string.IsNullOrWhiteSpace(guid))

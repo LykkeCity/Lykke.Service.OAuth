@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Common;
 using Common.Log;
 using Common.PasswordTools;
 using Core;
 using Core.Email;
 using Core.Extensions;
+using Core.ExternalProvider;
+using Core.ExternalProvider.Settings;
 using Core.Recaptcha;
 using Core.Registration;
 using Core.Services;
@@ -26,7 +29,6 @@ using Lykke.Service.OAuth.Models.Registration;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Enums;
 using Lykke.Service.Registration.Contract.Client.Models;
-using Lykke.Service.Salesforce.Contract.Commands;
 using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
@@ -63,6 +65,7 @@ namespace WebAuth.Controllers
         private readonly IEnumerable<CountryItem> _countries;
         private readonly IRegistrationRepository _registrationRepository;
         private readonly ISalesforceService _salesforceService;
+        private readonly RedirectSettings _redirectSettings;
 
         public AuthenticationController(
             IRegistrationServiceClient registrationClient,
@@ -78,11 +81,12 @@ namespace WebAuth.Controllers
             ILogFactory logFactory,
             IClientSessionsClient clientSessionsClient,
             IRegistrationRepository registrationRepository,
-            ISalesforceService salesforceService
-            )
+            ISalesforceService salesforceService,
+            IRedirectSettingsAccessor redirectSettingsAccessor)
         {
             _registrationRepository = registrationRepository;
             _salesforceService = salesforceService;
+            _redirectSettings = redirectSettingsAccessor.RedirectSettings;
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
             _emailFacadeService = emailFacadeService;
@@ -112,7 +116,6 @@ namespace WebAuth.Controllers
             //                    return RedirectToAction("Afterlogin", new { returnUrl, platform });
             //                }
             //            }
-
 
             try
             {
@@ -193,7 +196,7 @@ namespace WebAuth.Controllers
 
                 if (!ModelState.IsValid)
                     return View(viewName, model);
-
+                
                 return await HandleAuthenticationAsync(model, platform, viewName);
             }
 
@@ -283,13 +286,28 @@ namespace WebAuth.Controllers
                 model.Username, authResult.Account.PartnerId, authResult.Token, false);
 
             await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
-
-            return RedirectToAction("Afterlogin",
+           
+            var afterLykkeLoginReturnUrl = Url.Action("Afterlogin",
                 new RouteValueDictionary(new
                 {
                     platform = platform,
                     returnUrl = model.ReturnUrl
                 }));
+
+            if (model.ReturnUrl != null) 
+                return RedirectToLocal(afterLykkeLoginReturnUrl);
+
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("ExternalLoginCallback", "External")
+            };
+
+            properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
+                afterLykkeLoginReturnUrl);
+
+            properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues, _redirectSettings.OldLykkeSignInIroncladAuthAcrValues);
+
+            return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
         }
 
         [HttpGet("~/signup/{key}")]

@@ -346,7 +346,7 @@ namespace WebAuth.Controllers
                 return Challenge(authenticationProperties);
             }
 
-            var userId = ClaimsPrincipalExtensions.GetClaimValue(User, ClaimTypes.NameIdentifier);
+            var userId = User.GetClaimValue(ClaimTypes.NameIdentifier);
 
             var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
             

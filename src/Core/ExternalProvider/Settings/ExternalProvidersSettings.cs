@@ -18,6 +18,11 @@ namespace Core.ExternalProvider.Settings
         public IdentityProviderSettings IroncladApi { get; set; }
 
         /// <summary>
+        /// Redirect settings.
+        /// </summary>
+        public RedirectSettings RedirectSettings { get; set; }
+
+        /// <summary>
         /// External provider validation settings.
         /// </summary>
         [Optional]

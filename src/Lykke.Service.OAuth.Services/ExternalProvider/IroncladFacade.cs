@@ -38,7 +38,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             _scope = string.Join(' ', ironcladSettings.Scopes);
         }
 
-        public async Task AddUserClaim(string ironcladUserId, string type, string value)
+        public async Task AddUserClaimAsync(string ironcladUserId, string type, string value)
         {
             var accessToken = await GetAccessToken();
 
