@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using Common.Log;
 using Core.Extensions;
 using Core.ExternalProvider;
 using Core.ExternalProvider.Exceptions;
+using Core.Services;
 using Lykke.Common.Log;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebAuth.Extensions;
+using WebAuth.Managers;
 using OpenIdConnectMessage = Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectMessage;
 
 namespace Lykke.Service.OAuth.Controllers
@@ -19,6 +23,8 @@ namespace Lykke.Service.OAuth.Controllers
     {
         private readonly ILog _log;
         private readonly IExternalUserOperator _externalUserOperator;
+        private readonly ITokenService _tokenService;
+        private readonly IUserManager _userManager;
 
         private static readonly OpenIdConnectMessage AuthenticationError = new OpenIdConnectMessage
         {
@@ -26,12 +32,17 @@ namespace Lykke.Service.OAuth.Controllers
             ErrorDescription = "Authentication error"
         };
 
+
         public ExternalController(
             ILogFactory logFactory,
-            IExternalUserOperator externalUserOperator)
+            IExternalUserOperator externalUserOperator,
+            ITokenService tokenService,
+            IUserManager userManager)
         {
             _log = logFactory.CreateLog(this);
             _externalUserOperator = externalUserOperator;
+            _tokenService = tokenService;
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -43,16 +54,30 @@ namespace Lykke.Service.OAuth.Controllers
         {
             try
             {
-                var authenticateResult =
-                    await HttpContext.AuthenticateAsync(OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme);
+                var ironcladPrincipal = await HttpContext.GetIroncladPrincipalAsync();
 
-                var externalLoginReturnUrl = GetRedirectUrl(authenticateResult);
+                var ironcladUser = _userManager.IroncladUserFromIdentity(ironcladPrincipal.Identity as ClaimsIdentity);
 
-                var ironcladUser = await _externalUserOperator.GetCurrentUserAsync(authenticateResult);
+                var lykkeUser =
+                    await _externalUserOperator.ProvisionIfNotExistAsync(ironcladUser, ironcladPrincipal.Claims);
 
-                var lykkeUserAuthenticationContext = await _externalUserOperator.AuthenticateAsync(ironcladUser);
+                var lykkeUserAuthenticationContext = await _externalUserOperator.CreateSessionAsync(lykkeUser);
 
-                await _externalUserOperator.SignInAsync(lykkeUserAuthenticationContext);
+                var ironcladRefreshToken = await HttpContext.GetIroncladRefreshTokenAsync();
+
+                await _tokenService.SaveIroncladRefreshTokenAsync(lykkeUserAuthenticationContext.SessionId,
+                    ironcladRefreshToken);
+
+                await _externalUserOperator.AssociateIroncladUserAsync(lykkeUser, ironcladUser);
+
+                var lykkeIdentity = _userManager.CreateUserIdentity(lykkeUserAuthenticationContext);
+
+                await HttpContext.SignInAsLykkeUserAsync(lykkeIdentity);
+
+                await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth
+                    .ExternalAuthenticationScheme); 
+
+                var externalLoginReturnUrl = await HttpContext.GetIroncladExternalRedirectUrlAsync();
 
                 return LocalRedirect(externalLoginReturnUrl);
             }
@@ -66,17 +91,56 @@ namespace Lykke.Service.OAuth.Controllers
             }
         }
 
-        private string GetRedirectUrl(AuthenticateResult authenticateResult)
+        /// <summary>
+        ///     Post processing of lykke authentication through ironclad
+        /// </summary>
+        [HttpGet("lykke-login-callback")]
+        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.ExternalAuthenticationScheme)]
+        public async Task<IActionResult> LykkeLoginCallback()
         {
-            authenticateResult.Properties.Items.TryGetValue(
-                OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
-                out var externalLoginReturnUrl);
+            try
+            {
+                var ironcladPrincipal = await HttpContext.GetIroncladPrincipalAsync();
 
-            if (!Url.IsLocalUrl(externalLoginReturnUrl))
-                throw new AuthenticationException(
-                    $"External login callback url is invalid: {externalLoginReturnUrl}");
+                var ironcladUser = _userManager.IroncladUserFromIdentity(ironcladPrincipal.Identity as ClaimsIdentity);
 
-            return externalLoginReturnUrl;
+                var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync(); 
+
+                //TODO: @gafanasiev change to faster way (cache user in redis or cookie).
+                var lykkeUser = await _userManager.GetLykkeUserAsync(lykkeUserId);
+
+                var lykkeUserAuthenticationContext = await _externalUserOperator.CreateSessionAsync(lykkeUser);
+
+                var sessionId = lykkeUserAuthenticationContext.SessionId;
+                
+                var lykkeIdentity = _userManager.CreateUserIdentity(lykkeUserAuthenticationContext);
+                
+                var ironcladRefreshToken = await HttpContext.GetIroncladRefreshTokenAsync();
+
+                // TODO:@gafanasiev Save access token, save id_token
+                await _tokenService.SaveIroncladRefreshTokenAsync(sessionId, ironcladRefreshToken);
+
+                await _externalUserOperator.AssociateIroncladUserAsync(lykkeUser, ironcladUser);
+
+                await HttpContext.SignInAsLykkeUserAsync(lykkeIdentity);
+
+                _externalUserOperator.ClearTempUserId();
+
+                await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth
+                    .ExternalAuthenticationScheme); 
+
+                var externalLoginReturnUrl = await HttpContext.GetIroncladExternalRedirectUrlAsync();
+
+                return LocalRedirect(externalLoginReturnUrl);
+            }
+            catch (Exception e) when (
+                e is AuthenticationException ||
+                e is ClaimNotFoundException ||
+                e is AutoprovisionException)
+            {
+                _log.Warning(e.Message);
+                return View("Error", AuthenticationError);
+            }
         }
     }
 }

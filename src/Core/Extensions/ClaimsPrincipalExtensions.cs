@@ -37,7 +37,7 @@ namespace Core.Extensions
         /// </summary>
         /// <param name="claimsPrincipal">Principal.</param>
         /// <param name="requireVerification">Indicates if verification check is required.</param>
-        /// <returns>Email value if present, empty string otherwise.</returns>
+        /// <returns>Email value if present, null otherwise.</returns>
         /// <exception cref="ClaimNotVerifiedException">
         ///     When <paramref name="requireVerification" /> is true and email is not
         ///     verified.
@@ -56,7 +56,7 @@ namespace Core.Extensions
         /// </summary>
         /// <param name="claimsPrincipal">Principal.</param>
         /// <param name="requireVerification">Indicates if verification check is required.</param>
-        /// <returns>Phone value if present, empty string otherwise.</returns>
+        /// <returns>Phone value if present, null otherwise.</returns>
         /// <exception cref="ClaimNotVerifiedException">
         ///     When <paramref name="requireVerification" /> is true and phone is not
         ///     verified.
@@ -97,7 +97,7 @@ namespace Core.Extensions
         ///     Type of claim which indicates if value in <paramref name="claimValueType" /> is verified on external provider side.
         /// </param>
         /// <param name="requireVerification">Indicates if claim verification is required.</param>
-        /// <returns>Value, or empty string if claim is not present or not verified.</returns>
+        /// <returns>Value, or null if claim is not present or not verified.</returns>
         /// <exception cref="ClaimNotVerifiedException">
         ///     Thrown when <paramref name="requireVerification" /> is true and claim value
         ///     is null or whitespace.
@@ -115,7 +115,7 @@ namespace Core.Extensions
             var value = principal.FindFirst(claimValueType)?.Value;
 
             if (!requireVerification)
-                return value ?? string.Empty;
+                return value;
 
             if (string.IsNullOrWhiteSpace(value))
                 throw new ClaimNotVerifiedException($"{claimValueType} is null or whitespace");

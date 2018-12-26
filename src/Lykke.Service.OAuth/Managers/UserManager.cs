@@ -8,6 +8,7 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Core.Extensions;
+using Core.ExternalProvider;
 using IdentityModel;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.PersonalData.Contract;
@@ -113,54 +114,83 @@ namespace Lykke.Service.OAuth.Managers
 
         public async Task<ClaimsIdentity> CreateUserIdentityAsync(string clientId, string email, string userName, string partnerId, string sessionId, bool? register = null)
         {
-            var personalData = await _personalDataService.GetAsync(clientId);
-            if (personalData == null)
+            var lykkeUser = await GetLykkeUserAsync(clientId);
+
+            if (!string.IsNullOrWhiteSpace(email))
             {
-                throw new InvalidOperationException("Unable to find personal data for user " + clientId);
+                //TODO: Remove email from arguments.
+                lykkeUser.Email = email;
             }
 
-            var clientAccount = await _clientAccountClient.GetByIdAsync(clientId);
-            if (clientAccount == null)
+            if (!string.IsNullOrWhiteSpace(partnerId))
             {
-                throw new InvalidOperationException("Unable to find client account data for user " + clientId);
+                lykkeUser.PartnerId = partnerId;
             }
+            
+            var claims = ClaimsFromLykkeUser(lykkeUser);
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, clientId),
-                new Claim(OpenIdConnectConstants.Claims.Email, email),
-                new Claim(OpenIdConnectConstants.Claims.EmailVerified, clientAccount.IsEmailVerified.ToString()),
-                new Claim(OpenIdConnectConstants.Claims.Subject, clientId),
-                new Claim(OpenIdConnectConstantsExt.Claims.SessionId,sessionId)
-            };
+            var identity = new ClaimsIdentity(new GenericIdentity(userName, "Token"), claims); 
 
-            if (!string.IsNullOrEmpty(personalData.ContactPhone))
-            {
-                claims.Add(new Claim(OpenIdConnectConstants.Claims.PhoneNumber, personalData.ContactPhone));
+            if (!string.IsNullOrWhiteSpace(sessionId))
+                identity.AddClaim(new Claim(OpenIdConnectConstantsExt.Claims.SessionId, sessionId));
 
-                claims.Add(new Claim(OpenIdConnectConstants.Claims.PhoneNumberVerified, clientAccount.IsPhoneVerified.ToString()));
-            }
-
-            if (!string.IsNullOrEmpty(personalData.FirstName))
-                claims.Add(new Claim(OpenIdConnectConstants.Claims.GivenName, personalData.FirstName));
-
-            if (!string.IsNullOrEmpty(personalData.LastName))
-                claims.Add(new Claim(OpenIdConnectConstants.Claims.FamilyName, personalData.LastName));
-
-            if (!string.IsNullOrEmpty(personalData.Country))
-                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Country, personalData.Country));
-
-            if (!string.IsNullOrEmpty(partnerId))
-            {
-                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.PartnerId, partnerId));
-            }
             if (register.HasValue)
-                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register" : "Login"));
+                identity.AddClaim(new Claim(OpenIdConnectConstantsExt.Claims.SignType, register.Value ? "Register" : "Login"));
 
-
-            return new ClaimsIdentity(new GenericIdentity(userName, "Token"), claims);
+            return identity;
         }
 
+        public ClaimsIdentity CreateUserIdentity(LykkeUserAuthenticationContext context)
+        {
+            if(string.IsNullOrWhiteSpace(context.SessionId))
+                throw new ArgumentException("Session id must be specified!");
+
+            var claims = ClaimsFromLykkeUser(context.LykkeUser);
+
+            var identity = new ClaimsIdentity(claims, "Token"); 
+
+            identity.AddClaim(new Claim(OpenIdConnectConstantsExt.Claims.SessionId, context.SessionId));
+
+            return identity;
+        }
+
+        public IEnumerable<Claim> ClaimsFromLykkeUser(LykkeUser lykkeUser)
+        {  
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, lykkeUser.Id),
+                new Claim(OpenIdConnectConstants.Claims.Subject, lykkeUser.Id)
+            };
+
+            if (!string.IsNullOrEmpty(lykkeUser.Email))
+            {
+                claims.Add(new Claim(OpenIdConnectConstants.Claims.Email, lykkeUser.Email));
+                claims.Add(new Claim(OpenIdConnectConstants.Claims.EmailVerified,
+                    Convert.ToString(lykkeUser.EmailVerified)));
+            }
+
+            if (!string.IsNullOrEmpty(lykkeUser.Phone))
+            {
+                claims.Add(new Claim(OpenIdConnectConstants.Claims.PhoneNumber, lykkeUser.Phone));
+
+                claims.Add(new Claim(OpenIdConnectConstants.Claims.PhoneNumberVerified, Convert.ToString(lykkeUser.PhoneVerified)));
+            }
+
+            if (!string.IsNullOrEmpty(lykkeUser.FirstName))
+                claims.Add(new Claim(OpenIdConnectConstants.Claims.GivenName, lykkeUser.FirstName));
+
+            if (!string.IsNullOrEmpty(lykkeUser.LastName))
+                claims.Add(new Claim(OpenIdConnectConstants.Claims.FamilyName, lykkeUser.LastName));
+
+            if (!string.IsNullOrEmpty(lykkeUser.Country))
+                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.Country, lykkeUser.Country));
+
+            if (!string.IsNullOrEmpty(lykkeUser.PartnerId))
+                claims.Add(new Claim(OpenIdConnectConstantsExt.Claims.PartnerId, lykkeUser.PartnerId));
+
+            return claims;
+        }
+        
         public string GetCurrentUserId()
         {
             return _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
@@ -174,6 +204,82 @@ namespace Lykke.Service.OAuth.Managers
                     .SetDestinations(OpenIdConnectConstants.Destinations.AccessToken,
                         OpenIdConnectConstants.Destinations.IdentityToken));
             }
+        }
+
+        public IroncladUser IroncladUserFromIdentity(ClaimsIdentity identity)
+        {
+            if (identity == null)
+                throw new ArgumentNullException(nameof(identity));
+
+            var lsub = identity.GetClaim(OpenIdConnectConstantsExt.Claims.Lsub);
+
+            var idp = identity.GetClaim(OpenIdConnectConstantsExt.Claims.MicrosoftIdentityProvider);
+
+            var user = new IroncladUser(GetBaseUser(identity))
+            {
+                LykkeUserId = lsub,
+                Idp = idp
+            };
+            
+            return user;
+        }
+        
+        private static BaseUser GetBaseUser(ClaimsIdentity identity)
+        {
+            var id = identity.GetClaim(JwtClaimTypes.Subject);
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                id = identity.GetClaim(ClaimTypes.NameIdentifier);
+            }
+
+            var email = identity.GetClaim(JwtClaimTypes.Email);
+
+            var emailVerified = identity.GetClaim(JwtClaimTypes.EmailVerified);
+
+            var phone = identity.GetClaim(JwtClaimTypes.PhoneNumber);
+
+            var phoneVerified = identity.GetClaim(JwtClaimTypes.PhoneNumberVerified);
+
+            return new IroncladUser
+            {
+                Id = id,
+                Email = email,
+                Phone = phone,
+                PhoneVerified = Convert.ToBoolean(phoneVerified),
+                EmailVerified = Convert.ToBoolean(emailVerified)
+            };
+        }
+
+        public async Task<LykkeUser> GetLykkeUserAsync(string lykkeUserId)
+        {
+            if (string.IsNullOrWhiteSpace(lykkeUserId))
+                throw new ArgumentNullException(nameof(lykkeUserId));
+
+            var personalData = await _personalDataService.GetAsync(lykkeUserId);
+            if (personalData == null)
+            {
+                throw new InvalidOperationException("Unable to find personal data for user " + lykkeUserId);
+            }
+
+            var clientAccount = await _clientAccountClient.GetByIdAsync(lykkeUserId);
+            if (clientAccount == null)
+            {
+                throw new InvalidOperationException("Unable to find client account data for user " + lykkeUserId);
+            }
+
+            return new LykkeUser
+            {
+                Id = lykkeUserId,
+                Email = clientAccount.Email,
+                EmailVerified = clientAccount.IsEmailVerified,
+                Phone = personalData.ContactPhone,
+                PhoneVerified=  clientAccount.IsPhoneVerified,
+                FirstName =  personalData.FirstName,
+                LastName = personalData.LastName,
+                Country = personalData.Country,
+                PartnerId = clientAccount.PartnerId
+            };
         }
     }
 }

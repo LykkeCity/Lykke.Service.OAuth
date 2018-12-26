@@ -2,25 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Principal;
-using System.Text;
 using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
-using AspNet.Security.OpenIdConnect.Primitives;
 using Common;
 using Core.Extensions;
 using Core.ExternalProvider;
 using Core.ExternalProvider.Exceptions;
-using Core.Services;
-using IdentityModel;
 using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.ClientAccount.Client.AutorestClient.Models;
-using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Contract.Models;
 using Lykke.Service.Session.Client;
-using Microsoft.AspNetCore.Authentication;
+using MessagePack;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -32,7 +25,9 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
     {
         private const string RedisPrefixIroncladLykkeLogins = "OAuth:IroncladLykkeLogins";
 
-        private readonly TimeSpan _ironcladLykkeLoginsLifetime = TimeSpan.FromMinutes(2);
+        private readonly TimeSpan _tempLykkeUserIdCookieLifetime = TimeSpan.FromMinutes(2);
+        private readonly TimeSpan _lykkeSignInContextCookieLifetime = TimeSpan.FromMinutes(2);
+        private readonly TimeSpan _ironcladRequestCookieLifetime = TimeSpan.FromMinutes(2);
         private readonly TimeSpan _mobileSessionLifetime = TimeSpan.FromDays(30);
 
         private readonly IDatabase _database;
@@ -42,7 +37,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private readonly IPersonalDataService _personalDataService;
         private readonly IDataProtector _dataProtector;
         private readonly IClientSessionsClient _clientSessionsClient;
-        private readonly ITokenService _tokenService;
         private readonly IIroncladFacade _ironcladFacade;
         private readonly IExternalProvidersValidation _validation;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -56,7 +50,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             IDataProtectionProvider dataProtectionProvider,
             IHttpContextAccessor httpContextAccessor,
             IClientSessionsClient clientSessionsClient,
-            ITokenService tokenService,
             IIroncladFacade ironcladFacade,
             IExternalProvidersValidation validation)
         {
@@ -67,7 +60,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             _personalDataService = personalDataService;
             _httpContextAccessor = httpContextAccessor;
             _clientSessionsClient = clientSessionsClient;
-            _tokenService = tokenService;
             _ironcladFacade = ironcladFacade;
             _validation = validation;
             _dataProtector =
@@ -76,50 +68,90 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         }
 
         /// <inheritdoc />
-        public async Task<ClientAccountInformationModel> ProvisionIfNotExistAsync(ClaimsPrincipal principal)
+        public void SaveLykkeSignInContext(LykkeSignInContext context)
         {
+            // TODO:@gafanasiev check if this supports multiple instances.
+            var serializedData = MessagePackSerializer.Serialize(context);
 
-            var externalUserId = principal.GetClaimValue(ClaimTypes.NameIdentifier);
+            var protectedData = _dataProtector.Protect(serializedData);
 
-            var idp = principal.GetClaimValue("http://schemas.microsoft.com/identity/claims/identityprovider");
+            var bitString = Convert.ToBase64String(protectedData);
+
+            var useHttps = !_hostingEnvironment.IsDevelopment();
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = DateTimeOffset.UtcNow.Add(_lykkeSignInContextCookieLifetime),
+                MaxAge = _lykkeSignInContextCookieLifetime,
+                Secure = useHttps
+            };
+
+            _httpContextAccessor.HttpContext.Response.Cookies.Append(
+                OpenIdConnectConstantsExt.Cookies.LykkeSignInContextCookie,
+                bitString,
+                cookieOptions);
+        }
+
+        /// <inheritdoc />
+        public LykkeSignInContext GetLykkeSignInContext()
+        {
+            var cookieExist = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(
+                OpenIdConnectConstantsExt.Cookies.LykkeSignInContextCookie,
+                out var protectedData);
+
+            if (!cookieExist)
+                return null;
+
+            var bytes = Convert.FromBase64String(protectedData);
+
+            var unprotectedData = _dataProtector.Unprotect(bytes);
+
+            return MessagePackSerializer.Deserialize<LykkeSignInContext>(unprotectedData);
+        }
+
+        /// <inheritdoc />
+        public void ClearLykkeSignInContext()
+        {
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete(OpenIdConnectConstantsExt.Cookies
+                .LykkeSignInContextCookie);
+        }
+
+        /// <inheritdoc />
+        public async Task<LykkeUser> ProvisionIfNotExistAsync(IroncladUser ironcladUser,
+            IEnumerable<Claim> originalClaims)
+        {
+            if (ironcladUser == null)
+                throw new ArgumentNullException(nameof(ironcladUser));
 
             var existingLykkeUser = await _clientAccountClient.GetClientByExternalIdentityProvider(
-                idp,
-                externalUserId);
+                ironcladUser.Idp,
+                ironcladUser.Id);
 
-            if (existingLykkeUser != null)
-                return existingLykkeUser;
+            if (existingLykkeUser != null) return new LykkeUser(ironcladUser);
 
-            string email;
-
-            string phone;
-
-            try
-            {
-                email = principal.GetEmail(_validation.RequireEmailVerification);
-
-                phone = principal.GetPhone(_validation.RequirePhoneVerification);
-            }
-            catch (ClaimNotVerifiedException e)
-            {
+            if (_validation.RequireEmailVerification && !ironcladUser.EmailVerified)
                 throw new AutoprovisionException(
-                    $"Could not provision external user, idp:{idp}, externalUserId:{externalUserId}", e);
-            }
+                    $"Email not verified, idp:{ironcladUser.Idp}, externalUserId:{ironcladUser.Id}");
+
+            if (_validation.RequirePhoneVerification && !ironcladUser.PhoneVerified)
+                throw new AutoprovisionException(
+                    $"Phone not verified, idp:{ironcladUser.Idp}, externalUserId:{ironcladUser.Id}");
 
             var newLykkeUser =
                 await _clientAccountClient.ProvisionAsync(new ExternalClientProvisionModel
                 {
-                    Email = email,
-                    ExternalIdentityProviderId = idp,
-                    ExternalUserId = externalUserId,
-                    Phone = phone
+                    Email = ironcladUser.Email,
+                    ExternalIdentityProviderId = ironcladUser.Idp,
+                    ExternalUserId = ironcladUser.Id,
+                    Phone = ironcladUser.Phone
                 });
 
             if (newLykkeUser == null)
                 throw new AutoprovisionException(
-                    $"Could not provision external user, idp:{idp}, externalUserId:{externalUserId}");
+                    $"Could not provision external user, idp:{ironcladUser.Idp}, externalUserId:{ironcladUser.Id}");
 
-            var claims = principal.Claims.Select(claim => new IdentityProviderOriginalClaim
+            var claims = originalClaims.Select(claim => new IdentityProviderOriginalClaim
             {
                 Name = claim.Type,
                 Value = claim.Value
@@ -127,19 +159,19 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             await _personalDataService.SaveClaimsAsync(new IdentityProviderClaimsModel
             {
-                ExternalProviderId = idp,
-                ExternalUserId = externalUserId,
+                ExternalProviderId = ironcladUser.Idp,
+                ExternalUserId = ironcladUser.Id,
                 LykkeClientId = newLykkeUser.Id,
                 EmailClaim = newLykkeUser.Email,
                 PhoneClaim = newLykkeUser.Phone,
                 OriginalClaims = claims
             });
 
-            return newLykkeUser;
+            return new LykkeUser(ironcladUser);
         }
 
         /// <inheritdoc />
-        public async Task<LykkeUserAuthenticationContext> AuthenticateAsync(LykkeUser lykkeUser)
+        public async Task<LykkeUserAuthenticationContext> CreateSessionAsync(LykkeUser lykkeUser)
         {
             if (lykkeUser == null)
                 throw new AuthenticationException("No lykke user.");
@@ -154,12 +186,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             var sessionId = clientSession.SessionToken;
 
-            var refreshToken = await _httpContextAccessor.HttpContext.GetTokenAsync(
-                OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme,
-                OidcConstants.TokenTypes.RefreshToken);
-
-            await _tokenService.SaveIroncladRefreshTokenAsync(sessionId, refreshToken);
-
             return new LykkeUserAuthenticationContext
             {
                 LykkeUser = lykkeUser,
@@ -168,9 +194,9 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         }
 
         /// <inheritdoc />
-        public async Task SaveLykkeUserIdAfterIroncladlLoginAsync(string lykkeUserId)
+        public async Task SaveTempLykkeUserIdAsync(string lykkeUserId)
         {
-            var guid = await SaveLykkeUserIdForExternalLoginAsync(lykkeUserId, _ironcladLykkeLoginsLifetime);
+            var guid = await SaveTempLykkeUserIdToDb(lykkeUserId, _tempLykkeUserIdCookieLifetime);
 
             // TODO:@gafanasiev check if this supports multiple instances.
             var protectedGuid = _dataProtector.Protect(guid);
@@ -181,32 +207,43 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie, protectedGuid, new CookieOptions
                 {
                     HttpOnly = true,
-                    Expires = DateTimeOffset.UtcNow.Add(_ironcladLykkeLoginsLifetime),
-                    MaxAge = _ironcladLykkeLoginsLifetime,
+                    Expires = DateTimeOffset.UtcNow.Add(_tempLykkeUserIdCookieLifetime),
+                    MaxAge = _tempLykkeUserIdCookieLifetime,
                     Secure = useHttps
                 });
         }
 
         /// <inheritdoc />
-        public async Task<LykkeUser> GetCurrentUserAsync(AuthenticateResult authenticateResult)
+        public Task<string> GetTempLykkeUserIdAsync()
         {
-            if (authenticateResult == null)
-                throw new AuthenticationException("No authentication result");
+            var guidExists = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(
+                OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie,
+                out var protectedGuid);
 
-            if (!authenticateResult.Succeeded)
-                throw new AuthenticationException("Authentication failed", authenticateResult.Failure);
+            if (!guidExists || string.IsNullOrWhiteSpace(protectedGuid))
+                return Task.FromResult<string>(null);
 
-            var principal = authenticateResult.Principal;
+            // TODO:@gafanasiev check if this supports multiple instances.
+            var guid = _dataProtector.Unprotect(protectedGuid);
 
-            var ironcladUserId = principal.GetClaimValue(JwtClaimTypes.Subject);
+            return GetTempLykkeUserIdFromDb(guid);
+        }
 
-            var identityProvider =
-                principal.GetClaimValue("http://schemas.microsoft.com/identity/claims/identityprovider");
+        /// <inheritdoc />
+        public void ClearTempUserId()
+        {
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete(OpenIdConnectConstantsExt.Cookies
+                .TemporaryUserIdCookie);
+        }
 
-            //Try to find id in lsub.
-            var lsub = principal.FindFirst(OpenIdConnectConstantsExt.Claims.Lsub)?.Value;
+        /// <inheritdoc />
+        public async Task AssociateIroncladUserAsync(LykkeUser lykkeUser, IroncladUser ironcladUser)
+        {
+            var ironcladUserId = ironcladUser.Id;
 
-            ClientAccountInformationModel lykkeUser = null;
+            var lykkeUserId = lykkeUser.Id;
+
+            var lsub = ironcladUser.LykkeUserId;
 
             var associatedUser = await _ironcladUserRepository.GetByIdAsync(ironcladUserId);
 
@@ -214,92 +251,49 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             var ironcladUserHasLsubClaim = !string.IsNullOrWhiteSpace(lsub);
 
-            var userIdsAreEqual = string.Equals(lsub, associatedUser?.LykkeUserId);
-
-            if (ironcladUserHasLsubClaim && userAssociated && !userIdsAreEqual)
-                throw new AuthenticationException("User Id's are not synced.");
-
-            if (ironcladUserHasLsubClaim)
-            {
-                lykkeUser = await _clientAccountClient.GetClientByIdAsync(lsub);
-            }
-            else
-            {
-                if (userAssociated)
-                {
-                    lykkeUser = await _clientAccountClient.GetClientByIdAsync(associatedUser.LykkeUserId);
-                }
-                // If user is not associated and does not have lsub.
-                else
-                {
-                    // If authenticated through lykke.
-                    if (_validation.IsValidLykkeIdp(identityProvider))
-                    {
-                        // User id should be stored inside a cookie.
-                        var lykkeUserIdFromCookie = await GetLykkeUserIdFromCookieAsync();
-                        lykkeUser = await _clientAccountClient.GetClientByIdAsync(lykkeUserIdFromCookie);
-                    }
-                    else if (_validation.IsValidExternalIdp(identityProvider))
-                    {
-                        // If authenticated through external identity provider.
-                        // Should autoprovision user.
-                        lykkeUser = await ProvisionIfNotExistAsync(principal);
-                    }
-                    else
-                    {
-                        throw new AuthenticationException($"Identity provider is not allowed: {identityProvider}");
-                    }
-                }
-            }
-
-            // We must be sure that user exists.
-            if (lykkeUser == null)
-                throw new AuthenticationException("Lykke user does not exist.");
-
-            var lykkeUserId = lykkeUser.Id;
+            if (userAssociated && ironcladUserHasLsubClaim && !string.Equals(lsub, associatedUser.LykkeUserId))
+                throw new AuthenticationException(
+                    $"Ironclad user: {ironcladUserId} is associated with another lykke user:{associatedUser.LykkeUserId}.");
 
             if (!ironcladUserHasLsubClaim)
-                await _ironcladFacade.AddUserClaimAsync(ironcladUserId, OpenIdConnectConstantsExt.Claims.Lsub, lykkeUserId);
+                await _ironcladFacade.AddUserClaimAsync(ironcladUserId, OpenIdConnectConstantsExt.Claims.Lsub,
+                    lykkeUserId);
 
             if (!userAssociated)
-                await _ironcladUserRepository.AddAsync(new IroncladUser
+                await _ironcladUserRepository.AddAsync(new IroncladUserBinding
                 {
                     LykkeUserId = lykkeUserId,
                     IroncladUserId = ironcladUserId
                 });
-
-            return new LykkeUser
-            {
-                Id = lykkeUserId,
-                Email = lykkeUser.Email
-            };
         }
 
         /// <inheritdoc />
-        public async Task SignInAsync(LykkeUserAuthenticationContext context)
+        public async Task<string> AuthenticateLykkeUserAsync(string username, string password, string partnerId)
         {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, context.LykkeUser.Id),
-                new Claim(JwtClaimTypes.Email, context.LykkeUser.Email),
-                new Claim(JwtClaimTypes.Subject, context.LykkeUser.Id)
-            };
+            var lykkeUser = await _clientAccountClient.AuthenticateAsync(username, password, partnerId);
 
-            var identity = new ClaimsIdentity(new GenericIdentity(context.LykkeUser.Email, "Token"), claims);
-
-            // Add sessionId only to access token.
-            identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, context.SessionId,
-                OpenIdConnectConstants.Destinations.AccessToken);
-            
-            // delete temporary cookie used during external authentication
-            await _httpContextAccessor.HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth
-                .ExternalAuthenticationScheme);
-
-            // TODO: Think if we need to remove this step and authenticate directly with ASOS to issue tokens.
-            await _httpContextAccessor.HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
-                new ClaimsPrincipal(identity));
+            return lykkeUser.Id;
         }
-        
+
+        /// <inheritdoc />
+        public void SaveIroncladRequest(string redirectUrl)
+        {
+            _httpContextAccessor.HttpContext.Response.Cookies.Append(
+                OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie, redirectUrl, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Expires = DateTimeOffset.UtcNow.Add(_ironcladRequestCookieLifetime),
+                    MaxAge = _ironcladRequestCookieLifetime
+                });
+        }
+
+        /// <inheritdoc />
+        public void ClearIroncladRequest()
+        {
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete(OpenIdConnectConstantsExt.Cookies
+                .IroncladRequestCookie);
+        }
+
         private string GetIroncladLykkeLoginsRedisKey(string guid)
         {
             if (string.IsNullOrWhiteSpace(guid))
@@ -308,7 +302,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             return $"{RedisPrefixIroncladLykkeLogins}:{guid}";
         }
 
-        private async Task<string> GetLykkeUserIdForExternalLoginAsync(string guid)
+        private async Task<string> GetTempLykkeUserIdFromDb(string guid)
         {
             if (string.IsNullOrWhiteSpace(guid))
                 throw new ArgumentNullException(nameof(guid));
@@ -322,35 +316,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             return string.Empty;
         }
 
-        private async Task<string> GetLykkeUserIdFromCookieAsync()
-        {
-            /* If user authenticated through Lykke OAuth on Ironclad side.
-            * But not associated, get lykkeUserId from cookie and associate user.
-            */
-            var guidExists = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(
-                OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie,
-                out var protectedGuid);
-
-            /* Cookie could be empty if user is already authenticated in Ironclad.
-             * This means Ironclad would not redirect to Lykke OAuth but immediately return authenticated user.
-             * Thus cookie would not be created during login.
-             */
-            if (!guidExists || string.IsNullOrWhiteSpace(protectedGuid))
-                throw new AuthenticationException("Authenticated through Lykke, but guid is not saved to cookie.");
-
-            // TODO:@gafanasiev check if this supports multiple instances.
-            var guid = _dataProtector.Unprotect(protectedGuid);
-
-            var lykkeUserId = await GetLykkeUserIdForExternalLoginAsync(guid);
-
-            if (string.IsNullOrWhiteSpace(lykkeUserId))
-                throw new AuthenticationException(
-                    $"Authenticated through Lykke, but lykkeUserId was not found for guid:{guid}.");
-
-            return lykkeUserId;
-        }
-
-        private async Task<string> SaveLykkeUserIdForExternalLoginAsync(string lykkeUserId, TimeSpan ttl)
+        private async Task<string> SaveTempLykkeUserIdToDb(string lykkeUserId, TimeSpan ttl)
         {
             if (string.IsNullOrWhiteSpace(lykkeUserId))
                 throw new ArgumentNullException(nameof(lykkeUserId));

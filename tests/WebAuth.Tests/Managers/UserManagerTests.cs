@@ -9,6 +9,7 @@ using Common.Log;
 using Core.Extensions;
 using Lykke.Logs;
 using Lykke.Service.ClientAccount.Client;
+using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.OAuth.Managers;
 using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
@@ -38,16 +39,21 @@ namespace WebAuth.Tests.Managers
         {
             var personalData = new FullPersonalDataModel();
 
+            var clientAccountModel = new ClientModel();
+
             //act
             var personalDataService = Substitute.For<IPersonalDataService>();
             personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(personalData);
 
-            var userManager = CreateUserManager(personalDataService);
+            var clientAccountClient = Substitute.For<IClientAccountClient>();
+            clientAccountClient.GetByIdAsync(Arg.Any<string>()).ReturnsForAnyArgs(clientAccountModel);
+
+            var userManager = CreateUserManager(personalDataService, clientAccountClient);
 
             //assert
-            await
-                Assert.ThrowsAsync<ArgumentNullException>(
-                    async () => await userManager.CreateUserIdentityAsync("test", null, null, null, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(
+                () => userManager.CreateUserIdentityAsync("test", null, null, null, null));
+
         }
 
         [Fact]
@@ -193,11 +199,16 @@ namespace WebAuth.Tests.Managers
                 Country = "Test"
             };
 
+            var clientAccountModel = new ClientModel();
+
             //act
             var personalDataService = Substitute.For<IPersonalDataService>();
             personalDataService.GetAsync(Arg.Any<string>()).ReturnsForAnyArgs(personalData);
 
-            var userManager = CreateUserManager(personalDataService);
+            var clientAccountClient = Substitute.For<IClientAccountClient>();
+            clientAccountClient.GetByIdAsync(Arg.Any<string>()).ReturnsForAnyArgs(clientAccountModel);
+
+            var userManager = CreateUserManager(personalDataService, clientAccountClient);
             var result = await userManager.CreateUserIdentityAsync("test", "test@test.com", "fdfd", "test", "test");
 
             //assert
@@ -205,7 +216,7 @@ namespace WebAuth.Tests.Managers
             Assert.Equal(personalData.LastName, result.GetClaim(OpenIdConnectConstants.Claims.FamilyName));
             Assert.Equal("test@test.com", result.GetClaim(OpenIdConnectConstants.Claims.Email));
             Assert.Equal(personalData.Country, result.GetClaim(OpenIdConnectConstantsExt.Claims.Country));
-            Assert.Equal(9, result.Claims.Count());
+            Assert.Equal(12, result.Claims.Count());
         }
     }
 }

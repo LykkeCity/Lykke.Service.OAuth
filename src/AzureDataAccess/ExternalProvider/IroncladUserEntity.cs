@@ -28,26 +28,26 @@ namespace AzureDataAccess.ExternalProvider
             return ironcladUserId;
         }
 
-        public static IroncladUserEntity FromDomain(IroncladUser ironcladUser)
+        public static IroncladUserEntity FromDomain(IroncladUserBinding ironcladUserBinding)
         {
-            if (ironcladUser == null)
+            if (ironcladUserBinding == null)
                 return null;
 
             return new IroncladUserEntity
             {
-                IroncladUserId = ironcladUser.IroncladUserId,
-                LykkeUserId = ironcladUser.LykkeUserId,
-                PartitionKey = GeneratePartitionKey(ironcladUser.IroncladUserId),
-                RowKey = GenerateRowKey(ironcladUser.IroncladUserId)
+                IroncladUserId = ironcladUserBinding.IroncladUserId,
+                LykkeUserId = ironcladUserBinding.LykkeUserId,
+                PartitionKey = GeneratePartitionKey(ironcladUserBinding.IroncladUserId),
+                RowKey = GenerateRowKey(ironcladUserBinding.IroncladUserId)
             };
         }
 
-        public static IroncladUser ToDomain(IroncladUserEntity ironcladUserEntity)
+        public static IroncladUserBinding ToDomain(IroncladUserEntity ironcladUserEntity)
         {
             if (ironcladUserEntity == null)
                 return null;
 
-            return new IroncladUser
+            return new IroncladUserBinding
             {
                 LykkeUserId = ironcladUserEntity.LykkeUserId,
                 IroncladUserId = ironcladUserEntity.IroncladUserId

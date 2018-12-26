@@ -1,9 +1,19 @@
 ﻿namespace Core.ExternalProvider
 {
-    public class IroncladUser
+    public class IroncladUser : BaseUser
     {
-        public string IroncladUserId { get; set; }
-
         public string LykkeUserId { get; set; }
+
+        public string Idp { get; set; }
+
+        public IroncladUser()
+        {
+            
+        }
+
+        public IroncladUser(BaseUser user) : base(user)
+        {
+
+        }
     }
 }

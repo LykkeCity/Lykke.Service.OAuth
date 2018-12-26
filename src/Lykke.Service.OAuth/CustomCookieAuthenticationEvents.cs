@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Core.Extensions;
+using Core.ExternalProvider;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -11,7 +12,8 @@ namespace WebAuth
     {
         private readonly IClientSessionsClient _clientSessionsClient;
 
-        public CustomCookieAuthenticationEvents(IClientSessionsClient clientSessionsClient)
+        public CustomCookieAuthenticationEvents(
+            IClientSessionsClient clientSessionsClient)
         {
             _clientSessionsClient = clientSessionsClient;
         }
@@ -29,17 +31,17 @@ namespace WebAuth
             }
         }
 
-        public override async Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
+        public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
         {
             // this parameter added for authentification on login page with PartnerId
             context.Properties.Parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerId, out var partnerIdValue);
 
             var partnerId = partnerIdValue as string;
-
+         
             if (!string.IsNullOrWhiteSpace(partnerId))
                 context.RedirectUri = QueryHelpers.AddQueryString(context.RedirectUri, OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
 
-            await base.RedirectToLogin(context);
+            return base.RedirectToLogin(context);
         }
     }
 }

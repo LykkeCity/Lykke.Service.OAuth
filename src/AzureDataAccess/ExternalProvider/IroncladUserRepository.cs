@@ -13,14 +13,14 @@ namespace AzureDataAccess.ExternalProvider
             _storage = storage;
         }
 
-        public Task<bool> AddAsync(IroncladUser ironcladUser)
+        public Task<bool> AddAsync(IroncladUserBinding ironcladUserBinding)
         {
-            var entity = IroncladUserEntity.FromDomain(ironcladUser);
+            var entity = IroncladUserEntity.FromDomain(ironcladUserBinding);
 
             return _storage.CreateIfNotExistsAsync(entity);
         }
 
-        public async Task<IroncladUser> GetByIdAsync(string ironcladUserId)
+        public async Task<IroncladUserBinding> GetByIdAsync(string ironcladUserId)
         {
             var partitionKey = IroncladUserEntity.GeneratePartitionKey(ironcladUserId);
             var rowKey = IroncladUserEntity.GenerateRowKey(ironcladUserId);
