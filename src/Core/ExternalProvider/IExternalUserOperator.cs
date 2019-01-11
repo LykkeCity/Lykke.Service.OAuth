@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Core.Extensions;
 using Core.ExternalProvider.Exceptions;
 
 namespace Core.ExternalProvider
@@ -42,13 +43,13 @@ namespace Core.ExternalProvider
         /// </remarks>
         /// <param name="lykkeUserId">Lykke user id.</param>
         /// <returns>Completed task if everything is ok.</returns>
-        Task SaveTempLykkeUserIdAsync(string lykkeUserId);
+        Task SaveTempLykkeUserIdAsync(string lykkeUserId, string cookieName);
 
         /// <summary>
         ///     Get temporary saved lykke user id.
         /// </summary>
         /// <returns>Lykke user id if exists, else returns null.</returns>
-        Task<string> GetTempLykkeUserIdAsync();
+        Task<string> GetTempLykkeUserIdAsync(string cookieName);
 
         /// <summary>
         ///     Clear temporary saved lykke user id.

@@ -171,6 +171,36 @@ namespace WebAuth.Controllers
             }
         }
 
+        private async Task<IActionResult> HandleAuthenticationThroughIroncladAsync(string username, string password, string partnerId, string afterIroncladLoginUrl)
+        {
+            _externalUserOperator.ClearIroncladRequest();
+
+            var lykkeUserId = await _externalUserOperator.AuthenticateLykkeUserAsync(username, password, partnerId);
+
+            await _externalUserOperator.SaveTempLykkeUserIdAsync(lykkeUserId, OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie);
+
+            return LocalRedirect(afterIroncladLoginUrl);
+        }
+
+        private static string PlatformToViewName(string platform, string partnerId)
+        {
+            if (partnerId != null)
+            {
+                CustomViewsDictionary.TryGetValue(partnerId.ToLower(), out var customViews);
+                if (customViews != null && customViews.Contains(platform)) return $"Login.{partnerId}.{platform}";
+            }
+
+            switch (platform?.ToLower())
+            {
+                case "android":
+                    return "Login.android";
+                case "ios":
+                    return "Login.ios";
+                default:
+                    return "Login";
+            }
+        }
+
         [HttpGet("~/signin/afterlogin/{platform?}")]
         public ActionResult Afterlogin(string platform = null, string returnUrl = null)
         {

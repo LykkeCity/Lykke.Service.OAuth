@@ -105,7 +105,7 @@ namespace Lykke.Service.OAuth.Controllers
 
                 var ironcladUser = _userManager.IroncladUserFromIdentity(ironcladPrincipal.Identity as ClaimsIdentity);
 
-                var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync(); 
+                var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync(OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie); 
 
                 //TODO: @gafanasiev change to faster way (cache user in redis or cookie).
                 var lykkeUser = await _userManager.GetLykkeUserAsync(lykkeUserId);
