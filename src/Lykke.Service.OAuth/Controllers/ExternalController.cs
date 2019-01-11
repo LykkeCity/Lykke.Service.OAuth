@@ -83,7 +83,6 @@ namespace Lykke.Service.OAuth.Controllers
             }
             catch (Exception e) when (
                 e is AuthenticationException ||
-                e is ClaimNotFoundException ||
                 e is AutoprovisionException)
             {
                 _log.Warning(e.Message);
@@ -135,7 +134,6 @@ namespace Lykke.Service.OAuth.Controllers
             }
             catch (Exception e) when (
                 e is AuthenticationException ||
-                e is ClaimNotFoundException ||
                 e is AutoprovisionException)
             {
                 _log.Warning(e.Message);

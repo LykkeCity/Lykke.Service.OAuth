@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Common.Log;
 using Core.Extensions;
 using Core.ExternalProvider.Exceptions;
@@ -50,15 +51,16 @@ namespace Lykke.Service.OAuth.Controllers
         {
             try
             {
-                var sessionId = User.GetClaimValue(OpenIdConnectConstantsExt.Claims.SessionId);
+                var sessionId = User.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
+
+                if (sessionId == null)
+                    throw new TokenNotFoundException("No session id!");
 
                 var accessToken = await _tokenService.GetIroncladAccessTokenAsync(sessionId);
 
                 return Json(new {Token = accessToken});
             }
-            catch (Exception e)
-                when (e is ClaimNotFoundException ||
-                      e is TokenNotFoundException)
+            catch (TokenNotFoundException e)
             {
                 _log.Warning("Token not found.", e);
                 return BadRequest("Token not found.");
