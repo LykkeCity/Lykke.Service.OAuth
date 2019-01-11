@@ -42,6 +42,11 @@ namespace Lykke.Service.OAuth.Models.Registration
         /// </summary>
         [ValidateRegistrationId]
         public string RegistrationId { get; set; }
+
+        /// <summary>
+        /// Url which should be called after successfull registration. Should be either allowed RedirectURL or local one for OAuth.
+        /// </summary>
+        public string RedirectUrl { get; set; }
         
         /// <summary>
         /// Client id from GA

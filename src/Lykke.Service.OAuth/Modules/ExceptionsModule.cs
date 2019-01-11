@@ -51,7 +51,10 @@ namespace Lykke.Service.OAuth.Modules
                     PasswordValidationApiErrorCodes.PasswordIsEmpty)
 
                 .AddNoLog(typeof(PasswordIsPwnedException), HttpStatusCode.BadRequest,
-                    PasswordValidationApiErrorCodes.PasswordIsPwned);
+                    PasswordValidationApiErrorCodes.PasswordIsPwned)
+                    
+                .AddNoLog(typeof(RedirectUrlInvalidException), HttpStatusCode.BadRequest,
+                    RegistrationErrorCodes.RedirectUrlInvalid);
 
             builder.Register(c => config)
                 .AsSelf()

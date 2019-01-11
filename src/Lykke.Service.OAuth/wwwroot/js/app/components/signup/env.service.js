@@ -14,6 +14,7 @@
                 'localhost:5000': 'http://localhost:3000',
                 'auth.lykke.com': 'http://wallet.lykke.com',
                 'auth-dev.lykkex.net': 'http://webwallet-dev.lykkex.net',
+                'auth-dev-custom.lykkex.net': 'http://webwallet-dev.lykkex.net',
                 'auth-test.lykkex.net': 'http://webwallet-test.lykkex.net'
             }
 

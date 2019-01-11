@@ -40,6 +40,7 @@ using WebAuth.Settings;
 using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
+using Lykke.Service.OAuth.Middleware;
 using LykkeApiErrorMiddleware = Lykke.Service.OAuth.Middleware.LykkeApiErrorMiddleware;
 
 namespace WebAuth
@@ -239,6 +240,8 @@ namespace WebAuth
                 app.UseLykkeMiddleware(ex => new { message = "Technical problem" });
 
                 app.UseMiddleware<LykkeApiErrorMiddleware>();
+
+                app.UseMiddleware<RedirectResponseOverride>();
 
                 app.UseLykkeForwardedHeaders();
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Core.Extensions;
 using Core.ExternalProvider.Exceptions;
 
 namespace Core.ExternalProvider

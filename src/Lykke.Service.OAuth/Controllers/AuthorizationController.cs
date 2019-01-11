@@ -85,7 +85,7 @@ namespace WebAuth.Controllers
                     ErrorDescription = "An internal error has occurred"
                 });
             }
-
+            
             var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
 
             if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
@@ -148,7 +148,8 @@ namespace WebAuth.Controllers
         [HttpPost("~/connect/authorize/lykke")]
         public async Task<IActionResult> AuthorizeIroncladThroughLykke()
         {
-            var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync();
+            var lykkeUserId =
+                await _externalUserOperator.GetTempLykkeUserIdAsync();
 
             if (string.IsNullOrWhiteSpace(lykkeUserId))
                 return Unauthorized();
@@ -179,6 +180,7 @@ namespace WebAuth.Controllers
                         "Details concerning the calling client application cannot be found in the database"
                 });
             }
+
             //TODO:@gafanasiev Code duplicate, move to separate method.
             var scopes = request.GetScopes().ToList();
 
@@ -187,7 +189,7 @@ namespace WebAuth.Controllers
             var userClaims = _userManager.ClaimsFromLykkeUser(lykkeUser);
 
             var identity = _userManager.CreateIdentity(scopes, userClaims);
-            
+
             var ticket = new AuthenticationTicket(
                 new ClaimsPrincipal(identity),
                 new AuthenticationProperties(),
@@ -205,7 +207,7 @@ namespace WebAuth.Controllers
 
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
-        
+
         [Authorize]
         [HttpPost("~/connect/authorize/accept")]
         [HttpGet("~/connect/authorize/accept")]
@@ -360,15 +362,20 @@ namespace WebAuth.Controllers
 
         private async Task<IActionResult> HandleLykkeFromIronclad(OpenIdConnectRequest request)
         {
-            // Indicates that we already been on signin page.
-            var lykkeSignInContext = await _externalUserOperator.GetLykkeSignInContextAsync();
-
             var parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
             
             var afterIroncladLoginUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeIroncladThroughLykke"), parameters);
             
             await _externalUserOperator.SaveIroncladRequestAsync(afterIroncladLoginUrl);
-            
+
+            var userId = await _externalUserOperator.GetTempLykkeUserIdAsync();
+            if (userId != null)
+            {
+                return LocalRedirect(afterIroncladLoginUrl);
+            }
+
+            // Indicates that we already been on signin page.
+            var lykkeSignInContext = await _externalUserOperator.GetLykkeSignInContextAsync();
             if (lykkeSignInContext != null)
             {
                 await _externalUserOperator.ClearLykkeSignInContextAsync();
