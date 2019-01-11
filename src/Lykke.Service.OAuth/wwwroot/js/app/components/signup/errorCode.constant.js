@@ -4,6 +4,7 @@
     var app = angular.module('app');
 
     app.constant('errorCode', {
-        registrationNotFound: 'RegistrationNotFound'
+        registrationNotFound: 'RegistrationNotFound',
+        redirectUrlInvalid: 'RedirectUrlInvalid'
     });
 })();

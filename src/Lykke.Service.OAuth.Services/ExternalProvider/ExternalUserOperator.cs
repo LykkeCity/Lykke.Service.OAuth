@@ -109,7 +109,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             //FIXME:@gafanasiev Think how to get already created session and use it.
             var clientSession =
-                await _clientSessionsClient.Authenticate(lykkeUser.Id, string.Empty, null, null,
+                await _clientSessionsClient.Authenticate(lykkeUser.Id, string.Empty, lykkeUser.PartnerId, null,
                     _mobileSessionLifetime);
 
             if (clientSession == null)

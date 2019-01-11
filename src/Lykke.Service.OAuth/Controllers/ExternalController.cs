@@ -134,7 +134,7 @@ namespace Lykke.Service.OAuth.Controllers
 
                 var externalLoginReturnUrl = await HttpContext.GetIroncladExternalRedirectUrlAsync();
                 
-                return LocalRedirect(externalLoginReturnUrl);
+                return Redirect(externalLoginReturnUrl);
             }
             catch (Exception e) when (
                 e is AuthenticationException ||
