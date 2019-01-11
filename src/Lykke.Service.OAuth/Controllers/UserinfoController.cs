@@ -1,5 +1,5 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Common.Log;
 using Core.Extensions;
 using Core.ExternalProvider.Exceptions;
@@ -18,6 +18,8 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly ILog _log;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly ITokenService _tokenService;
+
+        private static string _tokenNotFoundMessage = "Token not found.";
 
         public UserinfoController(
             ILogFactory logFactory,
@@ -48,20 +50,25 @@ namespace Lykke.Service.OAuth.Controllers
         [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.LykkeScheme)]
         public async Task<IActionResult> GetKycToken()
         {
+            var sessionId = User.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
+
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                _log.Warning("No session id.");
+            
+                return BadRequest(_tokenNotFoundMessage);
+            }
+
             try
             {
-                var sessionId = User.GetClaimValue(OpenIdConnectConstantsExt.Claims.SessionId);
-
                 var accessToken = await _tokenService.GetIroncladAccessTokenAsync(sessionId);
 
                 return Json(new {Token = accessToken});
             }
-            catch (Exception e)
-                when (e is ClaimNotFoundException ||
-                      e is TokenNotFoundException)
+            catch (TokenNotFoundException e)
             {
-                _log.Warning("Token not found.", e);
-                return BadRequest("Token not found.");
+                _log.Warning(_tokenNotFoundMessage, e);
+                return BadRequest(_tokenNotFoundMessage);
             }
         }
 
