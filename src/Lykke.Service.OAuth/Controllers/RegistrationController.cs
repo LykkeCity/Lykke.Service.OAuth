@@ -3,11 +3,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspNet.Security.OpenIdConnect.Extensions;
 using Common.Log;
 using Core.Application;
 using Core.Countries;
 using Core.Exceptions;
 using Core.Extensions;
+using Core.ExternalProvider;
+using Core.ExternalProvider.Settings;
 using Core.PasswordValidation;
 using Core.Registration;
 using Core.Services;
@@ -52,6 +55,8 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IUserManager _userManager;
         private readonly ISalesforceService _salesforceService;
         private readonly IRequestModelFactory _requestModelFactory;
+        private readonly RedirectSettings _redirectSettings;
+        private readonly IExternalUserOperator _externalUserOperator;
 
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
@@ -64,8 +69,12 @@ namespace Lykke.Service.OAuth.Controllers
             IRegistrationServiceClient registrationServiceClient,
             IUserManager userManager,
             ISalesforceService salesforceService, 
-            IRequestModelFactory requestModelFactory)
+            IRequestModelFactory requestModelFactory,
+            IRedirectSettingsAccessor redirectSettingsAccessor,
+            IExternalUserOperator externalUserOperator
+            )
         {
+            _externalUserOperator = externalUserOperator;
             _userManager = userManager;
             _salesforceService = salesforceService;
             _requestModelFactory = requestModelFactory;
@@ -76,6 +85,7 @@ namespace Lykke.Service.OAuth.Controllers
             _registrationRepository = registrationRepository;
             _emailValidationService = emailValidationService;
             _passwordValidationService = passwordValidationService;
+            _redirectSettings = redirectSettingsAccessor.RedirectSettings;
             _log = logFactory.CreateLog(this);
         }
 
@@ -132,11 +142,11 @@ namespace Lykke.Service.OAuth.Controllers
         [HttpPost]
         [Route("accountInfo")]
         [SwaggerOperation("AccountInfo")]
-        [ProducesResponseType(typeof(RegistrationCompleteResponse), (int) HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.BadRequest)]
-        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int) HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(RegistrationCompleteResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int)HttpStatusCode.NotFound)]
         [ValidateApiModel]
-        public async Task<IActionResult> AccountInfo([FromBody] AccountInfoRequestModel model)
+        public async Task<ActionResult> AccountInfo([FromBody] AccountInfoRequestModel model)
         {
             var registrationModel = await _registrationRepository.GetByIdAsync(model.RegistrationId);
 
@@ -159,12 +169,31 @@ namespace Lykke.Service.OAuth.Controllers
                 throw new Exception("Null response from registration service during registration.");
             }
 
-            await SignInAsync(registrationServiceResponse, registrationModel);
+            await _externalUserOperator.SaveTempLykkeUserIdAsync(registrationServiceResponse.Account.Id, OpenIdConnectConstantsExt.Cookies.RegistrationRequestCookie);
 
-            return Ok(
-                new RegistrationCompleteResponse(registrationServiceResponse.Token,
-                    registrationServiceResponse.NotificationsId)
+            //await SignInAsync(registrationServiceResponse, registrationModel);
+
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("ExternalLoginCallback", "External")
+            };
+            
+            properties.SetProperty(
+                OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
+                Url.Action("GetLykkeWalletTokenMobile", "Userinfo")
             );
+
+            properties.SetProperty(
+                OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues,
+                _redirectSettings.OldLykkeSignInIroncladAuthAcrValues
+            );
+
+            properties.SetProperty(
+                OpenIdConnectConstantsExt.AuthenticationProperties.RegistrationRedirectUrl,
+                Url.Action("GetLykkeWalletTokenMobile", "Userinfo")
+            );
+
+            return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
         }
 
         private async Task SignInAsync(AccountsRegistrationResponseModel registrationServiceResponse,
@@ -173,7 +202,7 @@ namespace Lykke.Service.OAuth.Controllers
             var identity = await _userManager.CreateUserIdentityAsync(registrationServiceResponse.Account.Id,
                 registrationModel.Email, registrationModel.Email, null, registrationServiceResponse.Token, true);
 
-            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.RegistrationScheme, new ClaimsPrincipal(identity));
         }
 
         private Task<AccountsRegistrationResponseModel> CreateUserAsync(RegistrationModel registrationModel, string cid)

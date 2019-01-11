@@ -85,7 +85,7 @@ namespace WebAuth.Controllers
                     ErrorDescription = "An internal error has occurred"
                 });
             }
-
+            
             var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
 
             if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
@@ -100,7 +100,7 @@ namespace WebAuth.Controllers
                 return HandleIroncladAuthorize(request, idp);
             }
 
-            return HandleLykkeAuthorize(request);
+            return await HandleLykkeAuthorize(request);
         }
 
         [Authorize]
@@ -148,7 +148,9 @@ namespace WebAuth.Controllers
         [HttpPost("~/connect/authorize/lykke")]
         public async Task<IActionResult> AuthorizeIroncladThroughLykke()
         {
-            var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync();
+            var lykkeUserId =
+                await _externalUserOperator.GetTempLykkeUserIdAsync(OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie)
+                ?? await _externalUserOperator.GetTempLykkeUserIdAsync(OpenIdConnectConstantsExt.Cookies.RegistrationRequestCookie);
 
             if (string.IsNullOrWhiteSpace(lykkeUserId))
                 return Unauthorized();
@@ -368,7 +370,14 @@ namespace WebAuth.Controllers
             var afterIroncladLoginUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeIroncladThroughLykke"), parameters);
             
             await _externalUserOperator.SaveIroncladRequestAsync(afterIroncladLoginUrl);
-            
+
+            var registrationUserId = _externalUserOperator.GetTempLykkeUserIdAsync(OpenIdConnectConstantsExt.Cookies.RegistrationRequestCookie);
+            if (registrationUserId != null)
+            {
+                return LocalRedirect(afterIroncladLoginUrl);
+            }
+
+            var lykkeSignInContext = _externalUserOperator.GetLykkeSignInContext();
             if (lykkeSignInContext != null)
             {
                 await _externalUserOperator.ClearLykkeSignInContextAsync();
@@ -437,12 +446,21 @@ namespace WebAuth.Controllers
             return LocalRedirect(redirectUrl);
         }
 
-        private IActionResult HandleLykkeAuthorize(OpenIdConnectRequest request)
+        private async Task<IActionResult> HandleLykkeAuthorize(OpenIdConnectRequest request)
         {
             var parameters = request.GetParameters()
                 .ToDictionary(item => item.Key, item => item.Value.Value.ToString());
 
             string redirectUrl;
+
+            var registraitonUser = await HttpContext.AuthenticateAsync(OpenIdConnectConstantsExt.Auth.RegistrationScheme);
+            if (registraitonUser != null)
+            {
+                await HttpContext.SignInAsync(
+                    OpenIdConnectConstantsExt.Auth.DefaultScheme,
+                    new ClaimsPrincipal(registraitonUser.Principal.Identity)
+                );
+            }
 
             if (!User.Identities.Any(identity => identity.IsAuthenticated))
             {
