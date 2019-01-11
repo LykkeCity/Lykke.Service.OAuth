@@ -10,6 +10,7 @@
             public const string PartnerId = "http://lykke.com/oauth/partner_id";
             public const string SessionId = "http://lykke.com/oauth/sessionid";
             public const string Lsub = "lsub";
+            public const string MicrosoftIdentityProvider = "http://schemas.microsoft.com/identity/claims/identityprovider";
         }
 
         public static class Parameters
@@ -54,6 +55,8 @@
         public static class Cookies
         {
             public const string TemporaryUserIdCookie = "TemporaryUserIdCookie";
+            public const string LykkeSignInContextCookie = "LykkeSignInContextCookie";
+            public const string IroncladRequestCookie = "IroncladRequestCookie";
         }
     }
 }

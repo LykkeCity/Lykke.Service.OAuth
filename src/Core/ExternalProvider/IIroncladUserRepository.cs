@@ -7,15 +7,15 @@ namespace Core.ExternalProvider
         /// <summary>
         ///     Add binding between ironclad user and lykke user.
         /// </summary>
-        /// <param name="ironcladUser">Ironclad user.</param>
+        /// <param name="ironcladUserBinding">Ironclad user.</param>
         /// <returns>True if binding was added successfully.</returns>
-        Task<bool> AddAsync(IroncladUser ironcladUser);
+        Task<bool> AddAsync(IroncladUserBinding ironcladUserBinding);
 
         /// <summary>
         ///     Get associated user.
         /// </summary>
         /// <param name="ironcladUserId">Ironclad user id.</param>
         /// <returns>Associated user.</returns>
-        Task<IroncladUser> GetByIdAsync(string ironcladUserId);
+        Task<IroncladUserBinding> GetByIdAsync(string ironcladUserId);
     }
 }

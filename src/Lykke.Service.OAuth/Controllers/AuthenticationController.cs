@@ -32,13 +32,17 @@ using Lykke.Service.Registration.Contract.Client.Models;
 using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
+using Newtonsoft.Json;
 using WebAuth.ActionHandlers;
+using WebAuth.Extensions;
 using WebAuth.Managers;
 using WebAuth.Models;
 using WebAuth.Settings.ServiceSettings;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace WebAuth.Controllers
 {
@@ -65,6 +69,7 @@ namespace WebAuth.Controllers
         private readonly IEnumerable<CountryItem> _countries;
         private readonly IRegistrationRepository _registrationRepository;
         private readonly ISalesforceService _salesforceService;
+        private readonly IExternalUserOperator _externalUserOperator;
         private readonly RedirectSettings _redirectSettings;
 
         public AuthenticationController(
@@ -82,10 +87,12 @@ namespace WebAuth.Controllers
             IClientSessionsClient clientSessionsClient,
             IRegistrationRepository registrationRepository,
             ISalesforceService salesforceService,
-            IRedirectSettingsAccessor redirectSettingsAccessor)
+            IRedirectSettingsAccessor redirectSettingsAccessor,
+            IExternalUserOperator externalUserOperator)
         {
             _registrationRepository = registrationRepository;
             _salesforceService = salesforceService;
+            _externalUserOperator = externalUserOperator;
             _redirectSettings = redirectSettingsAccessor.RedirectSettings;
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -117,6 +124,42 @@ namespace WebAuth.Controllers
             //                }
             //            }
 
+            var isRequestFromIronclad =
+                HttpContext.Request.Cookies.TryGetValue(OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie, out _);
+            
+            if (returnUrl == null && !isRequestFromIronclad)
+            {
+                var relativeUrl = UriHelper.BuildRelative(HttpContext.Request.PathBase, HttpContext.Request.Path,
+                    HttpContext.Request.QueryString);
+
+                var lykkeSignInContext = new LykkeSignInContext
+                {
+                    Partnerid = partnerId,
+                    Platform = platform,
+                    RelativeUrl = relativeUrl
+                };
+
+                _externalUserOperator.SaveLykkeSignInContext(lykkeSignInContext);
+
+                var afterLykkeLoginReturnUrl = Url.Action("Afterlogin",
+                    new RouteValueDictionary(new
+                    {
+                        platform = platform
+                    }));
+
+                var properties = new AuthenticationProperties
+                {
+                    RedirectUri = Url.Action("LykkeLoginCallback", "External")
+                };
+
+                properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
+                    afterLykkeLoginReturnUrl);
+
+                properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues, _redirectSettings.OldLykkeSignInIroncladAuthAcrValues);
+
+                return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
+            }
+
             try
             {
                 var model = new LoginViewModel
@@ -137,6 +180,17 @@ namespace WebAuth.Controllers
                 _log.Error(ex);
                 return Content(ex.Message);
             }
+        }
+
+        private async Task<IActionResult> HandleAuthenticationThroughIroncladAsync(string username, string password, string partnerId, string afterIroncladLoginUrl)
+        {
+            _externalUserOperator.ClearIroncladRequest();
+
+            var lykkeUserId = await _externalUserOperator.AuthenticateLykkeUserAsync(username, password, partnerId);
+
+            await _externalUserOperator.SaveTempLykkeUserIdAsync(lykkeUserId);
+
+            return LocalRedirect(afterIroncladLoginUrl);
         }
 
         private static string PlatformToViewName(string platform, string partnerId)
@@ -174,7 +228,7 @@ namespace WebAuth.Controllers
 
         [HttpPost("~/signin/{platform?}")]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Signin(LoginViewModel model, string platform = null)
+        public async Task<IActionResult> Signin(LoginViewModel model, string platform = null)
         {
             if (model == null)
             {
@@ -196,7 +250,14 @@ namespace WebAuth.Controllers
 
                 if (!ModelState.IsValid)
                     return View(viewName, model);
-                
+
+                var isRequestFromIronclad =
+                    HttpContext.Request.Cookies.TryGetValue(OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie, out var aterIroncladLoginUrl);
+
+                if (isRequestFromIronclad)
+                    return await HandleAuthenticationThroughIroncladAsync(model.Username, model.Password, model.PartnerId,
+                        aterIroncladLoginUrl);
+               
                 return await HandleAuthenticationAsync(model, platform, viewName);
             }
 
@@ -231,10 +292,11 @@ namespace WebAuth.Controllers
             return RedirectToAction("Signup", new { key = code.Key });
         }
 
-        private async Task<ActionResult> HandleAuthenticationAsync(LoginViewModel model, string platform,
+        private async Task<IActionResult> HandleAuthenticationAsync(LoginViewModel model, string platform,
             string viewName)
         {
             var userModel = await _registrationRepository.GetByEmailAsync(model.Username);
+
             if (userModel != null && userModel.CheckPassword(model.Password))
             {
                 if (platform == "android" || platform == "ios")
@@ -282,32 +344,18 @@ namespace WebAuth.Controllers
                 ModelState.AddModelError("", "The username or password you entered is incorrect");
                 return View(viewName, model);
             }
+            
             var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email,
                 model.Username, authResult.Account.PartnerId, authResult.Token, false);
-
+            
             await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
            
-            var afterLykkeLoginReturnUrl = Url.Action("Afterlogin",
+            return RedirectToAction("Afterlogin",
                 new RouteValueDictionary(new
                 {
                     platform = platform,
                     returnUrl = model.ReturnUrl
                 }));
-
-            if (model.ReturnUrl != null) 
-                return RedirectToLocal(afterLykkeLoginReturnUrl);
-
-            var properties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action("ExternalLoginCallback", "External")
-            };
-
-            properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
-                afterLykkeLoginReturnUrl);
-
-            properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues, _redirectSettings.OldLykkeSignInIroncladAuthAcrValues);
-
-            return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
         }
 
         [HttpGet("~/signup/{key}")]

@@ -95,6 +95,7 @@ namespace Lykke.Service.OAuth.Extensions
 
             options.SaveTokens = true;
 
+            //TODO:@gafanasiev Move to separate class.
             options.Events.OnRedirectToIdentityProvider += context =>
             {
                 var acrValuesFromRequest =

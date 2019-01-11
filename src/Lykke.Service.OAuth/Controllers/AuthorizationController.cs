@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,14 +10,15 @@ using Common;
 using Core.Application;
 using Core.Extensions;
 using Core.ExternalProvider;
-using Core.ExternalProvider.Settings;
 using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using WebAuth.Extensions;
 using WebAuth.Managers;
 using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 using OpenIdConnectMessage = Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectMessage;
@@ -87,13 +89,21 @@ namespace WebAuth.Controllers
                 });
             }
 
+            var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
+
+            if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
+            {
+                return HandleLykkeFromIronclad(request);
+            }
+
             var idp = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Idp);
             
             if (_validation.IsValidLykkeIdp(idp) || _validation.IsValidExternalIdp(idp))
             {
-                return HandleIroncladAuthorize(request);
+                return HandleIroncladAuthorize(request, idp);
             }
-            return await HandleLykkeAuthorize(request);
+
+            return HandleLykkeAuthorize(request);
         }
 
         [Authorize]
@@ -135,6 +145,68 @@ namespace WebAuth.Controllers
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 
+        [HttpGet("~/connect/authorize/lykke")]
+        [HttpPost("~/connect/authorize/lykke")]
+        public async Task<IActionResult> AuthorizeIroncladThroughLykke()
+        {
+            var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync();
+
+            if (string.IsNullOrWhiteSpace(lykkeUserId))
+                return Unauthorized();
+
+            var response = HttpContext.GetOpenIdConnectResponse();
+            if (response != null)
+            {
+                return View("Error", response);
+            }
+
+            var request = HttpContext.GetOpenIdConnectRequest();
+            if (request == null)
+            {
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "An internal error has occurred"
+                });
+            }
+
+            var application = await _applicationRepository.GetByIdAsync(request.ClientId);
+            if (application == null)
+            {
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.InvalidClient,
+                    ErrorDescription =
+                        "Details concerning the calling client application cannot be found in the database"
+                });
+            }
+            //TODO:@gafanasiev Code duplicate, move to separate method.
+            var scopes = request.GetScopes().ToList();
+
+            var lykkeUser = await _userManager.GetLykkeUserAsync(lykkeUserId);
+
+            var userClaims = _userManager.ClaimsFromLykkeUser(lykkeUser);
+
+            var identity = _userManager.CreateIdentity(scopes, userClaims);
+            
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(identity),
+                new AuthenticationProperties(),
+                OpenIdConnectServerDefaults.AuthenticationScheme);
+
+            //FIXME:@gafanasiev add allowed scopes for client application.
+            ticket.SetScopes(new[]
+            {
+                OpenIdConnectConstants.Scopes.OpenId,
+                OpenIdConnectConstants.Scopes.Email,
+                OpenIdConnectConstants.Scopes.Phone,
+                OpenIdConnectConstants.Scopes.Profile,
+                OpenIdConnectConstants.Scopes.Address
+            }.Intersect(request.GetScopes()));
+
+            return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
+        }
+        
         [Authorize]
         [HttpPost("~/connect/authorize/accept")]
         [HttpGet("~/connect/authorize/accept")]
@@ -287,7 +359,38 @@ namespace WebAuth.Controllers
             return SignOut(OpenIdConnectServerDefaults.AuthenticationScheme);
         }
 
-        private IActionResult HandleIroncladAuthorize(OpenIdConnectRequest request)
+        private IActionResult HandleLykkeFromIronclad(OpenIdConnectRequest request)
+        {
+            var lykkeSignInContext = _externalUserOperator.GetLykkeSignInContext();
+
+            var parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
+            
+            var afterIroncladLoginUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeIroncladThroughLykke"), parameters);
+            
+            _externalUserOperator.SaveIroncladRequest(afterIroncladLoginUrl);
+            
+            if (lykkeSignInContext != null)
+            {
+                _externalUserOperator.ClearLykkeSignInContext();
+
+                return LocalRedirect(lykkeSignInContext.RelativeUrl);
+            }
+
+            //TODO:@gafanasiev Code duplication, move to helper method.
+            parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerId, out var partnerId);
+
+            var authenticationProperties = new AuthenticationProperties
+            {
+                RedirectUri = afterIroncladLoginUrl
+            };
+
+            if (!string.IsNullOrWhiteSpace(partnerId))
+                authenticationProperties.Parameters.Add(OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
+
+            return Challenge(authenticationProperties);
+        }
+
+        private IActionResult HandleIroncladAuthorize(OpenIdConnectRequest request, string idp)
         {
             var parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
 
@@ -295,10 +398,29 @@ namespace WebAuth.Controllers
             {
                 var externalRedirectUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeExternal"), parameters);
 
+                string redirectUri;
+
+                if (_validation.IsValidLykkeIdp(idp))
+                {
+                    redirectUri = Url.Action("LykkeLoginCallback", "External");
+                }
+                else if (_validation.IsValidExternalIdp(idp))
+                {
+                    redirectUri = Url.Action("ExternalLoginCallback", "External");
+
+                }
+                else
+                {
+                    return View("Error", new OpenIdConnectMessage
+                    {
+                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                        ErrorDescription = "Invalid identity provider"
+                    });
+                }
+
                 var properties = new AuthenticationProperties
                 {
-                    RedirectUri = Url.Action("ExternalLoginCallback", "External"),
-                    // We need to save original redirectUrl, later get it in AfterExternalLoginCallback and redirect back to it.
+                    RedirectUri = redirectUri
                 };
 
                 properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl, externalRedirectUrl);
@@ -315,7 +437,7 @@ namespace WebAuth.Controllers
             return LocalRedirect(redirectUrl);
         }
 
-        private async Task<IActionResult> HandleLykkeAuthorize(OpenIdConnectRequest request)
+        private IActionResult HandleLykkeAuthorize(OpenIdConnectRequest request)
         {
             var parameters = request.GetParameters()
                 .ToDictionary(item => item.Key, item => item.Value.Value.ToString());
@@ -344,15 +466,6 @@ namespace WebAuth.Controllers
                     authenticationProperties.Parameters.Add(OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
 
                 return Challenge(authenticationProperties);
-            }
-
-            var userId = User.GetClaimValue(ClaimTypes.NameIdentifier);
-
-            var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
-            
-            if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
-            {
-                await _externalUserOperator.SaveLykkeUserIdAfterIroncladlLoginAsync(userId);
             }
 
             var acceptUri = Url.Action("Accept");
