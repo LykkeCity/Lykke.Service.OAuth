@@ -243,6 +243,20 @@ namespace WebAuth
         {
             try
             {
+                app.Use(async (ctx, next) =>
+                {
+                    await next();
+
+                    if (ctx.Request.Path == "/api/registration/accountInfo" &&
+                        ctx.Response.StatusCode == 302)
+                    {
+                        var location = ctx.Response.Headers["location"];
+                        ctx.Response.StatusCode = 200;
+                        var json = $@"{{'location' : '{location}'}}";
+                        await ctx.Response.WriteAsync(json);
+                    }
+                });
+
                 app.UseLykkeMiddleware(ex => new { message = "Technical problem" });
 
                 app.UseMiddleware<LykkeApiErrorMiddleware>();
