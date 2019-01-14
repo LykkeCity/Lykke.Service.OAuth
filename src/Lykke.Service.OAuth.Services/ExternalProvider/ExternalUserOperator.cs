@@ -272,19 +272,34 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         {
             var lykkeUser = await _clientAccountClient.AuthenticateAsync(username, password, partnerId);
 
-            return lykkeUser.Id;
+            return lykkeUser?.Id;
         }
 
         /// <inheritdoc />
         public void SaveIroncladRequest(string redirectUrl)
         {
+            var protectedUrl = _dataProtector.Protect(redirectUrl);
+
             _httpContextAccessor.HttpContext.Response.Cookies.Append(
-                OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie, redirectUrl, new CookieOptions
+                OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie, protectedUrl, new CookieOptions
                 {
                     HttpOnly = true,
                     Expires = DateTimeOffset.UtcNow.Add(_ironcladRequestCookieLifetime),
                     MaxAge = _ironcladRequestCookieLifetime
                 });
+        }
+
+        /// <inheritdoc />
+        public string GetIroncladRequest()
+        {
+            var exists = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(
+                OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie,
+                out var protectedUrl);
+
+            if (exists && !string.IsNullOrWhiteSpace(protectedUrl))
+                return _dataProtector.Unprotect(protectedUrl);
+
+            return null;
         }
 
         /// <inheritdoc />
