@@ -146,7 +146,37 @@ namespace Lykke.Service.OAuth.Controllers
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(LykkeApiErrorResponse), (int)HttpStatusCode.NotFound)]
         [ValidateApiModel]
+        [Consumes("application/json")]
         public async Task<ActionResult> AccountInfo([FromBody] AccountInfoRequestModel model)
+        {
+            return await HandleAccountInfo(model);
+        }
+
+        /// <summary>
+        /// Submits account information step
+        /// </summary>
+        /// <param name="model"></param>
+        /// <response code="200">The id of the registration has been proceeded to the next step</response>
+        /// <response code="400">Invalid country or phone number or phone number is already used. Error codes:ModelValidationFailed, CountryFromRestrictedList, CountryCodeInvalid, InvalidPhoneFormat, PhoneNumberInUse</response>
+        /// <response code="404">
+        ///     When RegistrationId is null, empty or whitespace.
+        ///     When Registration id not found.
+        ///     Error codes: RegistrationNotFound
+        /// </response>
+        [HttpPost]
+        [Route("accountInfo")]
+        [SwaggerOperation("AccountInfo")]
+        [ProducesResponseType(typeof(RegistrationCompleteResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(LykkeApiErrorResponse), (int)HttpStatusCode.NotFound)]
+        [ValidateApiModel]
+        [Consumes("application/x-www-form-urlencoded")]
+        public async Task<ActionResult> AccountInfoForm([FromForm] AccountInfoRequestModel model)
+        {
+            return await HandleAccountInfo(model);
+        }
+
+        private async Task<ActionResult> HandleAccountInfo(AccountInfoRequestModel model)
         {
             var registrationModel = await _registrationRepository.GetByIdAsync(model.RegistrationId);
 
@@ -169,7 +199,8 @@ namespace Lykke.Service.OAuth.Controllers
                 throw new Exception("Null response from registration service during registration.");
             }
 
-            await _externalUserOperator.SaveTempLykkeUserIdAsync(registrationServiceResponse.Account.Id, OpenIdConnectConstantsExt.Cookies.RegistrationRequestCookie);
+            await _externalUserOperator.SaveTempLykkeUserIdAsync(registrationServiceResponse.Account.Id,
+                OpenIdConnectConstantsExt.Cookies.RegistrationRequestCookie);
 
             //await SignInAsync(registrationServiceResponse, registrationModel);
 
@@ -177,7 +208,7 @@ namespace Lykke.Service.OAuth.Controllers
             {
                 RedirectUri = Url.Action("ExternalLoginCallback", "External")
             };
-            
+
             properties.SetProperty(
                 OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
                 Url.Action("GetLykkeWalletTokenMobile", "Userinfo")
