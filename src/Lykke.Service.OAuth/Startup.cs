@@ -252,7 +252,7 @@ namespace WebAuth
                     {
                         var location = ctx.Response.Headers["location"];
                         ctx.Response.StatusCode = 200;
-                        var json = $@"{{'location' : '{location}'}}";
+                        var json = $@"{{""location"" : ""{location}""}}";
                         await ctx.Response.WriteAsync(json);
                     }
                 });

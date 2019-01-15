@@ -32,8 +32,10 @@
         function handleSubmit(form) {
             if (form.$valid && !vm.data.isSubmitting) {
                 vm.data.isSubmitting = true;
-                var tracker = $window.ga.getAll()[0];
-                var cid = tracker.get('clientId');
+                if ($window.ga) {
+                    var tracker = $window.ga.getAll()[0];
+                    var cid = tracker.get('clientId');
+                }
 
                 signupService.sendAccountInfo(
                     vm.data.model.firstName,
@@ -41,9 +43,9 @@
                     vm.data.model.country,
                     vm.data.model.phonePrefix + vm.data.model.phoneNumber,
                     cid
-                ).then(function () {
+                ).then(function (data) {
                     signupService.signOut();
-                    $window.location.href = envService.getFundsUrl();
+                    $window.location.href = data.location;
                 }).catch(function (error) {
                     vm.data.isSubmitting = false;
 

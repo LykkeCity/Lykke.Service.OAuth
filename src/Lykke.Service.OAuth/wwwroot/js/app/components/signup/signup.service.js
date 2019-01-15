@@ -103,7 +103,6 @@
                     cid: cid
                 })
                 .then(function (response) {
-                    saveRegistrationId(response.data.registrationId);
                     return response.data;
                 });
         }
