@@ -124,10 +124,9 @@ namespace WebAuth.Controllers
             //                }
             //            }
 
-            var isRequestFromIronclad =
-                HttpContext.Request.Cookies.TryGetValue(OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie, out _);
+            var afterIroncladLoginUrl = _externalUserOperator.GetIroncladRequest();
             
-            if (returnUrl == null && !isRequestFromIronclad)
+            if (returnUrl == null && string.IsNullOrWhiteSpace(afterIroncladLoginUrl))
             {
                 var relativeUrl = UriHelper.BuildRelative(HttpContext.Request.PathBase, HttpContext.Request.Path,
                     HttpContext.Request.QueryString);
@@ -182,36 +181,6 @@ namespace WebAuth.Controllers
             }
         }
 
-        private async Task<IActionResult> HandleAuthenticationThroughIroncladAsync(string username, string password, string partnerId, string afterIroncladLoginUrl)
-        {
-            _externalUserOperator.ClearIroncladRequest();
-
-            var lykkeUserId = await _externalUserOperator.AuthenticateLykkeUserAsync(username, password, partnerId);
-
-            await _externalUserOperator.SaveTempLykkeUserIdAsync(lykkeUserId);
-
-            return LocalRedirect(afterIroncladLoginUrl);
-        }
-
-        private static string PlatformToViewName(string platform, string partnerId)
-        {
-            if (partnerId != null)
-            {
-                CustomViewsDictionary.TryGetValue(partnerId.ToLower(), out var customViews);
-                if (customViews != null && customViews.Contains(platform)) return $"Login.{partnerId}.{platform}";
-            }
-
-            switch (platform?.ToLower())
-            {
-                case "android":
-                    return "Login.android";
-                case "ios":
-                    return "Login.ios";
-                default:
-                    return "Login";
-            }
-        }
-
         [HttpGet("~/signin/afterlogin/{platform?}")]
         public ActionResult Afterlogin(string platform = null, string returnUrl = null)
         {
@@ -251,12 +220,15 @@ namespace WebAuth.Controllers
                 if (!ModelState.IsValid)
                     return View(viewName, model);
 
-                var isRequestFromIronclad =
-                    HttpContext.Request.Cookies.TryGetValue(OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie, out var aterIroncladLoginUrl);
+                var registrationLogin = await HandleAuthenticationForUnfinishedRegistrationAsync(model, platform, viewName);
 
-                if (isRequestFromIronclad)
-                    return await HandleAuthenticationThroughIroncladAsync(model.Username, model.Password, model.PartnerId,
-                        aterIroncladLoginUrl);
+                if (registrationLogin != null)
+                    return registrationLogin;
+
+                var afterIroncladLoginUrl = _externalUserOperator.GetIroncladRequest();
+
+                if (!string.IsNullOrWhiteSpace(afterIroncladLoginUrl))
+                    return await HandleAuthenticationThroughIroncladAsync(model, afterIroncladLoginUrl, viewName);
                
                 return await HandleAuthenticationAsync(model, platform, viewName);
             }
@@ -290,72 +262,6 @@ namespace WebAuth.Controllers
             await _emailFacadeService.SendVerifyCode(model.Email, code.Code, url);
 
             return RedirectToAction("Signup", new { key = code.Key });
-        }
-
-        private async Task<IActionResult> HandleAuthenticationAsync(LoginViewModel model, string platform,
-            string viewName)
-        {
-            var userModel = await _registrationRepository.GetByEmailAsync(model.Username);
-
-            if (userModel != null && userModel.CheckPassword(model.Password))
-            {
-                if (platform == "android" || platform == "ios")
-                    return RedirectToAction("AfterRegistrationLogin", new AfterRegistrationLoginRequest
-                    {
-                        RegistrationId = userModel.RegistrationId
-                    });
-
-                return RedirectToAction("Registration", "Spa",
-                    routeValues: new
-                    {
-                        registrationId = userModel.RegistrationId
-                    });
-            }
-
-            AuthenticateResponseModel authResult;
-            var requestModel = new AuthenticateModel
-            {
-                Email = model.Username,
-                Password = model.Password,
-                Ip = HttpContext.GetIp(),
-                UserAgent = HttpContext.GetUserAgent(),
-                PartnerId = model.PartnerId,
-                Ttl = GetSessionTtl(platform)
-            };
-            try
-            {
-                authResult = await _registrationClient.LoginApi.AuthenticateAsync(requestModel);
-            }
-            catch (Exception ex)
-            {
-                _log.Error(nameof(AuthenticationController), ex, requestModel.Sanitize().ToJson());
-                ModelState.AddModelError("", "Technical problems during authorization.");
-                return View(viewName, model);
-            }
-
-            if (authResult == null)
-            {
-                ModelState.AddModelError("", "Technical problems during authorization.");
-                return View(viewName, model);
-            }
-
-            if (authResult.Status == AuthenticationStatus.Error)
-            {
-                ModelState.AddModelError("", "The username or password you entered is incorrect");
-                return View(viewName, model);
-            }
-            
-            var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email,
-                model.Username, authResult.Account.PartnerId, authResult.Token, false);
-            
-            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
-           
-            return RedirectToAction("Afterlogin",
-                new RouteValueDictionary(new
-                {
-                    platform = platform,
-                    returnUrl = model.ReturnUrl
-                }));
         }
 
         [HttpGet("~/signup/{key}")]
@@ -598,13 +504,124 @@ namespace WebAuth.Controllers
         {
             switch (platform?.ToLower())
             {
-                    case "android":
-                    case "ios":
-                        return TimeSpan.FromDays(30);
+                case "android":
+                case "ios":
+                    return TimeSpan.FromDays(30);
 
-                    default:
-                        return null;
+                default:
+                    return null;
             }
+        }
+
+        private async Task<IActionResult> HandleAuthenticationAsync(LoginViewModel model, string platform,
+            string viewName)
+        {
+            AuthenticateResponseModel authResult;
+            var requestModel = new AuthenticateModel
+            {
+                Email = model.Username,
+                Password = model.Password,
+                Ip = HttpContext.GetIp(),
+                UserAgent = HttpContext.GetUserAgent(),
+                PartnerId = model.PartnerId,
+                Ttl = GetSessionTtl(platform)
+            };
+            try
+            {
+                authResult = await _registrationClient.LoginApi.AuthenticateAsync(requestModel);
+            }
+            catch (Exception ex)
+            {
+                _log.Error(nameof(AuthenticationController), ex, requestModel.Sanitize().ToJson());
+                ModelState.AddModelError("", "Technical problems during authentication.");
+                return View(viewName, model);
+            }
+
+            if (authResult == null)
+            {
+                ModelState.AddModelError("", "Technical problems during authentication.");
+                return View(viewName, model);
+            }
+
+            if (authResult.Status == AuthenticationStatus.Error) return IncorrectUsernameOrPassword(model, viewName);
+
+            var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email,
+                model.Username, authResult.Account.PartnerId, authResult.Token, false);
+
+            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+
+            return RedirectToAction("Afterlogin",
+                new RouteValueDictionary(new
+                {
+                    platform,
+                    returnUrl = model.ReturnUrl
+                }));
+        }
+
+        private async Task<IActionResult> HandleAuthenticationForUnfinishedRegistrationAsync(LoginViewModel model, string platform,
+            string viewName)
+        {
+            var userModel = await _registrationRepository.GetByEmailAsync(model.Username);
+
+            if (userModel == null)
+                return null;
+
+            if (!userModel.CheckPassword(model.Password))
+                return IncorrectUsernameOrPassword(model, viewName);
+
+            _externalUserOperator.ClearIroncladRequest();
+
+            if (platform == "android" || platform == "ios")
+                return RedirectToAction("AfterRegistrationLogin", new AfterRegistrationLoginRequest
+                {
+                    RegistrationId = userModel.RegistrationId
+                });
+
+            return RedirectToAction("Registration", "Spa",
+                new
+                {
+                    registrationId = userModel.RegistrationId
+                });
+        }
+
+        private async Task<IActionResult> HandleAuthenticationThroughIroncladAsync(LoginViewModel model,
+            string afterIroncladLoginUrl, string viewName)
+        {
+            var lykkeUserId =
+                await _externalUserOperator.AuthenticateLykkeUserAsync(model.Username, model.Password, model.PartnerId);
+
+            if (lykkeUserId == null) return IncorrectUsernameOrPassword(model, viewName);
+
+            await _externalUserOperator.SaveTempLykkeUserIdAsync(lykkeUserId);
+
+            _externalUserOperator.ClearIroncladRequest();
+
+            return LocalRedirect(afterIroncladLoginUrl);
+        }
+
+        private static string PlatformToViewName(string platform, string partnerId)
+        {
+            if (partnerId != null)
+            {
+                CustomViewsDictionary.TryGetValue(partnerId.ToLower(), out var customViews);
+                if (customViews != null && customViews.Contains(platform)) return $"Login.{partnerId}.{platform}";
+            }
+
+            switch (platform?.ToLower())
+            {
+                case "android":
+                    return "Login.android";
+                case "ios":
+                    return "Login.ios";
+                default:
+                    return "Login";
+            }
+        }
+
+        private IActionResult IncorrectUsernameOrPassword(LoginViewModel model, string viewName)
+        {
+            ModelState.AddModelError("", "The username or password you entered is incorrect");
+            return View(viewName, model);
         }
     }
 }

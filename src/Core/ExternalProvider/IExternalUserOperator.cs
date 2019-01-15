@@ -100,5 +100,11 @@ namespace Core.ExternalProvider
         ///     Clear saved ironclad request.
         /// </summary>
         void ClearIroncladRequest();
+
+        /// <summary>
+        /// Get saved ironclad request.
+        /// </summary>
+        /// <returns>Url if request exists, null otherwise.</returns>
+        string GetIroncladRequest();
     }
 }
