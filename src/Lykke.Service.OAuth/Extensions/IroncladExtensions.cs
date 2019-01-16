@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Net.Http;
-using System.Threading.Tasks;
-using AspNet.Security.OpenIdConnect.Extensions;
 using Core.Extensions;
 using Core.ExternalProvider.Settings;
 using IdentityModel.Client;
+using Lykke.Service.OAuth.ExternalProvider;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
@@ -64,7 +63,7 @@ namespace Lykke.Service.OAuth.Extensions
 
             options.DisableTelemetry = true;
 
-            options.ClaimActions.MapAllExcept();
+            options.ClaimActions.MapAll();
 
             // Set unique callback path for every provider to eliminate intersection.
             options.CallbackPath = string.IsNullOrWhiteSpace(ironcladSettings.CallbackPath)
@@ -96,28 +95,7 @@ namespace Lykke.Service.OAuth.Extensions
 
             options.SaveTokens = true;
 
-            options.CorrelationCookie.HttpOnly = false;
-            options.CorrelationCookie.SameSite = SameSiteMode.None;
-
-            //TODO:@gafanasiev Move to separate class.
-            options.Events.OnRedirectToIdentityProvider += context =>
-            {
-                var acrValuesFromRequest =
-                    context.Properties.GetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues);
-
-                var acrValuesFromSettings = ironcladSettings.AcrValues;
-
-                var shouldGetFromRequest = !string.IsNullOrEmpty(acrValuesFromRequest);
-
-                var shouldGetFromSettings = !string.IsNullOrEmpty(acrValuesFromSettings);
-
-                if (shouldGetFromRequest)
-                    context.ProtocolMessage.AcrValues = acrValuesFromRequest;
-                else if (shouldGetFromSettings)
-                    context.ProtocolMessage.AcrValues = acrValuesFromSettings;
-
-                return Task.CompletedTask;
-            };
+            options.EventsType = typeof(IroncladCookieAuthenticationEvents);
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common;
-using Core.Extensions;
 using Core.ExternalProvider;
 using Core.Settings;
 using Microsoft.AspNetCore.Authentication;
@@ -18,7 +17,8 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
     {
         private static readonly string RedisPrefix = "OAuth:UserSessions";
         private static readonly string CookieName = "UserSession";
-
+        private const string IroncladLoginSessionProtector = "IroncladLoginSessionProtector";
+        
         private readonly IDatabase _database;
         private readonly IDataProtector _dataProtector;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -40,8 +40,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             _hostingEnvironment = hostingEnvironment;
             _lifetimeSettings = lifetimeSettings;
             _dataProtector =
-                dataProtectionProvider.CreateProtector(OpenIdConnectConstantsExt.Protectors
-                    .ExternalProviderCookieProtector);
+                dataProtectionProvider.CreateProtector(IroncladLoginSessionProtector);
         }
 
         /// <inheritdoc />

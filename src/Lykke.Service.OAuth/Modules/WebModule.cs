@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Lykke.Service.OAuth.ExternalProvider;
 using Lykke.Service.OAuth.Factories;
 using Lykke.Service.OAuth.Managers;
 using Lykke.SettingsReader;
@@ -24,6 +25,7 @@ namespace WebAuth.Modules
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<UserManager>().As<IUserManager>().SingleInstance();
+            builder.RegisterType<IroncladUtils>().As<IIroncladUtils>().SingleInstance();
             builder.RegisterType<HttpContextAccessor>().As<IHttpContextAccessor>().SingleInstance();
             builder.RegisterType<ActionContextAccessor>().As<IActionContextAccessor>().SingleInstance();
             builder.RegisterType<UrlHelperFactory>().As<IUrlHelperFactory>().SingleInstance();
@@ -33,6 +35,9 @@ namespace WebAuth.Modules
             builder.RegisterType<RequestModelFactory>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(_settings.CurrentValue.OAuth.Security);
             builder.RegisterInstance(_settings.CurrentValue.OAuth.FeatureToggle);
+            builder.RegisterInstance(_settings.CurrentValue.OAuth.LifetimeSettings);
+            builder.RegisterInstance(_settings.CurrentValue.OAuth.ExternalProvidersSettings);
+
         }
     }
 }

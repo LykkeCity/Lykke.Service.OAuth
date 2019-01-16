@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Core.ExternalProvider.Exceptions;
+using Core.ExternalProvider;
 using JetBrains.Annotations;
 
 namespace Core.Services
@@ -32,29 +32,40 @@ namespace Core.Services
         Task UpdateRefreshTokenInWhitelistAsync([CanBeNull] string oldRefreshToken, string newRefreshToken);
 
         /// <summary>
-        ///     Save ironclad refresh token.
+        ///     Save ironclad openid tokens, associated by lykke token.
         /// </summary>
-        /// <param name="lykkeToken">Lykke token.</param>
-        /// <param name="refreshToken">Ironclad refresh token.</param>
-        /// <returns>Completed task if everything was successful.</returns>
-        Task SaveIroncladRefreshTokenAsync(string lykkeToken, string refreshToken);
+        /// <param name="lykkeToken">lykke token</param>
+        /// <param name="tokens">tokens from ironclad</param>
+        /// <returns>completed task upon success</returns>
+        Task SaveIroncladTokensAsync(string lykkeToken, OpenIdTokens tokens);
 
         /// <summary>
-        ///     Get saved ironclad refresh token.
+        ///     Get saved ironclad openid tokens.
+        ///     Refreshes them if expired.
         /// </summary>
-        /// <param name="lykkeToken">Lykke token.</param>
-        /// <returns>Ironclad refresh token.</returns>
-        /// <exception cref="TokenNotFoundException">Thrown when token not found.</exception>
-        /// <exception cref="TokenNotFoundException">Thrown when there were an error during token retrieval process.</exception>
-        Task<string> GetIroncladRefreshTokenAsync(string lykkeToken);
+        /// <param name="lykkeToken">lykke token</param>
+        /// <returns>Openid tokens</returns>
+        Task<OpenIdTokens> GetFreshIroncladTokens(string lykkeToken);
 
         /// <summary>
-        ///     Get saved ironclad access token.
+        ///     Revoke access and refresh tokens.
         /// </summary>
-        /// <param name="lykkeToken">Lykke token.</param>
-        /// <returns>Ironclad access token.</returns>
-        /// <exception cref="TokenNotFoundException">Thrown when token not found.</exception>
-        /// <exception cref="TokenNotFoundException">Thrown when there were an error during token retrieval process.</exception>
-        Task<string> GetIroncladAccessTokenAsync(string lykkeToken);
+        /// <param name="tokens">ironclad openid tokens</param>
+        /// <returns>completed task upon success</returns>
+        Task RevokeIroncladTokensAsync(OpenIdTokens tokens);
+
+        /// <summary>
+        ///     Get saved ironclad openid tokens without refresh.
+        /// </summary>
+        /// <param name="lykkeToken">lykke token</param>
+        /// <returns>ironclad openid tokens</returns>
+        Task<OpenIdTokens> GetIroncladTokens(string lykkeToken);
+
+        /// <summary>
+        ///     Remove saved ironclad openid tokens.
+        /// </summary>
+        /// <param name="lykkeToken">lykke token</param>
+        /// <returns>True if tokens were deleted, false if they did not exist.</returns>
+        Task<bool> DeleteIroncladTokens(string lykkeToken);
     }
 }

@@ -24,6 +24,7 @@
         {
             public const string ExternalLoginRedirectUrl = "externalLoginRedirectUrl";
             public const string AcrValues = "acrValues";
+            public const string LykkeToken = "lykkeToken";
         }
 
         public static class Auth
@@ -45,11 +46,6 @@
         {
             public const string Ironclad = "ironclad";
             public const string Lykke = "lykke";
-        }
-
-        public static class Protectors
-        {
-            public const string ExternalProviderCookieProtector = "ExternalProviderCookieProtector";
         }
     }
 }

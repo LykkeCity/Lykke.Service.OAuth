@@ -2,7 +2,6 @@
 using Autofac;
 using Core.Countries;
 using Core.ExternalProvider;
-using Core.ExternalProvider.Settings;
 using Core.PasswordValidation;
 using Core.Services;
 using Lykke.Common;
@@ -36,13 +35,18 @@ namespace Lykke.Service.OAuth.Modules
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<TokenService>()
-                .WithParameter("ironcladAuth", _settings.CurrentValue.OAuth.ExternalProvidersSettings.IroncladAuth)
-                .As<ITokenService>().SingleInstance();
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.OAuth.ExternalProvidersSettings.IroncladAuth))
+                .As<ITokenService>()
+                .SingleInstance();
 
             builder.RegisterType<ValidationService>().As<IValidationService>().SingleInstance();
 
             builder.RegisterType<ExternalUserOperator>()
                 .As<IExternalUserOperator>()
+                .SingleInstance();           
+            
+            builder.RegisterType<OpenIdTokensFactory>()
+                .As<IOpenIdTokensFactory>()
                 .SingleInstance();
 
             builder.RegisterType<IroncladFacade>().As<IIroncladFacade>()
