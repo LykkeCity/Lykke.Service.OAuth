@@ -8,6 +8,7 @@ using Core.ExternalProvider;
 using Core.ExternalProvider.Exceptions;
 using Core.Services;
 using Lykke.Common.Log;
+using Lykke.Service.OAuth.ExternalProvider;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +26,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IExternalUserOperator _externalUserOperator;
         private readonly ITokenService _tokenService;
         private readonly IUserManager _userManager;
+        private readonly IIroncladUtils _ironcladUtils;
 
         private static readonly OpenIdConnectMessage AuthenticationError = new OpenIdConnectMessage
         {
@@ -37,12 +39,14 @@ namespace Lykke.Service.OAuth.Controllers
             ILogFactory logFactory,
             IExternalUserOperator externalUserOperator,
             ITokenService tokenService,
-            IUserManager userManager)
+            IUserManager userManager, 
+            IIroncladUtils ironcladUtils)
         {
             _log = logFactory.CreateLog(this);
             _externalUserOperator = externalUserOperator;
             _tokenService = tokenService;
             _userManager = userManager;
+            _ironcladUtils = ironcladUtils;
         }
 
         /// <summary>
@@ -63,10 +67,11 @@ namespace Lykke.Service.OAuth.Controllers
 
                 var lykkeUserAuthenticationContext = await _externalUserOperator.CreateLykkeSessionAsync(lykkeUser);
 
-                var ironcladRefreshToken = await HttpContext.GetIroncladRefreshTokenAsync();
+                var lykkeToken = lykkeUserAuthenticationContext.SessionId;
 
-                await _tokenService.SaveIroncladRefreshTokenAsync(lykkeUserAuthenticationContext.SessionId,
-                    ironcladRefreshToken);
+                var tokens = await _ironcladUtils.GetIroncladTokensAsync();
+
+                await _tokenService.SaveIroncladTokensAsync(lykkeToken, tokens);
 
                 await _externalUserOperator.AssociateIroncladUserAsync(lykkeUser, ironcladUser);
 
@@ -112,15 +117,8 @@ namespace Lykke.Service.OAuth.Controllers
 
                 var lykkeUserAuthenticationContext = await _externalUserOperator.CreateLykkeSessionAsync(lykkeUser);
 
-                var sessionId = lykkeUserAuthenticationContext.SessionId;
-                
                 var lykkeIdentity = _userManager.CreateUserIdentity(lykkeUserAuthenticationContext);
-                
-                var ironcladRefreshToken = await HttpContext.GetIroncladRefreshTokenAsync();
-
-                // TODO:@gafanasiev Save access token, save id_token
-                await _tokenService.SaveIroncladRefreshTokenAsync(sessionId, ironcladRefreshToken);
-
+ 
                 await _externalUserOperator.AssociateIroncladUserAsync(lykkeUser, ironcladUser);
 
                 await HttpContext.SignInAsLykkeUserAsync(lykkeIdentity);
@@ -133,7 +131,11 @@ namespace Lykke.Service.OAuth.Controllers
                 await _externalUserOperator.EndUserSessionAsync();
 
                 var externalLoginReturnUrl = await HttpContext.GetIroncladExternalRedirectUrlAsync();
-                
+
+                var tokens = await _ironcladUtils.GetIroncladTokensAsync();
+
+                await _tokenService.SaveIroncladTokensAsync(lykkeUserAuthenticationContext.SessionId, tokens);
+
                 return Redirect(externalLoginReturnUrl);
             }
             catch (Exception e) when (

@@ -41,6 +41,7 @@ using WebAuth.Settings.ServiceSettings;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Lykke.Service.OAuth.Extensions.PasswordValidation;
 using Lykke.Service.OAuth.Middleware;
+using Lykke.Service.OAuth.ExternalProvider;
 using LykkeApiErrorMiddleware = Lykke.Service.OAuth.Middleware.LykkeApiErrorMiddleware;
 
 namespace WebAuth
@@ -171,6 +172,8 @@ namespace WebAuth
                         options.RefreshTokenLifetime = TimeSpan.FromDays(30);
                         options.UseSlidingExpiration = true;
                     });
+
+                services.AddTransient<IroncladCookieAuthenticationEvents>();
 
                 services.AddLocalization(options => options.ResourcesPath = "Resources");
 

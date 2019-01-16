@@ -6,6 +6,8 @@ using Core.ExternalProvider.Settings;
 using FluentAssertions;
 using IdentityModel.Client;
 using Lykke.Service.OAuth.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using NSubstitute;
 using StackExchange.Redis;
 using Xunit;
@@ -27,13 +29,19 @@ namespace WebAuth.Tests.Services
             var clientFactory = Substitute.For<IHttpClientFactory>();
             var discoveryCache = Substitute.For<IDiscoveryCache>();
             var ironcladAuth = new IdentityProviderSettings();
+            var clock = Substitute.For<ISystemClock>();
+            var protectionProvider = Substitute.For<IDataProtectionProvider>();
+            var tokensFactory = Substitute.For<IOpenIdTokensFactory>();
             multiplexer.GetDatabase().ReturnsForAnyArgs(_redisDatabase);
 
             _tokenService = new TokenService(
                 ironcladAuth,
                 multiplexer, 
                 clientFactory, 
-                discoveryCache);
+                discoveryCache,
+                clock,
+                protectionProvider,
+                tokensFactory);
         }
 
         [Theory]
