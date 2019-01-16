@@ -10,7 +10,11 @@ using Core.ExternalProvider.Settings;
 using Core.Services;
 using IdentityModel.Client;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
+using Newtonsoft.Json;
+
 
 namespace Lykke.Service.OAuth.Services
 {
@@ -18,22 +22,33 @@ namespace Lykke.Service.OAuth.Services
     public class TokenService : ITokenService
     {
         private readonly IDatabase _redisDatabase;
-        private const string RedisPrefixIroncladRefreshTokens = "OAuth:IroncladRefreshTokens";
+        private const string PrefixIroncladTokens = "OAuth:IroncladTokens";
+        private const string TokenDataProtector = "TokenDataProtector";
+
         private static readonly TimeSpan RefreshTokenWhitelistLifetime = TimeSpan.FromDays(30);
         private readonly IdentityProviderSettings _ironcladAuth;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IDiscoveryCache _discoveryCache;
+        private readonly IOpenIdTokensFactory _openIdTokensFactory;
+        private readonly ISystemClock _clock;
+        private readonly IDataProtector _dataProtector;
 
         public TokenService(
             IdentityProviderSettings ironcladAuth,
             IConnectionMultiplexer connectionMultiplexer,
             IHttpClientFactory httpClientFactory,
-            IDiscoveryCache discoveryCache)
+            IDiscoveryCache discoveryCache,
+            ISystemClock clock,
+            IDataProtectionProvider dataProtectionProvider, 
+            IOpenIdTokensFactory openIdTokensFactory)
         {
             _ironcladAuth = ironcladAuth;
             _httpClientFactory = httpClientFactory;
             _discoveryCache = discoveryCache;
             _redisDatabase = connectionMultiplexer.GetDatabase();
+            _clock = clock;
+            _openIdTokensFactory = openIdTokensFactory;
+            _dataProtector = dataProtectionProvider.CreateProtector(TokenDataProtector);
         }
 
         /// <inheritdoc />
@@ -87,45 +102,73 @@ namespace Lykke.Service.OAuth.Services
             }
         }
 
-        /// <inheritdoc />
-        public Task SaveIroncladRefreshTokenAsync(string lykkeToken, string refreshToken)
+        public Task SaveIroncladTokensAsync(string lykkeToken, OpenIdTokens tokens)
         {
-            if (string.IsNullOrWhiteSpace(lykkeToken))
-                throw new ArgumentNullException(nameof(lykkeToken));
+            var data = SerializeAndProtect(tokens);
 
-            if (string.IsNullOrWhiteSpace(refreshToken))
-                throw new ArgumentNullException(nameof(refreshToken));
-
-            var redisKey = GetIroncladRefreshTokensRedisKey(lykkeToken);
-
-            //NOTE:@gafanasiev For now ironclad refresh token lifetime is endless. But may be we will change it in future.
-            return _redisDatabase.StringSetAsync(redisKey, refreshToken);
+            return _redisDatabase.StringSetAsync(GetIroncladTokensRedisKey(lykkeToken), data, RefreshTokenWhitelistLifetime);
         }
 
-        /// <inheritdoc />
-        public async Task<string> GetIroncladRefreshTokenAsync(string lykkeToken)
+        public async Task<OpenIdTokens> GetIroncladTokens(string lykkeToken)
         {
-            if (string.IsNullOrWhiteSpace(lykkeToken))
-                throw new ArgumentNullException(nameof(lykkeToken));
+            var serialized =  await _redisDatabase.StringGetAsync(GetIroncladTokensRedisKey(lykkeToken));
 
-            var redisKey = GetIroncladRefreshTokensRedisKey(lykkeToken);
+            if (serialized.HasValue && !string.IsNullOrWhiteSpace(serialized))
+                return DeserializeAndUnprotect<OpenIdTokens>(serialized);
 
-            var ironcladRefreshToken = await _redisDatabase.StringGetAsync(redisKey);
-
-            if (ironcladRefreshToken.HasValue)
-                return ironcladRefreshToken;
-
-            throw new TokenNotFoundException("Ironclad refresh token not found!");
+            throw new TokenNotFoundException("Ironclad tokens not found in Redis!");
         }
 
-        /// <inheritdoc />
-        public async Task<string> GetIroncladAccessTokenAsync(string lykkeToken)
+        public Task<bool> DeleteIroncladTokens(string lykkeToken)
         {
-            if (string.IsNullOrWhiteSpace(lykkeToken))
-                throw new ArgumentNullException(nameof(lykkeToken));
+            return _redisDatabase.KeyDeleteAsync(GetIroncladTokensRedisKey(lykkeToken));
+        }
 
-            var ironcladRefreshToken = await GetIroncladRefreshTokenAsync(lykkeToken);
+        public async Task<OpenIdTokens> GetFreshIroncladTokens(string lykkeToken)
+        {
+            var tokens = await GetIroncladTokens(lykkeToken);
 
+            if (_clock.UtcNow < tokens.ExpiresAt) 
+                return tokens;
+
+            tokens = await RefreshIroncladTokensAsync(tokens.RefreshToken);
+
+            await SaveIroncladTokensAsync(lykkeToken, tokens);
+
+            return tokens;
+        }
+        
+        public async Task RevokeIroncladTokensAsync(OpenIdTokens tokens)
+        {
+            var httpClient = _httpClientFactory.CreateClient();
+
+            var discoveryResponse = await _discoveryCache.GetAsync();
+
+            if (discoveryResponse.IsError)
+            {
+                _discoveryCache.Refresh();
+                throw new TokenNotFoundException(discoveryResponse.Error);
+            }
+
+            await httpClient.RevokeTokenAsync(new TokenRevocationRequest
+            {
+                Address = discoveryResponse.RevocationEndpoint,
+                ClientId = _ironcladAuth.ClientId,
+                ClientSecret = _ironcladAuth.ClientSecret,
+                Token = tokens.RefreshToken
+            });
+
+            await httpClient.RevokeTokenAsync(new TokenRevocationRequest
+            {
+                Address = discoveryResponse.RevocationEndpoint,
+                ClientId = _ironcladAuth.ClientId,
+                ClientSecret = _ironcladAuth.ClientSecret,
+                Token = tokens.AccessToken
+            });
+        }
+        
+        private async Task<OpenIdTokens> RefreshIroncladTokensAsync(string ironcladRefreshToken)
+        {
             var httpClient = _httpClientFactory.CreateClient();
 
             var discoveryResponse = await _discoveryCache.GetAsync();
@@ -144,12 +187,14 @@ namespace Lykke.Service.OAuth.Services
                 ClientSecret = _ironcladAuth.ClientSecret
             });
 
-            if (tokenResponse.IsError) 
+            if (tokenResponse.IsError)
                 throw new TokenNotFoundException(tokenResponse.Error);
 
-            await SaveIroncladRefreshTokenAsync(lykkeToken, tokenResponse.RefreshToken);
-
-            return tokenResponse.AccessToken;
+            //TODO:@gafanasiev may be use tokenResponse.ExpiresIn for expiration if correct time is returned.
+            return _openIdTokensFactory.CreateOpenIdTokens(
+                tokenResponse.IdentityToken, 
+                tokenResponse.AccessToken,
+                tokenResponse.RefreshToken);
         }
 
         private static string GetRefreshTokenWhitelistRedisKey(string refreshToken)
@@ -170,12 +215,26 @@ namespace Lykke.Service.OAuth.Services
             }
         }
 
-        private static string GetIroncladRefreshTokensRedisKey(string lykkeToken)
+        private static string GetIroncladTokensRedisKey(string lykkeToken)
         {
             if (string.IsNullOrWhiteSpace(lykkeToken))
                 throw new ArgumentNullException(nameof(lykkeToken));
 
-            return $"{RedisPrefixIroncladRefreshTokens}:{lykkeToken}";
+            return $"{PrefixIroncladTokens}:{lykkeToken}";
+        }
+
+        private string SerializeAndProtect<T>(T value)
+        {
+            var serialized = JsonConvert.SerializeObject(value);
+
+            return _dataProtector.Protect(serialized);
+        }
+
+        private T DeserializeAndUnprotect<T>(string value)
+        {
+            var unprotected = _dataProtector.Unprotect(value);
+
+            return JsonConvert.DeserializeObject<T>(unprotected);
         }
     }
 }

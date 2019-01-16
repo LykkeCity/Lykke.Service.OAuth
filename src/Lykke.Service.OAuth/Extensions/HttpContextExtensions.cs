@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Core.Extensions;
 using Core.ExternalProvider.Exceptions;
-using IdentityModel;
 using Lykke.Common.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -33,13 +34,6 @@ namespace WebAuth.Extensions
                 throw new AuthenticationException("Authentication failed", authenticateResult.Failure);
 
             return authenticateResult.Principal;
-        }
-
-        public static Task<string> GetIroncladRefreshTokenAsync(this HttpContext ctx)
-        {
-            return ctx.GetTokenAsync(
-                OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme,
-                OidcConstants.TokenTypes.RefreshToken);
         }
 
         public static Task SignInAsLykkeUserAsync(this HttpContext ctx, ClaimsIdentity lykkeIdentity)

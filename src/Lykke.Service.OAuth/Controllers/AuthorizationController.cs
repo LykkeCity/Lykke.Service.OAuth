@@ -9,7 +9,9 @@ using Common;
 using Core.Application;
 using Core.Extensions;
 using Core.ExternalProvider;
+using Core.ExternalProvider.Settings;
 using Lykke.Service.OAuth.Extensions;
+using Lykke.Service.OAuth.ExternalProvider;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -30,20 +32,25 @@ namespace WebAuth.Controllers
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IExternalUserOperator _externalUserOperator;
         private readonly IExternalProvidersValidation _validation;
-
+        private readonly IIroncladUtils _ironcladUtils;
+        private readonly ExternalProvidersSettings _externalProvidersSettings;
 
         public AuthorizationController(
             IApplicationRepository applicationRepository,
             IUserManager userManager, 
             IClientSessionsClient clientSessionsClient,
             IExternalUserOperator externalUserOperator,
-            IExternalProvidersValidation validation)
+            IExternalProvidersValidation validation, 
+            IIroncladUtils ironcladUtils,
+            ExternalProvidersSettings externalProvidersSettings)
         {
             _applicationRepository = applicationRepository;
             _userManager = userManager;
             _clientSessionsClient = clientSessionsClient;
             _externalUserOperator = externalUserOperator;
             _validation = validation;
+            _ironcladUtils = ironcladUtils;
+            _externalProvidersSettings = externalProvidersSettings;
         }
 
         [HttpGet("~/connect/authorize")]
@@ -327,7 +334,7 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/connect/logout")]
-        public ActionResult Logout(CancellationToken cancellationToken)
+        public async Task<ActionResult> Logout(CancellationToken cancellationToken)
         {
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null)
@@ -335,7 +342,7 @@ namespace WebAuth.Controllers
                 return View("Error", response);
             }
 
-            OpenIdConnectRequest request = HttpContext.GetOpenIdConnectRequest();
+            var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
             {
                 return View("Error", new OpenIdConnectMessage
@@ -345,19 +352,46 @@ namespace WebAuth.Controllers
                 });
             }
 
+            // NOTE: Ignore request from ironclad, as lykke is an idp for ironclad.
+            if (request.PostLogoutRedirectUri.Contains(_externalProvidersSettings.IroncladAuth.Authority))
+            {
+                var savedRequest = _ironcladUtils.GetIroncladLogoutContext();
+                if (savedRequest != null)
+                    request = savedRequest;
+            }
+
+            else
+            {
+                _ironcladUtils.SaveIroncladLogoutContext(request);
+
+                var lykkeToken = User.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
+
+                var authenticationProperties = new AuthenticationProperties();
+
+                if (!string.IsNullOrWhiteSpace(lykkeToken))
+                {
+                    authenticationProperties.AddProperty(OpenIdConnectConstantsExt.AuthenticationProperties.LykkeToken, lykkeToken);
+                }
+
+                return SignOut(authenticationProperties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
+            }
+            
             return View("Logout", request);
         }
 
         [HttpPost("~/connect/logout")]
         public async Task<IActionResult> Logout()
         {
-            var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
-            if (sessionId != null)
+            var lykkeToken = User.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
+
+            if (!string.IsNullOrWhiteSpace(lykkeToken))
             {
-                await _clientSessionsClient.DeleteSessionIfExistsAsync(sessionId);
+                await _clientSessionsClient.DeleteSessionIfExistsAsync(lykkeToken);
             }
-            //FIXME:@gafanasiev Fix bug with logout 
-            return SignOut(OpenIdConnectServerDefaults.AuthenticationScheme);
+
+            _ironcladUtils.ClearIroncladLogoutContext();
+
+            return SignOut(OpenIdConnectServerDefaults.AuthenticationScheme, OpenIdConnectConstantsExt.Auth.DefaultScheme);
         }
 
         private async Task<IActionResult> HandleLykkeFromIronclad(OpenIdConnectRequest request)

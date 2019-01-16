@@ -14,7 +14,6 @@ namespace Core.ExternalProvider.Settings
         [Optional] public string ResponseType { get; set; }
         [Optional] public string ClientSecret { get; set; }
         [Optional] public IEnumerable<string> Scopes { get; set; }
-        [Optional] public string AcrValues { get; set; }
         [Optional] public string CallbackPath { get; set; }
         [Optional] public bool? RequireHttpsMetadata { get; set; }
         [Optional] public bool? GetClaimsFromUserInfoEndpoint { get; set; }

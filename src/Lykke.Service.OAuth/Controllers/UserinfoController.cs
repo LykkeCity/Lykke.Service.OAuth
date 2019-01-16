@@ -61,7 +61,9 @@ namespace Lykke.Service.OAuth.Controllers
 
             try
             {
-                var accessToken = await _tokenService.GetIroncladAccessTokenAsync(sessionId);
+                var tokens = await _tokenService.GetFreshIroncladTokens(sessionId);
+
+                var accessToken = tokens.AccessToken;
 
                 return Json(new {Token = accessToken});
             }
