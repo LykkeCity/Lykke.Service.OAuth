@@ -43,13 +43,13 @@ namespace Core.ExternalProvider
         /// </remarks>
         /// <param name="lykkeUserId">Lykke user id.</param>
         /// <returns>Completed task if everything is ok.</returns>
-        Task SaveTempLykkeUserIdAsync(string lykkeUserId, string cookieName);
+        Task SaveTempLykkeUserIdAsync(string lykkeUserId);
 
         /// <summary>
         ///     Get temporary saved lykke user id.
         /// </summary>
         /// <returns>Lykke user id if exists, else returns null.</returns>
-        Task<string> GetTempLykkeUserIdAsync(string cookieName);
+        Task<string> GetTempLykkeUserIdAsync();
 
         /// <summary>
         ///     Clear temporary saved lykke user id.
