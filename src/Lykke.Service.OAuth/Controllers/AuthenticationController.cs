@@ -177,7 +177,7 @@ namespace WebAuth.Controllers
 
             var lykkeUserId = await _externalUserOperator.AuthenticateLykkeUserAsync(username, password, partnerId);
 
-            await _externalUserOperator.SaveTempLykkeUserIdAsync(lykkeUserId, OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie);
+            await _externalUserOperator.SaveTempLykkeUserIdAsync(lykkeUserId);
 
             return LocalRedirect(afterIroncladLoginUrl);
         }

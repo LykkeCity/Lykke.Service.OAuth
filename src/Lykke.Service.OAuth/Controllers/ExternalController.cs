@@ -105,7 +105,7 @@ namespace Lykke.Service.OAuth.Controllers
 
                 var ironcladUser = _userManager.IroncladUserFromIdentity(ironcladPrincipal.Identity as ClaimsIdentity);
 
-                var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync(OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie); 
+                var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync(); 
 
                 //TODO: @gafanasiev change to faster way (cache user in redis or cookie).
                 var lykkeUser = await _userManager.GetLykkeUserAsync(lykkeUserId);
@@ -134,7 +134,7 @@ namespace Lykke.Service.OAuth.Controllers
 
                 var externalLoginReturnUrl = await HttpContext.GetIroncladExternalRedirectUrlAsync();
                 
-                return LocalRedirect(externalLoginReturnUrl);
+                return Redirect(externalLoginReturnUrl);
             }
             catch (Exception e) when (
                 e is AuthenticationException ||

@@ -149,8 +149,7 @@ namespace WebAuth.Controllers
         public async Task<IActionResult> AuthorizeIroncladThroughLykke()
         {
             var lykkeUserId =
-                await _externalUserOperator.GetTempLykkeUserIdAsync(OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie)
-                ?? await _externalUserOperator.GetTempLykkeUserIdAsync(OpenIdConnectConstantsExt.Cookies.RegistrationRequestCookie);
+                await _externalUserOperator.GetTempLykkeUserIdAsync();
 
             if (string.IsNullOrWhiteSpace(lykkeUserId))
                 return Unauthorized();
@@ -181,6 +180,7 @@ namespace WebAuth.Controllers
                         "Details concerning the calling client application cannot be found in the database"
                 });
             }
+
             //TODO:@gafanasiev Code duplicate, move to separate method.
             var scopes = request.GetScopes().ToList();
 
@@ -189,7 +189,7 @@ namespace WebAuth.Controllers
             var userClaims = _userManager.ClaimsFromLykkeUser(lykkeUser);
 
             var identity = _userManager.CreateIdentity(scopes, userClaims);
-            
+
             var ticket = new AuthenticationTicket(
                 new ClaimsPrincipal(identity),
                 new AuthenticationProperties(),
@@ -207,7 +207,7 @@ namespace WebAuth.Controllers
 
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
-        
+
         [Authorize]
         [HttpPost("~/connect/authorize/accept")]
         [HttpGet("~/connect/authorize/accept")]
@@ -371,7 +371,7 @@ namespace WebAuth.Controllers
             
             await _externalUserOperator.SaveIroncladRequestAsync(afterIroncladLoginUrl);
 
-            var registrationUserId = _externalUserOperator.GetTempLykkeUserIdAsync(OpenIdConnectConstantsExt.Cookies.RegistrationRequestCookie);
+            var registrationUserId = _externalUserOperator.GetTempLykkeUserIdAsync();
             if (registrationUserId != null)
             {
                 return LocalRedirect(afterIroncladLoginUrl);
