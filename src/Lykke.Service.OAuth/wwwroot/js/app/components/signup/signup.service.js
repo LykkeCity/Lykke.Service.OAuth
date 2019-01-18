@@ -5,9 +5,9 @@
         .module('app')
         .service('signupService', signupService);
 
-    signupService.$inject = ['$http', 'env', '$q', '$window', '$location', 'signupStep'];
+    signupService.$inject = ['$http', 'env', '$q', '$window', '$location', 'signupStep', 'envService'];
 
-    function signupService($http, env, $q, $window, $location, signupStep) {
+    function signupService($http, env, $q, $window, $location, signupStep, envService) {
         var bCryptWorkFactor;
         var verifiedEmailIds = {};
         var registrationStep = signupStep.initialInfo;
@@ -100,6 +100,7 @@
                     countryCodeIso2: countryCodeIso2,
                     phoneNumber: phoneNumber,
                     registrationId: getRegistrationId(),
+                    redirectUrl: envService.getFundsUrl() + '/auth',
                     cid: cid
                 })
                 .then(function (response) {
