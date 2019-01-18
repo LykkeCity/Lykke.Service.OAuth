@@ -188,9 +188,8 @@ namespace Lykke.Service.OAuth.Controllers
             if (!string.IsNullOrEmpty(model.RedirectUrl))
             {
                 var application = await _applicationRepository.GetByIdAsync(registrationModel.ClientId);
-                if (application.RedirectUri != model.RedirectUrl)
-                    throw LykkeApiErrorException.BadRequest(LykkeApiCommonErrorCodes.ModelValidationFailed,
-                        "RedirectUrl is not allowed for this client.");
+                if (!application.RedirectUri.Contains(model.RedirectUrl))
+                    throw new RedirectUrlInvalidException();
             }
         }
 
