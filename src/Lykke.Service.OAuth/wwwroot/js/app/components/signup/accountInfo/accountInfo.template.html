@@ -92,6 +92,11 @@
                         <div class="spinner__inside"></div>
                     </div>
                 </div>
+
+                <div class="lykke-form-error" data-ng-show="vm.data.isRedirectUrlInvalid">
+                    <div class="lykke-error-label">Please contact support at <a href="mailto:support@lykke.com">support@lykke.com</a></div>
+                </div>
+
                 <input data-ng-hide="vm.data.isSubmitting" type="submit" class="lykke-button lykke-button_primary" value="Continue" />
 
                 <div class="signup-page__signout-link signup-page__signout-link_mobile">
