@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,11 +13,9 @@ using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
-using WebAuth.Extensions;
 using WebAuth.Managers;
 using AuthenticationProperties = Microsoft.AspNetCore.Authentication.AuthenticationProperties;
 using OpenIdConnectMessage = Microsoft.IdentityModel.Protocols.OpenIdConnect.OpenIdConnectMessage;
@@ -93,7 +90,7 @@ namespace WebAuth.Controllers
 
             if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
             {
-                return HandleLykkeFromIronclad(request);
+                return await HandleLykkeFromIronclad(request);
             }
 
             var idp = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Idp);
@@ -139,7 +136,9 @@ namespace WebAuth.Controllers
             {
                 OpenIdConnectConstants.Scopes.OpenId,
                 OpenIdConnectConstants.Scopes.Email,
-                OpenIdConnectConstants.Scopes.Profile
+                OpenIdConnectConstants.Scopes.Phone,
+                OpenIdConnectConstants.Scopes.Profile,
+                OpenIdConnectConstants.Scopes.Address
             }.Intersect(request.GetScopes()));
 
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
@@ -359,21 +358,22 @@ namespace WebAuth.Controllers
             return SignOut(OpenIdConnectServerDefaults.AuthenticationScheme);
         }
 
-        private IActionResult HandleLykkeFromIronclad(OpenIdConnectRequest request)
+        private async Task<IActionResult> HandleLykkeFromIronclad(OpenIdConnectRequest request)
         {
-            var lykkeSignInContext = _externalUserOperator.GetLykkeSignInContext();
+            // Indicates that we already been on signin page.
+            var lykkeSignInContext = await _externalUserOperator.GetLykkeSignInContextAsync();
 
             var parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
             
             var afterIroncladLoginUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeIroncladThroughLykke"), parameters);
             
-            _externalUserOperator.SaveIroncladRequest(afterIroncladLoginUrl);
+            await _externalUserOperator.SaveIroncladRequestAsync(afterIroncladLoginUrl);
             
             if (lykkeSignInContext != null)
             {
-                _externalUserOperator.ClearLykkeSignInContext();
+                await _externalUserOperator.ClearLykkeSignInContextAsync();
 
-                return LocalRedirect(lykkeSignInContext.RelativeUrl);
+                return LocalRedirect(lykkeSignInContext);
             }
 
             //TODO:@gafanasiev Code duplication, move to helper method.
@@ -406,8 +406,8 @@ namespace WebAuth.Controllers
                 }
                 else if (_validation.IsValidExternalIdp(idp))
                 {
-                    redirectUri = Url.Action("ExternalLoginCallback", "External");
 
+                    redirectUri = Url.Action("ExternalLoginCallback", "External");
                 }
                 else
                 {

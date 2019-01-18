@@ -318,9 +318,12 @@ namespace WebAuth.Providers
 
         public override async Task HandleUserinfoRequest(HandleUserinfoRequestContext context)
         {
+            //TODO: This is not secure need to refactor.
             var clientAccount = await _accountClient.GetByIdAsync(context.Subject);
             context.PhoneNumber = clientAccount.Phone;
             context.PhoneNumberVerified = true;
+            context.Email = clientAccount.Email;
+            context.EmailVerified = clientAccount.IsEmailVerified;
             await base.HandleUserinfoRequest(context);
         }
 

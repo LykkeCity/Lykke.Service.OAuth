@@ -55,6 +55,9 @@ namespace Lykke.Service.OAuth.Modules
                 .As<IExternalProvidersValidation>()
                 .SingleInstance();
 
+            builder.RegisterType<UserSession>()
+                .As<IUserSession>();
+
             builder.Register(context =>
                     new RedirectSettingsAccessor(
                         _settings.CurrentValue.OAuth.ExternalProvidersSettings.RedirectSettings))

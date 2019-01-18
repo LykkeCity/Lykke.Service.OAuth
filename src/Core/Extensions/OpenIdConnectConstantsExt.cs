@@ -51,12 +51,5 @@
         {
             public const string ExternalProviderCookieProtector = "ExternalProviderCookieProtector";
         }
-
-        public static class Cookies
-        {
-            public const string TemporaryUserIdCookie = "TemporaryUserIdCookie";
-            public const string LykkeSignInContextCookie = "LykkeSignInContextCookie";
-            public const string IroncladRequestCookie = "IroncladRequestCookie";
-        }
     }
 }

@@ -61,7 +61,7 @@ namespace Lykke.Service.OAuth.Controllers
                 var lykkeUser =
                     await _externalUserOperator.ProvisionIfNotExistAsync(ironcladUser, ironcladPrincipal.Claims);
 
-                var lykkeUserAuthenticationContext = await _externalUserOperator.CreateSessionAsync(lykkeUser);
+                var lykkeUserAuthenticationContext = await _externalUserOperator.CreateLykkeSessionAsync(lykkeUser);
 
                 var ironcladRefreshToken = await HttpContext.GetIroncladRefreshTokenAsync();
 
@@ -76,6 +76,8 @@ namespace Lykke.Service.OAuth.Controllers
 
                 await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth
                     .ExternalAuthenticationScheme); 
+
+                await _externalUserOperator.EndUserSessionAsync();
 
                 var externalLoginReturnUrl = await HttpContext.GetIroncladExternalRedirectUrlAsync();
 
@@ -108,7 +110,7 @@ namespace Lykke.Service.OAuth.Controllers
                 //TODO: @gafanasiev change to faster way (cache user in redis or cookie).
                 var lykkeUser = await _userManager.GetLykkeUserAsync(lykkeUserId);
 
-                var lykkeUserAuthenticationContext = await _externalUserOperator.CreateSessionAsync(lykkeUser);
+                var lykkeUserAuthenticationContext = await _externalUserOperator.CreateLykkeSessionAsync(lykkeUser);
 
                 var sessionId = lykkeUserAuthenticationContext.SessionId;
                 
@@ -123,13 +125,15 @@ namespace Lykke.Service.OAuth.Controllers
 
                 await HttpContext.SignInAsLykkeUserAsync(lykkeIdentity);
 
-                _externalUserOperator.ClearTempUserId();
+                await _externalUserOperator.ClearTempLykkeUserIdAsync();
 
                 await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth
-                    .ExternalAuthenticationScheme); 
+                    .ExternalAuthenticationScheme);
+
+                await _externalUserOperator.EndUserSessionAsync();
 
                 var externalLoginReturnUrl = await HttpContext.GetIroncladExternalRedirectUrlAsync();
-
+                
                 return LocalRedirect(externalLoginReturnUrl);
             }
             catch (Exception e) when (
