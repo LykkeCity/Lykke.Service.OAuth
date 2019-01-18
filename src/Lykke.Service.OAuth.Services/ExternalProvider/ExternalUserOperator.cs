@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Common;
 using Core.Extensions;
 using Core.ExternalProvider;
 using Core.ExternalProvider.Exceptions;
@@ -13,108 +12,45 @@ using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Contract.Models;
 using Lykke.Service.Session.Client;
-using MessagePack;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using StackExchange.Redis;
 
 namespace Lykke.Service.OAuth.Services.ExternalProvider
 {
     public class ExternalUserOperator : IExternalUserOperator
     {
-        private const string RedisPrefixIroncladLykkeLogins = "OAuth:IroncladLykkeLogins";
-
-        private readonly TimeSpan _tempLykkeUserIdCookieLifetime = TimeSpan.FromMinutes(2);
-        private readonly TimeSpan _lykkeSignInContextCookieLifetime = TimeSpan.FromMinutes(2);
-        private readonly TimeSpan _ironcladRequestCookieLifetime = TimeSpan.FromMinutes(2);
         private readonly TimeSpan _mobileSessionLifetime = TimeSpan.FromDays(30);
+        private static string TemporaryUserIdKey = "TemporaryUserIdKey";
+        private static string IroncladRequestKey = "IroncladRequestKey";
+        private static string LykkeSignInContextKey = "LykkeSignInContextKey";
+        private static string EndUserSessionKey = "EndUserSessionKey";
 
-        private readonly IDatabase _database;
         private readonly IIroncladUserRepository _ironcladUserRepository;
-        private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IClientAccountClient _clientAccountClient;
         private readonly IPersonalDataService _personalDataService;
-        private readonly IDataProtector _dataProtector;
         private readonly IClientSessionsClient _clientSessionsClient;
         private readonly IIroncladFacade _ironcladFacade;
         private readonly IExternalProvidersValidation _validation;
+        private readonly IUserSession _userSession;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public ExternalUserOperator(
             IIroncladUserRepository ironcladUserRepository,
-            IHostingEnvironment hostingEnvironment,
-            IConnectionMultiplexer connectionMultiplexer,
             IClientAccountClient clientAccountClient,
             IPersonalDataService personalDataService,
-            IDataProtectionProvider dataProtectionProvider,
             IHttpContextAccessor httpContextAccessor,
             IClientSessionsClient clientSessionsClient,
             IIroncladFacade ironcladFacade,
-            IExternalProvidersValidation validation)
+            IExternalProvidersValidation validation,
+            IUserSession userSession)
         {
-            _database = connectionMultiplexer.GetDatabase();
             _ironcladUserRepository = ironcladUserRepository;
-            _hostingEnvironment = hostingEnvironment;
             _clientAccountClient = clientAccountClient;
             _personalDataService = personalDataService;
             _httpContextAccessor = httpContextAccessor;
             _clientSessionsClient = clientSessionsClient;
             _ironcladFacade = ironcladFacade;
             _validation = validation;
-            _dataProtector =
-                dataProtectionProvider.CreateProtector(OpenIdConnectConstantsExt.Protectors
-                    .ExternalProviderCookieProtector);
-        }
-
-        /// <inheritdoc />
-        public void SaveLykkeSignInContext(LykkeSignInContext context)
-        {
-            // TODO:@gafanasiev check if this supports multiple instances.
-            var serializedData = MessagePackSerializer.Serialize(context);
-
-            var protectedData = _dataProtector.Protect(serializedData);
-
-            var bitString = Convert.ToBase64String(protectedData);
-
-            var useHttps = !_hostingEnvironment.IsDevelopment();
-
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = DateTimeOffset.UtcNow.Add(_lykkeSignInContextCookieLifetime),
-                MaxAge = _lykkeSignInContextCookieLifetime,
-                Secure = useHttps
-            };
-
-            _httpContextAccessor.HttpContext.Response.Cookies.Append(
-                OpenIdConnectConstantsExt.Cookies.LykkeSignInContextCookie,
-                bitString,
-                cookieOptions);
-        }
-
-        /// <inheritdoc />
-        public LykkeSignInContext GetLykkeSignInContext()
-        {
-            var cookieExist = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(
-                OpenIdConnectConstantsExt.Cookies.LykkeSignInContextCookie,
-                out var protectedData);
-
-            if (!cookieExist)
-                return null;
-
-            var bytes = Convert.FromBase64String(protectedData);
-
-            var unprotectedData = _dataProtector.Unprotect(bytes);
-
-            return MessagePackSerializer.Deserialize<LykkeSignInContext>(unprotectedData);
-        }
-
-        /// <inheritdoc />
-        public void ClearLykkeSignInContext()
-        {
-            _httpContextAccessor.HttpContext.Response.Cookies.Delete(OpenIdConnectConstantsExt.Cookies
-                .LykkeSignInContextCookie);
+            _userSession = userSession;
         }
 
         /// <inheritdoc />
@@ -171,7 +107,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         }
 
         /// <inheritdoc />
-        public async Task<LykkeUserAuthenticationContext> CreateSessionAsync(LykkeUser lykkeUser)
+        public async Task<LykkeUserAuthenticationContext> CreateLykkeSessionAsync(LykkeUser lykkeUser)
         {
             if (lykkeUser == null)
                 throw new AuthenticationException("No lykke user.");
@@ -191,49 +127,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 LykkeUser = lykkeUser,
                 SessionId = sessionId
             };
-        }
-
-        /// <inheritdoc />
-        public async Task SaveTempLykkeUserIdAsync(string lykkeUserId)
-        {
-            var guid = await SaveTempLykkeUserIdToDb(lykkeUserId, _tempLykkeUserIdCookieLifetime);
-
-            // TODO:@gafanasiev check if this supports multiple instances.
-            var protectedGuid = _dataProtector.Protect(guid);
-
-            var useHttps = !_hostingEnvironment.IsDevelopment();
-
-            _httpContextAccessor.HttpContext.Response.Cookies.Append(
-                OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie, protectedGuid, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Expires = DateTimeOffset.UtcNow.Add(_tempLykkeUserIdCookieLifetime),
-                    MaxAge = _tempLykkeUserIdCookieLifetime,
-                    Secure = useHttps
-                });
-        }
-
-        /// <inheritdoc />
-        public Task<string> GetTempLykkeUserIdAsync()
-        {
-            var guidExists = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(
-                OpenIdConnectConstantsExt.Cookies.TemporaryUserIdCookie,
-                out var protectedGuid);
-
-            if (!guidExists || string.IsNullOrWhiteSpace(protectedGuid))
-                return Task.FromResult<string>(null);
-
-            // TODO:@gafanasiev check if this supports multiple instances.
-            var guid = _dataProtector.Unprotect(protectedGuid);
-
-            return GetTempLykkeUserIdFromDb(guid);
-        }
-
-        /// <inheritdoc />
-        public void ClearTempUserId()
-        {
-            _httpContextAccessor.HttpContext.Response.Cookies.Delete(OpenIdConnectConstantsExt.Cookies
-                .TemporaryUserIdCookie);
         }
 
         /// <inheritdoc />
@@ -275,72 +168,64 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             return lykkeUser?.Id;
         }
 
+        
         /// <inheritdoc />
-        public void SaveIroncladRequest(string redirectUrl)
+        public Task SaveLykkeSignInContextAsync(string originalUrl)
         {
-            var protectedUrl = _dataProtector.Protect(redirectUrl);
-
-            _httpContextAccessor.HttpContext.Response.Cookies.Append(
-                OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie, protectedUrl, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Expires = DateTimeOffset.UtcNow.Add(_ironcladRequestCookieLifetime),
-                    MaxAge = _ironcladRequestCookieLifetime
-                });
+            return _userSession.SetAsync(LykkeSignInContextKey, originalUrl);
         }
 
         /// <inheritdoc />
-        public string GetIroncladRequest()
+        public Task<string> GetLykkeSignInContextAsync()
         {
-            var exists = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(
-                OpenIdConnectConstantsExt.Cookies.IroncladRequestCookie,
-                out var protectedUrl);
-
-            if (exists && !string.IsNullOrWhiteSpace(protectedUrl))
-                return _dataProtector.Unprotect(protectedUrl);
-
-            return null;
+            return _userSession.GetAsync<string>(LykkeSignInContextKey);
         }
 
         /// <inheritdoc />
-        public void ClearIroncladRequest()
+        public Task ClearLykkeSignInContextAsync()
         {
-            _httpContextAccessor.HttpContext.Response.Cookies.Delete(OpenIdConnectConstantsExt.Cookies
-                .IroncladRequestCookie);
+            return _userSession.DeleteAsync(LykkeSignInContextKey);
         }
 
-        private string GetIroncladLykkeLoginsRedisKey(string guid)
+        /// <inheritdoc />
+        public Task SaveTempLykkeUserIdAsync(string lykkeUserId)
         {
-            if (string.IsNullOrWhiteSpace(guid))
-                throw new ArgumentNullException(nameof(guid));
-
-            return $"{RedisPrefixIroncladLykkeLogins}:{guid}";
+            return _userSession.SetAsync(TemporaryUserIdKey, lykkeUserId);
         }
 
-        private async Task<string> GetTempLykkeUserIdFromDb(string guid)
+        /// <inheritdoc />
+        public Task<string> GetTempLykkeUserIdAsync()
         {
-            if (string.IsNullOrWhiteSpace(guid))
-                throw new ArgumentNullException(nameof(guid));
-
-            var redisKey = GetIroncladLykkeLoginsRedisKey(guid);
-
-            var lykkeUserId = await _database.StringGetAsync(redisKey);
-
-            if (lykkeUserId.HasValue) return lykkeUserId;
-
-            return string.Empty;
+            return _userSession.GetAsync<string>(TemporaryUserIdKey);
         }
 
-        private async Task<string> SaveTempLykkeUserIdToDb(string lykkeUserId, TimeSpan ttl)
+        /// <inheritdoc />
+        public Task ClearTempLykkeUserIdAsync()
         {
-            if (string.IsNullOrWhiteSpace(lykkeUserId))
-                throw new ArgumentNullException(nameof(lykkeUserId));
+            return _userSession.DeleteAsync(TemporaryUserIdKey);
+        }
 
-            var guid = StringUtils.GenerateId();
+        /// <inheritdoc />
+        public Task SaveIroncladRequestAsync(string redirectUrl)
+        {
+            return _userSession.SetAsync(IroncladRequestKey, redirectUrl);
+        }
 
-            var redisKey = GetIroncladLykkeLoginsRedisKey(guid);
-            await _database.StringSetAsync(redisKey, lykkeUserId, ttl);
-            return guid;
+        /// <inheritdoc />
+        public Task<string> GetIroncladRequestAsync()
+        {
+            return _userSession.GetAsync<string>(IroncladRequestKey);
+        }
+
+        /// <inheritdoc />
+        public Task ClearIroncladRequestAsync()
+        {
+            return _userSession.DeleteAsync(IroncladRequestKey);
+        }
+
+        public async Task EndUserSessionAsync()
+        {
+            await _userSession.EndSessionAsync();
         }
     }
 }

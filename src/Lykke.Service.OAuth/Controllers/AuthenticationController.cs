@@ -32,13 +32,10 @@ using Lykke.Service.Registration.Contract.Client.Models;
 using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
-using Newtonsoft.Json;
 using WebAuth.ActionHandlers;
-using WebAuth.Extensions;
 using WebAuth.Managers;
 using WebAuth.Models;
 using WebAuth.Settings.ServiceSettings;
@@ -111,7 +108,7 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
-        public IActionResult Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
+        public async Task<IActionResult> Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
         {
 
             // Temporally disabled by LWDEV-9406. Enable after the mobile client has been completed.
@@ -123,22 +120,14 @@ namespace WebAuth.Controllers
             //                    return RedirectToAction("Afterlogin", new { returnUrl, platform });
             //                }
             //            }
+            var afterIroncladLoginUrl = await _externalUserOperator.GetIroncladRequestAsync();
 
-            var afterIroncladLoginUrl = _externalUserOperator.GetIroncladRequest();
-            
-            if (returnUrl == null && string.IsNullOrWhiteSpace(afterIroncladLoginUrl))
+            if (string.IsNullOrWhiteSpace(afterIroncladLoginUrl))
             {
                 var relativeUrl = UriHelper.BuildRelative(HttpContext.Request.PathBase, HttpContext.Request.Path,
                     HttpContext.Request.QueryString);
 
-                var lykkeSignInContext = new LykkeSignInContext
-                {
-                    Partnerid = partnerId,
-                    Platform = platform,
-                    RelativeUrl = relativeUrl
-                };
-
-                _externalUserOperator.SaveLykkeSignInContext(lykkeSignInContext);
+                await _externalUserOperator.SaveLykkeSignInContextAsync(relativeUrl);
 
                 var afterLykkeLoginReturnUrl = Url.Action("Afterlogin",
                     new RouteValueDictionary(new
@@ -154,6 +143,7 @@ namespace WebAuth.Controllers
                 properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
                     afterLykkeLoginReturnUrl);
 
+                // Set idp for ironclad, to use lykke as external provider.
                 properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues, _redirectSettings.OldLykkeSignInIroncladAuthAcrValues);
 
                 return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
@@ -225,7 +215,7 @@ namespace WebAuth.Controllers
                 if (registrationLogin != null)
                     return registrationLogin;
 
-                var afterIroncladLoginUrl = _externalUserOperator.GetIroncladRequest();
+                var afterIroncladLoginUrl = await _externalUserOperator.GetIroncladRequestAsync();
 
                 if (!string.IsNullOrWhiteSpace(afterIroncladLoginUrl))
                     return await HandleAuthenticationThroughIroncladAsync(model, afterIroncladLoginUrl, viewName);
@@ -569,7 +559,7 @@ namespace WebAuth.Controllers
             if (!userModel.CheckPassword(model.Password))
                 return IncorrectUsernameOrPassword(model, viewName);
 
-            _externalUserOperator.ClearIroncladRequest();
+            await _externalUserOperator.ClearIroncladRequestAsync();
 
             if (platform == "android" || platform == "ios")
                 return RedirectToAction("AfterRegistrationLogin", new AfterRegistrationLoginRequest
@@ -594,7 +584,7 @@ namespace WebAuth.Controllers
 
             await _externalUserOperator.SaveTempLykkeUserIdAsync(lykkeUserId);
 
-            _externalUserOperator.ClearIroncladRequest();
+            await _externalUserOperator.ClearIroncladRequestAsync();
 
             return LocalRedirect(afterIroncladLoginUrl);
         }

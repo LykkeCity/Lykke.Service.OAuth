@@ -32,7 +32,7 @@ namespace Core.ExternalProvider
         /// <param name="lykkeUser">Lykke user.</param>
         /// <returns>Lykke user authentication context.</returns>
         /// <exception cref="AuthenticationException">Thrown when user authentication fails.</exception>
-        Task<LykkeUserAuthenticationContext> CreateSessionAsync(LykkeUser lykkeUser);
+        Task<LykkeUserAuthenticationContext> CreateLykkeSessionAsync(LykkeUser lykkeUser);
 
         /// <summary>
         ///     Temporary saves lykke user id.
@@ -53,24 +53,24 @@ namespace Core.ExternalProvider
         /// <summary>
         ///     Clear temporary saved lykke user id.
         /// </summary>
-        void ClearTempUserId();
+        Task ClearTempLykkeUserIdAsync();
 
         /// <summary>
         ///     Saves sign in page context.
         /// </summary>
-        /// <param name="context">Parameters passed to signin page.</param>
-        void SaveLykkeSignInContext(LykkeSignInContext context);
+        /// <param name="originalUrl"></param>
+        Task SaveLykkeSignInContextAsync(string originalUrl);
 
         /// <summary>
         ///     Get saved lykke sign in context.
         /// </summary>
         /// <returns>Sign in page context.</returns>
-        LykkeSignInContext GetLykkeSignInContext();
+        Task<string> GetLykkeSignInContextAsync();
 
         /// <summary>
         ///     Clears saved lykke sign in context.
         /// </summary>
-        void ClearLykkeSignInContext();
+        Task ClearLykkeSignInContextAsync();
 
         /// <summary>
         ///     Associates lykke user with ironclad user.
@@ -94,17 +94,22 @@ namespace Core.ExternalProvider
         ///     Save ironclad request.
         /// </summary>
         /// <param name="redirectUrl">Url to redirect after ironclad login.</param>
-        void SaveIroncladRequest(string redirectUrl);
+        Task SaveIroncladRequestAsync(string redirectUrl);
 
         /// <summary>
         ///     Clear saved ironclad request.
         /// </summary>
-        void ClearIroncladRequest();
+        Task ClearIroncladRequestAsync();
 
         /// <summary>
-        /// Get saved ironclad request.
+        ///     Get saved ironclad request.
         /// </summary>
         /// <returns>Url if request exists, null otherwise.</returns>
-        string GetIroncladRequest();
+        Task<string> GetIroncladRequestAsync();
+
+        /// <summary>
+        ///     End temporary user session.
+        /// </summary>
+        Task EndUserSessionAsync();
     }
 }
