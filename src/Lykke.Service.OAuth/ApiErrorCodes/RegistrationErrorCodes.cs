@@ -31,5 +31,8 @@ namespace Lykke.Service.OAuth.ApiErrorCodes
 
         public static readonly ILykkeApiErrorCode PhoneNumberInUse =
             new LykkeApiErrorCode(nameof(PhoneNumberInUse), "Phone number already registered");
+
+        public static readonly ILykkeApiErrorCode RedirectUrlInvalid =
+            new LykkeApiErrorCode(nameof(RedirectUrlInvalid), "Redirect URL is invalid");
     }
 }
