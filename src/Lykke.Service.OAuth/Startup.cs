@@ -135,13 +135,6 @@ namespace WebAuth
                         options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
                     })
 
-                    // This cookie is used for persisting user data during registration.
-                    .AddCookie(OpenIdConnectConstantsExt.Auth.RegistrationScheme, options =>
-                    {
-                        options.Cookie.HttpOnly = true;
-                        options.Cookie.SameSite = _settings.OAuth.CookieSettings.SameSiteMode;
-                    })
-
                     .AddIronclad(_settings.OAuth.ExternalProvidersSettings.IroncladAuth)
 
                     .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,
@@ -276,31 +269,31 @@ namespace WebAuth
 
                 app.UseSession();
 
-                //app.UseCsp(options => options
-                //    .DefaultSources(directive => directive.Self().CustomSources(BlobSource, "www.google.com"))
-                //    .ImageSources(directive => directive.Self()
-                //        .CustomSources(AnySource, DataSource, BlobSource))
-                //    .ScriptSources(directive =>
-                //    {
-                //        directive.Self().UnsafeInline();
+                app.UseCsp(options => options
+                    .DefaultSources(directive => directive.Self().CustomSources(BlobSource, "www.google.com"))
+                    .ImageSources(directive => directive.Self()
+                        .CustomSources(AnySource, DataSource, BlobSource))
+                    .ScriptSources(directive =>
+                    {
+                        directive.Self().UnsafeInline();
 
-                //        if (_settings.OAuth.Csp.ScriptSources.Any())
-                //            directive.CustomSources(_settings.OAuth.Csp.ScriptSources);
-                //    })
-                //    .StyleSources(directive =>
-                //    {
-                //        directive.Self().UnsafeInline();
+                        if (_settings.OAuth.Csp.ScriptSources.Any())
+                            directive.CustomSources(_settings.OAuth.Csp.ScriptSources);
+                    })
+                    .StyleSources(directive =>
+                    {
+                        directive.Self().UnsafeInline();
 
-                //        if (_settings.OAuth.Csp.StyleSources.Any())
-                //            directive.CustomSources(_settings.OAuth.Csp.StyleSources);
-                //    })
-                //    .FontSources(x =>
-                //    {
-                //        x.SelfSrc = true;
+                        if (_settings.OAuth.Csp.StyleSources.Any())
+                            directive.CustomSources(_settings.OAuth.Csp.StyleSources);
+                    })
+                    .FontSources(x =>
+                    {
+                        x.SelfSrc = true;
 
-                //        if (_settings.OAuth.Csp.FontSources.Any())
-                //            x.CustomSources = _settings.OAuth.Csp.FontSources;
-                //    }));
+                        if (_settings.OAuth.Csp.FontSources.Any())
+                            x.CustomSources = _settings.OAuth.Csp.FontSources;
+                    }));
 
                 app.UseXContentTypeOptions();
 

@@ -100,7 +100,7 @@ namespace WebAuth.Controllers
                 return HandleIroncladAuthorize(request, idp);
             }
 
-            return await HandleLykkeAuthorize(request);
+            return HandleLykkeAuthorize(request);
         }
 
         [Authorize]
@@ -371,8 +371,8 @@ namespace WebAuth.Controllers
             
             await _externalUserOperator.SaveIroncladRequestAsync(afterIroncladLoginUrl);
 
-            var registrationUserId = _externalUserOperator.GetTempLykkeUserIdAsync();
-            if (registrationUserId != null)
+            var userId = _externalUserOperator.GetTempLykkeUserIdAsync();
+            if (userId != null)
             {
                 return LocalRedirect(afterIroncladLoginUrl);
             }
@@ -446,21 +446,12 @@ namespace WebAuth.Controllers
             return LocalRedirect(redirectUrl);
         }
 
-        private async Task<IActionResult> HandleLykkeAuthorize(OpenIdConnectRequest request)
+        private IActionResult HandleLykkeAuthorize(OpenIdConnectRequest request)
         {
             var parameters = request.GetParameters()
                 .ToDictionary(item => item.Key, item => item.Value.Value.ToString());
 
             string redirectUrl;
-
-            var registraitonUser = await HttpContext.AuthenticateAsync(OpenIdConnectConstantsExt.Auth.RegistrationScheme);
-            if (registraitonUser != null)
-            {
-                await HttpContext.SignInAsync(
-                    OpenIdConnectConstantsExt.Auth.DefaultScheme,
-                    new ClaimsPrincipal(registraitonUser.Principal.Identity)
-                );
-            }
 
             if (!User.Identities.Any(identity => identity.IsAuthenticated))
             {
