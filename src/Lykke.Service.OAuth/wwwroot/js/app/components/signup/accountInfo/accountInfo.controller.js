@@ -3,9 +3,9 @@
 
     angular.module('app').controller('accountInfoController', accountInfoController);
 
-    accountInfoController.$inject = ['signupService', '$scope', 'signupStep', '$dialogs', '$timeout', 'phoneErrorCode', 'page', 'signupEvent', 'envService', '$window'];
+    accountInfoController.$inject = ['signupService', '$scope', 'signupStep', '$dialogs', '$timeout', 'phoneErrorCode', 'errorCode', 'page', 'signupEvent', 'envService', '$window'];
 
-    function accountInfoController(signupService, $scope, signupStep, $dialogs, $timeout, phoneErrorCode, page, signupEvent, envService, $window) {
+    function accountInfoController(signupService, $scope, signupStep, $dialogs, $timeout, phoneErrorCode, errorCode, page, signupEvent, envService, $window) {
         var vm = this;
         var isPhoneChanged = false;
 
@@ -55,6 +55,9 @@
                             break;
                         case phoneErrorCode.phoneNumberInUse:
                             openPhoneInUseWarningModal();
+                            break;
+                        case errorCode.redirectUrlInvalid:
+                            vm.data.isRedirectUrlInvalid = true;
                             break;
                     }
                 });
@@ -124,6 +127,7 @@
         vm.data = {
             isSubmitting: false,
             isPhoneFormatInvalid: false,
+            isRedirectUrlInvalid: false,
             model: {
                 firstName: '',
                 lastName: '',
