@@ -24,7 +24,6 @@
         {
             public const string ExternalLoginRedirectUrl = "externalLoginRedirectUrl";
             public const string AcrValues = "acrValues";
-            public const string RegistrationRedirectUrl = "registrationRedirectUrl";
         }
 
         public static class Auth
@@ -33,7 +32,6 @@
             public const string ExternalAuthenticationScheme = "ExternalAuthenticationScheme";
             public const string IroncladAuthenticationScheme = "IroncladAuthenticationScheme";
             public const string LykkeScheme = "LykkeScheme";
-            public const string RegistrationScheme = "RegistrationScheme";
         }
 
         public static class Errors
