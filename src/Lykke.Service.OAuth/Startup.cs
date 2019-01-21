@@ -237,11 +237,11 @@ namespace WebAuth
         {
             try
             {
-                app.UseMiddleware<RedirectResponseOverride>();
-
                 app.UseLykkeMiddleware(ex => new { message = "Technical problem" });
 
                 app.UseMiddleware<LykkeApiErrorMiddleware>();
+
+                app.UseMiddleware<RedirectResponseOverride>();
 
                 app.UseLykkeForwardedHeaders();
 
