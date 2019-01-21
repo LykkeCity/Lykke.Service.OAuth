@@ -18,6 +18,7 @@ using Lykke.Common.ApiLibrary.Contract;
 using Lykke.Common.ApiLibrary.Exceptions;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
+using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.OAuth.ApiErrorCodes;
 using Lykke.Service.OAuth.Attributes;
 using Lykke.Service.OAuth.Factories;
@@ -29,8 +30,11 @@ using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Models;
+using Lykke.Service.Session.AutorestClient;
+using Lykke.Service.Session.Client;
 using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using WebAuth.Managers;
@@ -56,6 +60,8 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IRequestModelFactory _requestModelFactory;
         private readonly RedirectSettings _redirectSettings;
         private readonly IExternalUserOperator _externalUserOperator;
+        private readonly IClientSessionsClient _sessionService;
+        private readonly IClientAccountClient _clientAccountClient;
 
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
@@ -69,9 +75,13 @@ namespace Lykke.Service.OAuth.Controllers
             ISalesforceService salesforceService, 
             IRequestModelFactory requestModelFactory,
             IRedirectSettingsAccessor redirectSettingsAccessor,
-            IExternalUserOperator externalUserOperator
+            IExternalUserOperator externalUserOperator,
+            IClientSessionsClient sessionService,
+            IClientAccountClient clientAccountClient
             )
         {
+            _clientAccountClient = clientAccountClient;
+            _sessionService = sessionService;
             _externalUserOperator = externalUserOperator;
             _salesforceService = salesforceService;
             _requestModelFactory = requestModelFactory;
@@ -172,7 +182,7 @@ namespace Lykke.Service.OAuth.Controllers
             
             properties.SetProperty(
                 OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
-                string.IsNullOrEmpty(model.RedirectUrl) ? Url.Action("GetLykkeWalletTokenMobile", "Userinfo") : model.RedirectUrl
+                string.IsNullOrEmpty(model.RedirectUrl) ? Url.Action("PostRegistrationMobile", "Registration") : model.RedirectUrl
             );
 
             properties.SetProperty(
@@ -191,6 +201,31 @@ namespace Lykke.Service.OAuth.Controllers
                 if (!application.RedirectUri.Contains(model.RedirectUrl))
                     throw new RedirectUrlInvalidException();
             }
+        }
+
+        [Authorize(AuthenticationSchemes = OpenIdConnectConstantsExt.Auth.DefaultScheme)]
+        [HttpGet]
+        [ProducesResponseType(typeof(RegistrationCompleteResponse), (int)HttpStatusCode.OK)]
+        [Route("postRegistrationMobile")]
+        public async Task<ActionResult> PostRegistrationMobile()
+        {
+            //todo: optimization (response could be taken from some cache)
+            var sessionId = User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+
+            // We are 100% sure that here we have a session id because the request was validated in the retrospection. But...
+            if (sessionId == null)
+            {
+                return BadRequest("Session id is empty");
+            }
+
+            var session = await _sessionService.GetAsync(sessionId);
+
+            if (session == null)
+                return NotFound("Session not found.");
+
+            var clientAccount = await _clientAccountClient.GetByIdAsync(session.ClientId);
+            
+            return new JsonResult(new RegistrationCompleteResponse(sessionId, clientAccount.NotificationsId));
         }
 
         private async Task ValidatePhone(AccountInfoRequestModel model)
