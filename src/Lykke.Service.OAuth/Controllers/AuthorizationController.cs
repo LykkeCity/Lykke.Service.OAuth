@@ -362,9 +362,6 @@ namespace WebAuth.Controllers
 
         private async Task<IActionResult> HandleLykkeFromIronclad(OpenIdConnectRequest request)
         {
-            // Indicates that we already been on signin page.
-            var lykkeSignInContext = await _externalUserOperator.GetLykkeSignInContextAsync();
-
             var parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
             
             var afterIroncladLoginUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeIroncladThroughLykke"), parameters);
@@ -377,7 +374,8 @@ namespace WebAuth.Controllers
                 return LocalRedirect(afterIroncladLoginUrl);
             }
 
-            var lykkeSignInContext = _externalUserOperator.GetLykkeSignInContext();
+            // Indicates that we already been on signin page.
+            var lykkeSignInContext = await _externalUserOperator.GetLykkeSignInContextAsync();
             if (lykkeSignInContext != null)
             {
                 await _externalUserOperator.ClearLykkeSignInContextAsync();
