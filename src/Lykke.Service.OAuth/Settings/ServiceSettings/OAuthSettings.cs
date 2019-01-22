@@ -1,4 +1,5 @@
 ﻿using Core.ExternalProvider.Settings;
+using Core.Settings;
 using JetBrains.Annotations;
 using Lykke.SettingsReader.Attributes;
 using WebAuth.Settings.ServiceSettings;
@@ -22,5 +23,6 @@ namespace Lykke.Service.OAuth.Settings.ServiceSettings
         public CqrsSettings Cqrs { get; set; }
         public FeatureToggleSettings FeatureToggle { get; set; }
         public ExternalProvidersSettings ExternalProvidersSettings { get; set; }
+        public LifetimeSettings LifetimeSettings { get; set; }
     }
 }

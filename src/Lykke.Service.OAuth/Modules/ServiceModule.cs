@@ -56,6 +56,7 @@ namespace Lykke.Service.OAuth.Modules
                 .SingleInstance();
 
             builder.RegisterType<UserSession>()
+                .WithParameter(TypedParameter.From(_settings.CurrentValue.OAuth.LifetimeSettings))
                 .As<IUserSession>();
 
             builder.Register(context =>
