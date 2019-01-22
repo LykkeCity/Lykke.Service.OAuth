@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Common;
 using Core.Extensions;
 using Core.ExternalProvider;
+using Core.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -17,25 +18,27 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
     {
         private static readonly string RedisPrefix = "OAuth:UserSessions";
         private static readonly string CookieName = "UserSession";
-        private static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(1);
 
         private readonly IDatabase _database;
         private readonly IDataProtector _dataProtector;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISystemClock _clock;
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly LifetimeSettings _lifetimeSettings;
 
         public UserSession(
             IConnectionMultiplexer connectionMultiplexer,
             IHttpContextAccessor httpContextAccessor,
             IDataProtectionProvider dataProtectionProvider,
             ISystemClock clock, 
-            IHostingEnvironment hostingEnvironment)
+            IHostingEnvironment hostingEnvironment,
+            LifetimeSettings lifetimeSettings)
         {
             _database = connectionMultiplexer.GetDatabase();
             _httpContextAccessor = httpContextAccessor;
             _clock = clock;
             _hostingEnvironment = hostingEnvironment;
+            _lifetimeSettings = lifetimeSettings;
             _dataProtector =
                 dataProtectionProvider.CreateProtector(OpenIdConnectConstantsExt.Protectors
                     .ExternalProviderCookieProtector);
@@ -128,7 +131,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
 
             CreateCookie(id);
 
-            return _database.StringSetAsync(GetRedisKey(id), data, Lifetime);
+            return _database.StringSetAsync(GetRedisKey(id), data, _lifetimeSettings.IroncladLoginSessionLifetime);
         }
         
         private async Task<IDictionary<string, string>> GetSessionDataAsync()
@@ -157,8 +160,8 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             {
                 HttpOnly = true,
                 IsEssential = true,
-                Expires = _clock.UtcNow.Add(Lifetime),
-                MaxAge = Lifetime,
+                Expires = _clock.UtcNow.Add(_lifetimeSettings.IroncladLoginSessionLifetime),
+                MaxAge = _lifetimeSettings.IroncladLoginSessionLifetime,
                 Secure = useHttps
             };
 

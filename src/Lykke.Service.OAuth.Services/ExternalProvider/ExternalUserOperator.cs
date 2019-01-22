@@ -12,7 +12,6 @@ using Lykke.Service.PersonalData.Client.Models;
 using Lykke.Service.PersonalData.Contract;
 using Lykke.Service.PersonalData.Contract.Models;
 using Lykke.Service.Session.Client;
-using Microsoft.AspNetCore.Http;
 
 namespace Lykke.Service.OAuth.Services.ExternalProvider
 {
@@ -22,7 +21,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private static string TemporaryUserIdKey = "TemporaryUserIdKey";
         private static string IroncladRequestKey = "IroncladRequestKey";
         private static string LykkeSignInContextKey = "LykkeSignInContextKey";
-        private static string EndUserSessionKey = "EndUserSessionKey";
 
         private readonly IIroncladUserRepository _ironcladUserRepository;
         private readonly IClientAccountClient _clientAccountClient;
@@ -31,13 +29,11 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private readonly IIroncladFacade _ironcladFacade;
         private readonly IExternalProvidersValidation _validation;
         private readonly IUserSession _userSession;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public ExternalUserOperator(
             IIroncladUserRepository ironcladUserRepository,
             IClientAccountClient clientAccountClient,
             IPersonalDataService personalDataService,
-            IHttpContextAccessor httpContextAccessor,
             IClientSessionsClient clientSessionsClient,
             IIroncladFacade ironcladFacade,
             IExternalProvidersValidation validation,
@@ -46,7 +42,6 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             _ironcladUserRepository = ironcladUserRepository;
             _clientAccountClient = clientAccountClient;
             _personalDataService = personalDataService;
-            _httpContextAccessor = httpContextAccessor;
             _clientSessionsClient = clientSessionsClient;
             _ironcladFacade = ironcladFacade;
             _validation = validation;
