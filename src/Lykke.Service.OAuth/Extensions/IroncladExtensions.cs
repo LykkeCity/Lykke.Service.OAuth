@@ -7,6 +7,7 @@ using Core.ExternalProvider.Settings;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Lykke.Service.OAuth.Extensions
@@ -94,6 +95,9 @@ namespace Lykke.Service.OAuth.Extensions
             }
 
             options.SaveTokens = true;
+
+            options.CorrelationCookie.HttpOnly = false;
+            options.CorrelationCookie.SameSite = SameSiteMode.None;
 
             //TODO:@gafanasiev Move to separate class.
             options.Events.OnRedirectToIdentityProvider += context =>
