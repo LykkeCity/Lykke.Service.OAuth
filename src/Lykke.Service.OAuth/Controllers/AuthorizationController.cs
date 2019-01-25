@@ -506,10 +506,9 @@ namespace WebAuth.Controllers
                 if (!string.IsNullOrWhiteSpace(partnerId))
                     authenticationProperties.Parameters.Add(OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
                 
-                parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.RedirectUri, out var redirectUri);
-                if (!string.IsNullOrWhiteSpace(redirectUri))
+                if (!string.IsNullOrWhiteSpace(request.RedirectUri))
                 {
-                    await _externalUserOperator.SetClientRedirectUriAsync(redirectUri);
+                    await _externalUserOperator.SetClientRedirectUriAsync(request.RedirectUri);
                 }
 
                 return Challenge(authenticationProperties);
