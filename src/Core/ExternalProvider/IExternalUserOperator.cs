@@ -112,5 +112,18 @@ namespace Core.ExternalProvider
         ///     End temporary user session.
         /// </summary>
         Task EndUserSessionAsync();
+
+        /// <summary>
+        ///     Set redirect URI for the client.
+        /// </summary>
+        /// <param name="redirectUri"></param>
+        /// <returns></returns>
+        Task SetClientRedirectUriAsync(string redirectUri);
+
+        /// <summary>
+        ///     Get redirect URI for the client. 
+        /// </summary>
+        /// <returns></returns>
+        Task<string> GetClientRedirectUriAsync();
     }
 }
