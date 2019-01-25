@@ -508,7 +508,8 @@ namespace WebAuth.Controllers
                 
                 if (!string.IsNullOrWhiteSpace(request.RedirectUri))
                 {
-                    await _externalUserOperator.SetClientRedirectUriAsync(request.RedirectUri);
+                    var clientRedirectUrl = QueryHelpers.AddQueryString("/connect/authorize/external", parameters);
+                    await _externalUserOperator.SetClientRedirectUriAsync(clientRedirectUrl);
                 }
 
                 return Challenge(authenticationProperties);
