@@ -35,12 +35,14 @@ namespace Lykke.Service.OAuth.ExternalProvider
 
         public override async Task RedirectToIdentityProviderForSignOut(RedirectContext context)
         {
-            var lykkeToken =
-                context.Properties.GetString(OpenIdConnectConstantsExt.AuthenticationProperties.LykkeToken);
+            var lykkeToken = context.HttpContext.User.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
 
             if (string.IsNullOrWhiteSpace(lykkeToken))
+            {
+                context.HandleResponse();
                 return;
-
+            }
+            
             try
             {
                 var tokens = await _tokenService.GetIroncladTokens(lykkeToken);

@@ -337,45 +337,38 @@ namespace WebAuth.Controllers
         public async Task<ActionResult> Logout(CancellationToken cancellationToken)
         {
             var response = HttpContext.GetOpenIdConnectResponse();
-            if (response != null)
-            {
-                return View("Error", response);
-            }
+            if (response != null) return View("Error", response);
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
-            {
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
-            }
 
-            // NOTE: Ignore request from ironclad, as lykke is an idp for ironclad.
-            if (request.PostLogoutRedirectUri.Contains(_externalProvidersSettings.IroncladAuth.Authority))
+
+            var postLogoutRedirectUri = request.PostLogoutRedirectUri;
+
+            var postLogoutRedirectUriExist = !string.IsNullOrWhiteSpace(postLogoutRedirectUri);
+
+            var isRequestFromIronclad = postLogoutRedirectUriExist &&
+                postLogoutRedirectUri.Contains(_externalProvidersSettings.IroncladAuth.Authority);
+
+            if (isRequestFromIronclad)
             {
                 var savedRequest = _ironcladUtils.GetIroncladLogoutContext();
-                if (savedRequest != null)
+
+                if (savedRequest != null )
                     request = savedRequest;
             }
-
             else
             {
                 _ironcladUtils.SaveIroncladLogoutContext(request);
 
-                var lykkeToken = User.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
-
-                var authenticationProperties = new AuthenticationProperties();
-
-                if (!string.IsNullOrWhiteSpace(lykkeToken))
-                {
-                    authenticationProperties.AddProperty(OpenIdConnectConstantsExt.AuthenticationProperties.LykkeToken, lykkeToken);
-                }
-
-                return SignOut(authenticationProperties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
+                await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
             }
-            
+
             return View("Logout", request);
         }
 
