@@ -24,7 +24,6 @@
         {
             public const string ExternalLoginRedirectUrl = "externalLoginRedirectUrl";
             public const string AcrValues = "acrValues";
-            public const string LykkeToken = "lykkeToken";
         }
 
         public static class Auth
