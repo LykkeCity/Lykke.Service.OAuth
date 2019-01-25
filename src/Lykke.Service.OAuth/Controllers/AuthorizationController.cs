@@ -132,9 +132,15 @@ namespace WebAuth.Controllers
                 });
             }
 
+            var identity = User.Identity as ClaimsIdentity;
+
+            var sessionId = identity.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
+
+            identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, sessionId, OpenIdConnectConstants.Destinations.AccessToken);
+
             // Create a new authentication ticket holding the user identity.
             var ticket = new AuthenticationTicket(
-                new ClaimsPrincipal(User.Identity),
+                new ClaimsPrincipal(identity),
                 new AuthenticationProperties(),
                 OpenIdConnectServerDefaults.AuthenticationScheme);
 
