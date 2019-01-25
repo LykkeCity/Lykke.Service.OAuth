@@ -140,8 +140,9 @@ namespace WebAuth.Controllers
                     RedirectUri = Url.Action("LykkeLoginCallback", "External")
                 };
 
+                var redirectUri = await _externalUserOperator.GetClientRedirectUriAsync();
                 properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
-                    afterLykkeLoginReturnUrl);
+                    redirectUri ?? afterLykkeLoginReturnUrl);
 
                 // Set idp for ironclad, to use lykke as external provider.
                 properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues, _redirectSettings.OldLykkeSignInIroncladAuthAcrValues);
@@ -172,7 +173,7 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/signin/afterlogin/{platform?}")]
-        public ActionResult Afterlogin(string platform = null, string returnUrl = null)
+        public async Task<ActionResult> Afterlogin(string platform = null, string returnUrl = null)
         {
             switch (platform?.ToLower())
             {

@@ -100,7 +100,7 @@ namespace WebAuth.Controllers
                 return HandleIroncladAuthorize(request, idp);
             }
 
-            return HandleLykkeAuthorize(request);
+            return await HandleLykkeAuthorize(request);
         }
 
         [Authorize]
@@ -444,7 +444,7 @@ namespace WebAuth.Controllers
             return LocalRedirect(redirectUrl);
         }
 
-        private IActionResult HandleLykkeAuthorize(OpenIdConnectRequest request)
+        private async Task<IActionResult> HandleLykkeAuthorize(OpenIdConnectRequest request)
         {
             var parameters = request.GetParameters()
                 .ToDictionary(item => item.Key, item => item.Value.Value.ToString());
@@ -462,15 +462,21 @@ namespace WebAuth.Controllers
                 redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
 
                 // this parameter added for authentification on login page with PartnerId
-                parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerId, out var partnerId);
 
                 var authenticationProperties = new AuthenticationProperties
                 {
                     RedirectUri = Url.Action(redirectUrl)
                 };
 
+                parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerId, out var partnerId);
                 if (!string.IsNullOrWhiteSpace(partnerId))
                     authenticationProperties.Parameters.Add(OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
+                
+                parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.RedirectUri, out var redirectUri);
+                if (!string.IsNullOrWhiteSpace(redirectUri))
+                {
+                    await _externalUserOperator.SetClientRedirectUriAsync(redirectUri);
+                }
 
                 return Challenge(authenticationProperties);
             }

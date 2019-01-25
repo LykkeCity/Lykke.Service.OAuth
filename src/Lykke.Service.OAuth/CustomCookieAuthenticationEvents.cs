@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Core.Extensions;
-using Core.ExternalProvider;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;

@@ -21,6 +21,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         private static string TemporaryUserIdKey = "TemporaryUserIdKey";
         private static string IroncladRequestKey = "IroncladRequestKey";
         private static string LykkeSignInContextKey = "LykkeSignInContextKey";
+        private static string ClientRedirectUri = "ClientRedirectUri";
 
         private readonly IIroncladUserRepository _ironcladUserRepository;
         private readonly IClientAccountClient _clientAccountClient;
@@ -221,6 +222,16 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         public async Task EndUserSessionAsync()
         {
             await _userSession.EndSessionAsync();
+        }
+
+        public Task SetClientRedirectUriAsync(string redirectUri)
+        {
+            return _userSession.SetAsync(ClientRedirectUri, redirectUri);
+        }
+
+        public Task<string> GetClientRedirectUriAsync()
+        {
+            return _userSession.GetAsync<string>(ClientRedirectUri);
         }
     }
 }
