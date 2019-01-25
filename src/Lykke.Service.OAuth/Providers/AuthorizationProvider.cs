@@ -64,21 +64,28 @@ namespace WebAuth.Providers
             // restore the complete authorization request stored in the user session.
             if (!string.IsNullOrEmpty(context.Request.RequestId))
             {
-                var payload = context.HttpContext.Session.Get("authorization-request:" + context.Request.RequestId);
-                if (payload == null)
+                try
                 {
-                    context.Reject(
-                        OpenIdConnectConstants.Errors.InvalidRequest,
-                        "Invalid request: timeout expired.");
+                    var payload = context.HttpContext.Session.Get("authorization-request:" + context.Request.RequestId);
+                    if (payload == null)
+                    {
+                        context.Reject(
+                            OpenIdConnectConstants.Errors.InvalidRequest,
+                            "Invalid request: timeout expired.");
 
-                    return Task.FromResult(0);
+                        return Task.FromResult(0);
+                    }
+
+                    var request = JsonConvert.DeserializeObject<OpenIdConnectRequest>(Encoding.UTF8.GetString(payload));
+
+                    foreach (var prop in request.GetParameters())
+                    {
+                        context.Request.SetParameter(prop.Key, prop.Value);
+                    }
                 }
-
-                var request = JsonConvert.DeserializeObject<OpenIdConnectRequest>(Encoding.UTF8.GetString(payload));
-
-                foreach (var prop in request.GetParameters())
+                catch (Exception ex)
                 {
-                    context.Request.SetParameter(prop.Key, prop.Value);
+                    _log.Warning("Cannot find request in session by id", ex);
                 }
             }
 
