@@ -72,7 +72,14 @@ namespace Lykke.Service.OAuth.Extensions
 
             options.Authority = ironcladSettings.Authority;
             options.ClientId = ironcladSettings.ClientId;
-            options.ResponseType = ironcladSettings.ResponseType;
+
+            //NOTE:@gafanasiev to work in ios this should be code.
+            if (!string.IsNullOrWhiteSpace(ironcladSettings.ResponseType))
+                options.ResponseType = ironcladSettings.ResponseType;          
+            
+            //NOTE:@gafanasiev to work in ios this should be query.
+            if (!string.IsNullOrWhiteSpace(ironcladSettings.ResponseMode))
+                options.ResponseMode = ironcladSettings.ResponseMode;
 
             if (!string.IsNullOrWhiteSpace(ironcladSettings.ClientSecret))
                 options.ClientSecret = ironcladSettings.ClientSecret;
