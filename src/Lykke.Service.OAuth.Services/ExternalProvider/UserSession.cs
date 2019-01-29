@@ -162,7 +162,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
                 Expires = _clock.UtcNow.Add(_lifetimeSettings.IroncladLoginSessionLifetime),
                 MaxAge = _lifetimeSettings.IroncladLoginSessionLifetime,
                 Secure = useHttps,
-                //TODO:@gafanasiev not safe, but we need to check if this is the problem for ios.
+                //NOTE:@gafanasiev not safe, but this fixes the problem for ios.
                 SameSite = SameSiteMode.None
             };
 

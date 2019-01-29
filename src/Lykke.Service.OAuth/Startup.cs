@@ -244,8 +244,6 @@ namespace WebAuth
 
                 app.UseMiddleware<LykkeApiErrorMiddleware>();
 
-                app.UseMiddleware<AuthCookieMiddleware>();
-
                 app.UseMiddleware<RedirectResponseOverride>();
 
                 app.UseLykkeForwardedHeaders();
