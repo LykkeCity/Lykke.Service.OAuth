@@ -184,7 +184,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         }
 
         /// <inheritdoc />
-        public Task SaveTempLykkeUserIdAsync(string lykkeUserId)
+        public Task<string> SaveTempLykkeUserIdAsync(string lykkeUserId)
         {
             return _userSession.SetAsync(TemporaryUserIdKey, lykkeUserId);
         }

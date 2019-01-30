@@ -36,6 +36,7 @@ using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Swashbuckle.AspNetCore.Annotations;
 using WebAuth.Managers;
 
@@ -62,6 +63,7 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly IExternalUserOperator _externalUserOperator;
         private readonly IClientSessionsClient _sessionService;
         private readonly IClientAccountClient _clientAccountClient;
+        private readonly IUserSession _userSession;
 
         public RegistrationController(
             IRegistrationRepository registrationRepository, 
@@ -77,10 +79,11 @@ namespace Lykke.Service.OAuth.Controllers
             IRedirectSettingsAccessor redirectSettingsAccessor,
             IExternalUserOperator externalUserOperator,
             IClientSessionsClient sessionService,
-            IClientAccountClient clientAccountClient
-            )
+            IClientAccountClient clientAccountClient,
+            IUserSession userSession)
         {
             _clientAccountClient = clientAccountClient;
+            _userSession = userSession;
             _sessionService = sessionService;
             _externalUserOperator = externalUserOperator;
             _salesforceService = salesforceService;
@@ -173,8 +176,22 @@ namespace Lykke.Service.OAuth.Controllers
                 throw new Exception("Null response from registration service during registration.");
             }
 
-            await _externalUserOperator.SaveTempLykkeUserIdAsync(registrationServiceResponse.Account.Id);
+            var registrationSessionId = await _externalUserOperator.SaveTempLykkeUserIdAsync(registrationServiceResponse.Account.Id);
 
+            if (model.RedirectUrl.Contains("getlykkewallettokenmobile"))
+            {
+                var location = Url.Action("RegistrationSessionComplete", new {registrationSessionId});
+                return new JsonResult(new
+                {
+                    location
+                });
+            }
+
+            return GenerateIroncladChallenge(model.RedirectUrl);
+        }
+
+        private ActionResult GenerateIroncladChallenge(string redirectUrl)
+        {
             var properties = new AuthenticationProperties
             {
                 RedirectUri = Url.Action("LykkeLoginCallback", "External")
@@ -182,7 +199,7 @@ namespace Lykke.Service.OAuth.Controllers
             
             properties.SetProperty(
                 OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
-                string.IsNullOrEmpty(model.RedirectUrl) ? Url.Action("PostRegistrationMobile", "Registration") : model.RedirectUrl
+                string.IsNullOrEmpty(redirectUrl) ? Url.Action("PostRegistrationMobile", "Registration") : redirectUrl
             );
 
             properties.SetProperty(
@@ -384,6 +401,17 @@ namespace Lykke.Service.OAuth.Controllers
                     _countriesService.Countries,
                     _countriesService.RestrictedCountriesOfResidence,
                     userLocationCountry));
+        }
+
+        [HttpGet]
+        [Route("registrationSessionComplete")]
+        public IActionResult RegistrationSessionComplete([FromQuery] string registrationSessionId)
+        {
+            _userSession.CreateCookie(registrationSessionId);
+
+            var redirectUrl = Url.Action("GetLykkeWalletTokenMobile", "Userinfo");
+
+            return GenerateIroncladChallenge(redirectUrl);
         }
     }
 }
