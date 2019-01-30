@@ -180,7 +180,7 @@ namespace Lykke.Service.OAuth.Controllers
 
             if (model.RedirectUrl.Contains("getlykkewallettokenmobile"))
             {
-                var location = Url.Action("RegistrationSessionComplete", new {registrationSessionId});
+                var location = Url.Action("RegistrationSessionComplete","Registration", new {registrationSessionId}, Request.Scheme);
                 return new JsonResult(new
                 {
                     location
