@@ -17,7 +17,7 @@ namespace Core.ExternalProvider
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         /// <returns>Completed Task on success.</returns>
-        Task SetAsync<T>(string key, T value);
+        Task<string> SetAsync<T>(string key, T value);
 
         /// <summary>
         ///     Get value from current session.
@@ -42,5 +42,11 @@ namespace Core.ExternalProvider
         /// </summary>
         /// <returns>Completed Task on success.</returns>
         Task EndSessionAsync();
+
+        /// <summary>
+        ///     Create cookie with session.
+        /// </summary>
+        /// <param name="id">user session id.</param>
+        void CreateCookie(string id);
     }
 }

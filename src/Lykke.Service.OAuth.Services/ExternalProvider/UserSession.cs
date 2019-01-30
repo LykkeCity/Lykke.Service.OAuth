@@ -44,7 +44,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
         }
 
         /// <inheritdoc />
-        public async Task SetAsync<T>(string key, T value)
+        public async Task<string> SetAsync<T>(string key, T value)
         {
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException(nameof(key));
@@ -77,6 +77,9 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             dict[key] = JsonConvert.SerializeObject(value);
 
             await SaveSessionDataAsync(id, dict);
+
+            // TODO:@gafanasiev split into 2 methods one for saving to cookie, second for creating id.
+            return id;
         }
 
         /// <inheritdoc />
@@ -151,7 +154,7 @@ namespace Lykke.Service.OAuth.Services.ExternalProvider
             return DeserializeAndUnprotect<IDictionary<string, string>>(cachedData);
         }
 
-        private void CreateCookie(string id)
+        public void CreateCookie(string id)
         {
             var useHttps = !_hostingEnvironment.IsDevelopment();
             
