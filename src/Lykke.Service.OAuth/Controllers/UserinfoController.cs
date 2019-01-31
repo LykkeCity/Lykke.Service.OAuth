@@ -85,9 +85,12 @@ namespace Lykke.Service.OAuth.Controllers
             }
 
             var session = await _clientSessionsClient.GetAsync(sessionId);
-            
-            if (session == null) 
+
+            if (session == null)
+            {
+                _log.Warning($"Session not found when trying to get token, sessionId = {sessionId}");
                 return NotFound("Session not found.");
+            }
 
             return Json(new { Token = sessionId, session.AuthId });
         }
