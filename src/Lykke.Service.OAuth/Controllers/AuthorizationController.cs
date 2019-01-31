@@ -6,10 +6,12 @@ using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
 using Common;
+using Common.Log;
 using Core.Application;
 using Core.Extensions;
 using Core.ExternalProvider;
 using Core.ExternalProvider.Settings;
+using Lykke.Common.Log;
 using Lykke.Service.OAuth.Extensions;
 using Lykke.Service.OAuth.ExternalProvider;
 using Lykke.Service.Session.Client;
@@ -34,15 +36,18 @@ namespace WebAuth.Controllers
         private readonly IExternalProvidersValidation _validation;
         private readonly IIroncladUtils _ironcladUtils;
         private readonly ExternalProvidersSettings _externalProvidersSettings;
+        private readonly ILog _log;
 
         public AuthorizationController(
             IApplicationRepository applicationRepository,
-            IUserManager userManager, 
+            IUserManager userManager,
             IClientSessionsClient clientSessionsClient,
             IExternalUserOperator externalUserOperator,
-            IExternalProvidersValidation validation, 
+            IExternalProvidersValidation validation,
             IIroncladUtils ironcladUtils,
-            ExternalProvidersSettings externalProvidersSettings)
+            ExternalProvidersSettings externalProvidersSettings,
+            ILogFactory logFactory
+            )
         {
             _applicationRepository = applicationRepository;
             _userManager = userManager;
@@ -51,6 +56,7 @@ namespace WebAuth.Controllers
             _validation = validation;
             _ironcladUtils = ironcladUtils;
             _externalProvidersSettings = externalProvidersSettings;
+            _log = logFactory.CreateLog(this);
         }
 
         [HttpGet("~/connect/authorize")]
@@ -65,6 +71,7 @@ namespace WebAuth.Controllers
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null)
             {
+                _log.Error("OpenId connect response received, but is not expected.", context: response);
                 return View("Error", response);
             }
 
@@ -72,12 +79,15 @@ namespace WebAuth.Controllers
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
             {
+                _log.Error("OpenId connect request is empty.");
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
                     ErrorDescription = "An internal error has occurred"
                 });
             }
+
+            _log.Info("OpenId connect request received.", context: request);
 
             // Note: ASOS automatically ensures that an application corresponds to the client_id specified
             // in the authorization request by calling IOpenIdConnectServerProvider.ValidateAuthorizationRequest.
@@ -86,6 +96,7 @@ namespace WebAuth.Controllers
             var application = await _applicationRepository.GetByIdAsync(request.ClientId);
             if (application == null)
             {
+                _log.Error("ClientId is unknown.", context: request);
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
@@ -97,6 +108,7 @@ namespace WebAuth.Controllers
 
             if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
             {
+                _log.Info("Handling authentication for Ironclad as tenant.", context: request);
                 return await HandleLykkeFromIronclad(request);
             }
 
@@ -104,9 +116,11 @@ namespace WebAuth.Controllers
             
             if (_validation.IsValidLykkeIdp(idp) || _validation.IsValidExternalIdp(idp))
             {
+                _log.Info($"Handling auhentication for idp {idp}.", context: request);
                 return HandleIroncladAuthorize(request, idp);
             }
 
+            _log.Info($"Handling auhentication for Lykke.", context: request);
             return await HandleLykkeAuthorize(request);
         }
 
@@ -119,12 +133,14 @@ namespace WebAuth.Controllers
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null)
             {
+                _log.Error("OpenId connect response received, but is not expected.", context: response);
                 return View("Error", response);
             }
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
             {
+                _log.Error("OpenId connect request is empty.");
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
@@ -133,9 +149,19 @@ namespace WebAuth.Controllers
             }
 
             var identity = User.Identity as ClaimsIdentity;
-
+            if (identity == null)
+            {
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.UnauthorizedClient,
+                    ErrorDescription = "Not authorized"
+                });
+            }
             var sessionId = identity.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
-
+            if (sessionId == null)
+            {
+                _log.Warning("Session id from ClaimsIdentity is empty.");
+            }
             identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, sessionId, OpenIdConnectConstants.Destinations.AccessToken);
 
             // Create a new authentication ticket holding the user identity.
@@ -154,6 +180,8 @@ namespace WebAuth.Controllers
                 OpenIdConnectConstants.Scopes.Address
             }.Intersect(request.GetScopes()));
 
+            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request);
+
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 
@@ -170,12 +198,14 @@ namespace WebAuth.Controllers
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null)
             {
+                _log.Error("OpenId connect response received, but is not expected.", context: response);
                 return View("Error", response);
             }
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
             {
+                _log.Error("OpenId connect request is empty.");
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
@@ -186,6 +216,7 @@ namespace WebAuth.Controllers
             var application = await _applicationRepository.GetByIdAsync(request.ClientId);
             if (application == null)
             {
+                _log.Error("ClientId is unknown.", context: request);
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
@@ -218,6 +249,8 @@ namespace WebAuth.Controllers
                 OpenIdConnectConstants.Scopes.Address
             }.Intersect(request.GetScopes()));
 
+            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request);
+
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 
@@ -230,12 +263,14 @@ namespace WebAuth.Controllers
             var response = HttpContext.GetOpenIdConnectResponse();
             if (response != null)
             {
+                _log.Error("OpenId connect response received, but is not expected.", context: response);
                 return View("Error", response);
             }
 
             var request = HttpContext.GetOpenIdConnectRequest();
             if (request == null)
             {
+                _log.Error("OpenId connect request is empty.");
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
@@ -257,6 +292,7 @@ namespace WebAuth.Controllers
             var application = await _applicationRepository.GetByIdAsync(request.ClientId);
             if (application == null)
             {
+                _log.Error("ClientId is unknown.", context: request);
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
@@ -268,6 +304,7 @@ namespace WebAuth.Controllers
             var sessionId = HttpContext.User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
             if (sessionId == null)
             {
+                _log.Error("Unable to find session id in the calling context.");
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = "Empty SessionId",
@@ -302,6 +339,8 @@ namespace WebAuth.Controllers
                 OpenIdConnectConstants.Scopes.Profile,
                 OpenIdConnectConstants.Scopes.OfflineAccess
             }.Intersect(request.GetScopes()));
+
+            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request);
 
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
