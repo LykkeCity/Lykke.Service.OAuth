@@ -178,7 +178,7 @@ namespace Lykke.Service.OAuth.Controllers
 
             var registrationSessionId = await _externalUserOperator.SaveTempLykkeUserIdAsync(registrationServiceResponse.Account.Id);
 
-            if (model.RedirectUrl.Contains("getlykkewallettokenmobile"))
+            if (!string.IsNullOrWhiteSpace(model.RedirectUrl) && model.RedirectUrl.Contains("getlykkewallettokenmobile")))
             {
                 var location = Url.Action("RegistrationSessionComplete","Registration", new {registrationSessionId}, Request.Scheme);
                 return new JsonResult(new
