@@ -151,6 +151,7 @@ namespace WebAuth.Controllers
             var identity = User.Identity as ClaimsIdentity;
             if (identity == null)
             {
+                _log.Error("Identity is not ClaimsIdentity.");
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.UnauthorizedClient,
@@ -160,7 +161,7 @@ namespace WebAuth.Controllers
             var sessionId = identity.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
             if (sessionId == null)
             {
-                _log.Warning("Session id from ClaimsIdentity is empty.");
+                _log.Error("Session id from ClaimsIdentity is empty.");
             }
             identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, sessionId, OpenIdConnectConstants.Destinations.AccessToken);
 
