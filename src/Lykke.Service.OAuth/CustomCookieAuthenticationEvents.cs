@@ -39,7 +39,6 @@ namespace WebAuth
             if (string.IsNullOrWhiteSpace(lykkeToken))
             {
                 isInvalidSession = true;
-                await context.HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
             }
             else
             {
@@ -63,6 +62,7 @@ namespace WebAuth
 
             if (isInvalidSession)
             {
+                await context.HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
                 context.RejectPrincipal();
             }
         }

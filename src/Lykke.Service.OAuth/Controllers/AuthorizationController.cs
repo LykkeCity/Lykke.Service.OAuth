@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -101,6 +102,13 @@ namespace WebAuth.Controllers
                     ErrorDescription = "An internal error has occurred"
                 });
             }
+
+            var authenticated = await HandleAlreadyAuthenticated(request);
+
+            if (authenticated != null)
+            {
+                return authenticated;
+            }
             
             var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
 
@@ -121,68 +129,6 @@ namespace WebAuth.Controllers
             _log.Info($"Handling auhentication for Lykke.", context: request.Serialize());
 
             return await HandleLykkeAuthorize(request);
-        }
-
-        [Authorize]
-        [HttpPost("~/connect/authorize/external")]
-        [HttpGet("~/connect/authorize/external")]
-        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true, Duration = 0)]
-        public IActionResult AuthorizeExternal()
-        {
-            var response = HttpContext.GetOpenIdConnectResponse();
-            if (response != null)
-            {
-                _log.Error("OpenId connect response received, but is not expected.", context: response);
-                return View("Error", response);
-            }
-
-            var request = HttpContext.GetOpenIdConnectRequest();
-            if (request == null)
-            {
-                _log.Error("OpenId connect request is empty.");
-                return View("Error", new OpenIdConnectMessage
-                {
-                    Error = OpenIdConnectConstants.Errors.ServerError,
-                    ErrorDescription = "An internal error has occurred"
-                });
-            }
-
-            var identity = User.Identity as ClaimsIdentity;
-            if (identity == null)
-            {
-                _log.Error("Identity is not ClaimsIdentity.");
-                return View("Error", new OpenIdConnectMessage
-                {
-                    Error = OpenIdConnectConstants.Errors.UnauthorizedClient,
-                    ErrorDescription = "Not authorized"
-                });
-            }
-            var sessionId = identity.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
-            if (sessionId == null)
-            {
-                _log.Error("Session id from ClaimsIdentity is empty.");
-            }
-            identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, sessionId, OpenIdConnectConstants.Destinations.AccessToken);
-
-            // Create a new authentication ticket holding the user identity.
-            var ticket = new AuthenticationTicket(
-                new ClaimsPrincipal(identity),
-                new AuthenticationProperties(),
-                OpenIdConnectServerDefaults.AuthenticationScheme);
-
-            //FIXME:@gafanasiev add allowed scopes for client application.
-            ticket.SetScopes(new[]
-            {
-                OpenIdConnectConstants.Scopes.OpenId,
-                OpenIdConnectConstants.Scopes.Email,
-                OpenIdConnectConstants.Scopes.Phone,
-                OpenIdConnectConstants.Scopes.Profile,
-                OpenIdConnectConstants.Scopes.Address
-            }.Intersect(request.GetScopes()));
-
-            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request.Serialize());
-
-            return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
 
         [HttpGet("~/connect/authorize/lykke")]
@@ -284,65 +230,7 @@ namespace WebAuth.Controllers
                 HttpContext.Session.Remove("authorization-request:" + request.RequestId);
             }
 
-            var scopes = request.GetScopes().ToList();
-            var claims = HttpContext.User.Claims;
-
-            var identity = _userManager.CreateIdentity(scopes, claims.Where(c => c.Type != OpenIdConnectConstantsExt.Claims.SessionId));
-
-            var application = await _applicationRepository.GetByIdAsync(request.ClientId);
-            if (application == null)
-            {
-                _log.Error("ClientId is unknown.", context: request.Serialize());
-                return View("Error", new OpenIdConnectMessage
-                {
-                    Error = OpenIdConnectConstants.Errors.InvalidClient,
-                    ErrorDescription =
-                        "Details concerning the calling client application cannot be found in the database"
-                });
-            }
-
-            var sessionId = HttpContext.User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
-            if (sessionId == null)
-            {
-                _log.Error("Unable to find session id in the calling context.");
-                return View("Error", new OpenIdConnectMessage
-                {
-                    Error = "Empty SessionId",
-                    ErrorDescription = "Unable to find session id in the calling context"
-                });
-            }
-
-            identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
-
-            identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationId);
-
-            identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName,
-                OpenIdConnectConstants.Destinations.AccessToken,
-                OpenIdConnectConstants.Destinations.IdentityToken);
-
-            identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, sessionId, OpenIdConnectConstants.Destinations.AccessToken);
-
-            // Create a new authentication ticket holding the user identity.
-            var ticket = new AuthenticationTicket(
-                new ClaimsPrincipal(identity),
-                new AuthenticationProperties(),
-                OpenIdConnectServerDefaults.AuthenticationScheme);
-
-            // Set the list of scopes granted to the client application.
-            // Note: this sample always grants the "openid", "email" and "profile" scopes
-            // when they are requested by the client application: a real world application
-            // would probably display a form allowing to select the scopes to grant.
-            ticket.SetScopes(new[]
-            {
-                OpenIdConnectConstants.Scopes.OpenId,
-                OpenIdConnectConstants.Scopes.Email,
-                OpenIdConnectConstants.Scopes.Profile,
-                OpenIdConnectConstants.Scopes.OfflineAccess
-            }.Intersect(request.GetScopes()));
-
-            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request.Serialize());
-
-            return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
+            return await IssueOpenIdTokens(request);
         }
 
         [Authorize]
@@ -434,7 +322,7 @@ namespace WebAuth.Controllers
 
         private async Task<IActionResult> HandleLykkeFromIronclad(OpenIdConnectRequest request)
         {
-            var parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
+            var parameters = GetParameters(request);
             
             var afterIroncladLoginUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeIroncladThroughLykke"), parameters);
             
@@ -471,92 +359,159 @@ namespace WebAuth.Controllers
 
         private IActionResult HandleIroncladAuthorize(OpenIdConnectRequest request, string idp)
         {
-            var parameters = request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
+            var parameters = GetParameters(request);
 
-            if (!User.Identities.Any(identity => identity.IsAuthenticated))
+            var externalRedirectUrl = QueryHelpers.AddQueryString(Url.Action("Accept"), parameters);
+
+            string redirectUri;
+
+            if (_validation.IsValidLykkeIdp(idp))
+                redirectUri = Url.Action("LykkeLoginCallback", "External");
+            else if (_validation.IsValidExternalIdp(idp))
+                redirectUri = Url.Action("ExternalLoginCallback", "External");
+            else
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.InvalidRequest,
+                    ErrorDescription = "Invalid identity provider"
+                });
+
+            var properties = new AuthenticationProperties
             {
-                var externalRedirectUrl = QueryHelpers.AddQueryString(Url.Action("AuthorizeExternal"), parameters);
+                RedirectUri = redirectUri
+            };
 
-                string redirectUri;
+            properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
+                externalRedirectUrl);
 
-                if (_validation.IsValidLykkeIdp(idp))
-                {
-                    redirectUri = Url.Action("LykkeLoginCallback", "External");
-                }
-                else if (_validation.IsValidExternalIdp(idp))
-                {
+            properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues, request.AcrValues);
 
-                    redirectUri = Url.Action("ExternalLoginCallback", "External");
-                }
-                else
-                {
-                    return View("Error", new OpenIdConnectMessage
-                    {
-                        Error = OpenIdConnectConstants.Errors.InvalidRequest,
-                        ErrorDescription = "Invalid identity provider"
-                    });
-                }
-
-                var properties = new AuthenticationProperties
-                {
-                    RedirectUri = redirectUri
-                };
-
-                properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl, externalRedirectUrl);
-
-                properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues, request.AcrValues);
-
-                return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
-            }
-
-            var acceptUri = Url.Action("AuthorizeExternal");
-
-            var redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
-
-            return LocalRedirect(redirectUrl);
+            return Challenge(properties, OpenIdConnectConstantsExt.Auth.IroncladAuthenticationScheme);
         }
 
         private async Task<IActionResult> HandleLykkeAuthorize(OpenIdConnectRequest request)
         {
-            var parameters = request.GetParameters()
-                .ToDictionary(item => item.Key, item => item.Value.Value.ToString());
+            var parameters = GetParameters(request);
 
-            string redirectUrl;
+            var identifier = StringUtils.GenerateId();
 
-            if (!User.Identities.Any(identity => identity.IsAuthenticated))
+            // Store the authorization request in the user session.
+            HttpContext.Session.Set("authorization-request:" + identifier, request.ToJson().ToUtf8Bytes());
+            parameters.Add("request_id", identifier);
+
+            var redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
+
+            var authenticationProperties = new AuthenticationProperties
             {
-                var identifier = StringUtils.GenerateId();
+                RedirectUri = Url.Action(redirectUrl)
+            };
 
-                // Store the authorization request in the user session.
-                HttpContext.Session.Set("authorization-request:" + identifier, request.ToJson().ToUtf8Bytes());
-                parameters.Add("request_id", identifier);
+            // this parameter added for authentification on login page with PartnerId
+            parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerId, out var partnerId);
+            if (!string.IsNullOrWhiteSpace(partnerId))
+                authenticationProperties.Parameters.Add(OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
 
-                redirectUrl = QueryHelpers.AddQueryString(nameof(Authorize), parameters);
-
-                // this parameter added for authentification on login page with PartnerId
-
-                var authenticationProperties = new AuthenticationProperties
-                {
-                    RedirectUri = Url.Action(redirectUrl)
-                };
-
-                parameters.TryGetValue(OpenIdConnectConstantsExt.Parameters.PartnerId, out var partnerId);
-                if (!string.IsNullOrWhiteSpace(partnerId))
-                    authenticationProperties.Parameters.Add(OpenIdConnectConstantsExt.Parameters.PartnerId, partnerId);
-                
-                if (!string.IsNullOrWhiteSpace(request.RedirectUri))
-                {
-                    var clientRedirectUrl = QueryHelpers.AddQueryString("/connect/authorize/external", parameters);
-                    await _externalUserOperator.SetClientRedirectUriAsync(clientRedirectUrl);
-                }
-
-                return Challenge(authenticationProperties);
+            if (!string.IsNullOrWhiteSpace(request.RedirectUri))
+            {
+                var clientRedirectUrl = QueryHelpers.AddQueryString(Url.Action("Accept"), parameters);
+                await _externalUserOperator.SetClientRedirectUriAsync(clientRedirectUrl);
             }
 
-            var acceptUri = Url.Action("Accept");
-            redirectUrl = QueryHelpers.AddQueryString(acceptUri, parameters);
+            return Challenge(authenticationProperties);
+        }
 
-            return Redirect(redirectUrl);
+        private async Task<IActionResult> HandleAlreadyAuthenticated(OpenIdConnectRequest request)
+        {
+            var isAuthenticated = User.Identities.Any(identity => identity.IsAuthenticated);
+
+            if (!isAuthenticated) 
+                return null;
+
+            var tenant = request.GetAcrValue(OpenIdConnectConstantsExt.Parameters.Tenant);
+
+            if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
+            {
+                _log.Error("User is authenticated but request is from ironclad.", context: request);
+                await HttpContext.SignOutAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme);
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "An internal error has occurred"
+                });
+            }
+
+            return await IssueOpenIdTokens(request);
+        }
+
+        private async Task<IActionResult> IssueOpenIdTokens(OpenIdConnectRequest request)
+        {
+            var scopes = request.GetScopes().ToList();
+            
+            var claims = HttpContext.User.Claims;
+
+            var identity = _userManager.CreateIdentity(scopes, claims.Where(c => c.Type != OpenIdConnectConstantsExt.Claims.SessionId));
+
+            var application = await _applicationRepository.GetByIdAsync(request.ClientId);
+            if (application == null)
+            {
+                _log.Error("ClientId is unknown.", context: request);
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.InvalidClient,
+                    ErrorDescription =
+                        "Details concerning the calling client application cannot be found in the database"
+                });
+            }
+
+            var sessionId = HttpContext.User.FindFirst(OpenIdConnectConstantsExt.Claims.SessionId)?.Value;
+            if (sessionId == null)
+            {
+                _log.Error("Unable to find session id in the calling context.");
+                return View("Error", new OpenIdConnectMessage
+                {
+                    Error = OpenIdConnectConstants.Errors.ServerError,
+                    ErrorDescription = "An internal error has occurred"
+                });
+            }
+
+            identity.Actor = new ClaimsIdentity(OpenIdConnectServerDefaults.AuthenticationScheme);
+
+            identity.Actor.AddClaim(ClaimTypes.NameIdentifier, application.ApplicationId);
+
+            identity.Actor.AddClaim(ClaimTypes.Name, application.DisplayName,
+                OpenIdConnectConstants.Destinations.AccessToken,
+                OpenIdConnectConstants.Destinations.IdentityToken);
+
+            identity.AddClaim(OpenIdConnectConstantsExt.Claims.SessionId, sessionId, OpenIdConnectConstants.Destinations.AccessToken);
+
+            // Create a new authentication ticket holding the user identity.
+            var ticket = new AuthenticationTicket(
+                new ClaimsPrincipal(identity),
+                new AuthenticationProperties(),
+                OpenIdConnectServerDefaults.AuthenticationScheme);
+
+            // Set the list of scopes granted to the client application.
+            // Note: this sample always grants the "openid", "email" and "profile" scopes
+            // when they are requested by the client application: a real world application
+            // would probably display a form allowing to select the scopes to grant.
+            ticket.SetScopes(new[]
+            {
+                OpenIdConnectConstants.Scopes.OpenId,
+                OpenIdConnectConstants.Scopes.Email,
+                OpenIdConnectConstants.Scopes.Profile,
+                OpenIdConnectConstants.Scopes.OpenId,
+                OpenIdConnectConstants.Scopes.Address,
+                OpenIdConnectConstants.Scopes.OfflineAccess
+            }.Intersect(request.GetScopes()));
+
+            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request);
+
+            return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
+        }
+
+        private IDictionary<string, string> GetParameters(OpenIdConnectRequest request)
+        {
+            return request.GetParameters().ToDictionary(item => item.Key, item => item.Value.Value.ToString());
         }
     }
 }

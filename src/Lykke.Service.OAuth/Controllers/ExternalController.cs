@@ -31,7 +31,7 @@ namespace Lykke.Service.OAuth.Controllers
         private static readonly OpenIdConnectMessage AuthenticationError = new OpenIdConnectMessage
         {
             Error = OpenIdConnectConstants.Errors.ServerError,
-            ErrorDescription = "Authentication error"
+            ErrorDescription = "An internal error has occurred"
         };
 
 
@@ -110,7 +110,14 @@ namespace Lykke.Service.OAuth.Controllers
 
                 var ironcladUser = _userManager.IroncladUserFromIdentity(ironcladPrincipal.Identity as ClaimsIdentity);
 
-                var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync(); 
+                var lykkeUserId = await _externalUserOperator.GetTempLykkeUserIdAsync();
+
+                if (string.IsNullOrWhiteSpace(lykkeUserId))
+                {
+                    _log.Error(message:"Lykke user id not found in session cookie!");
+
+                    return View("Error", AuthenticationError);
+                }
 
                 //TODO: @gafanasiev change to faster way (cache user in redis or cookie).
                 var lykkeUser = await _userManager.GetLykkeUserAsync(lykkeUserId);
