@@ -87,8 +87,6 @@ namespace WebAuth.Controllers
                 });
             }
 
-            _log.Info("OpenId connect request received.", context: request);
-
             // Note: ASOS automatically ensures that an application corresponds to the client_id specified
             // in the authorization request by calling IOpenIdConnectServerProvider.ValidateAuthorizationRequest.
             // In theory, this null check shouldn't be needed, but a race condition could occur if you
@@ -96,7 +94,7 @@ namespace WebAuth.Controllers
             var application = await _applicationRepository.GetByIdAsync(request.ClientId);
             if (application == null)
             {
-                _log.Error("ClientId is unknown.", context: request);
+                _log.Error("ClientId is unknown.", context: request.Serialize());
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.ServerError,
@@ -108,7 +106,7 @@ namespace WebAuth.Controllers
 
             if (string.Equals(tenant, OpenIdConnectConstantsExt.Providers.Ironclad))
             {
-                _log.Info("Handling authentication for Ironclad as tenant.", context: request);
+                _log.Info("Handling authentication for Ironclad as tenant.", context: request.Serialize());
                 return await HandleLykkeFromIronclad(request);
             }
 
@@ -116,11 +114,12 @@ namespace WebAuth.Controllers
             
             if (_validation.IsValidLykkeIdp(idp) || _validation.IsValidExternalIdp(idp))
             {
-                _log.Info($"Handling auhentication for idp {idp}.", context: request);
+                _log.Info($"Handling auhentication for idp {idp}.", context: request.Serialize());
                 return HandleIroncladAuthorize(request, idp);
             }
 
-            _log.Info($"Handling auhentication for Lykke.", context: request);
+            _log.Info($"Handling auhentication for Lykke.", context: request.Serialize());
+
             return await HandleLykkeAuthorize(request);
         }
 
@@ -181,7 +180,7 @@ namespace WebAuth.Controllers
                 OpenIdConnectConstants.Scopes.Address
             }.Intersect(request.GetScopes()));
 
-            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request);
+            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request.Serialize());
 
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
@@ -217,7 +216,7 @@ namespace WebAuth.Controllers
             var application = await _applicationRepository.GetByIdAsync(request.ClientId);
             if (application == null)
             {
-                _log.Error("ClientId is unknown.", context: request);
+                _log.Error("ClientId is unknown.", context: request.Serialize());
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
@@ -250,7 +249,7 @@ namespace WebAuth.Controllers
                 OpenIdConnectConstants.Scopes.Address
             }.Intersect(request.GetScopes()));
 
-            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request);
+            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request.Serialize());
 
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
@@ -293,7 +292,7 @@ namespace WebAuth.Controllers
             var application = await _applicationRepository.GetByIdAsync(request.ClientId);
             if (application == null)
             {
-                _log.Error("ClientId is unknown.", context: request);
+                _log.Error("ClientId is unknown.", context: request.Serialize());
                 return View("Error", new OpenIdConnectMessage
                 {
                     Error = OpenIdConnectConstants.Errors.InvalidClient,
@@ -341,7 +340,7 @@ namespace WebAuth.Controllers
                 OpenIdConnectConstants.Scopes.OfflineAccess
             }.Intersect(request.GetScopes()));
 
-            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request);
+            _log.Info($"Sign in to {ticket.AuthenticationScheme} scheme started.", context: request.Serialize());
 
             return SignIn(ticket.Principal, ticket.Properties, ticket.AuthenticationScheme);
         }
