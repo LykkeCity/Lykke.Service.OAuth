@@ -6,6 +6,7 @@ using Core.ExternalProvider.Exceptions;
 using Core.Services;
 using IdentityServer4.AccessTokenValidation;
 using Lykke.Common.Log;
+using Lykke.Service.ClientAccount.Client;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,12 +21,15 @@ namespace Lykke.Service.OAuth.Controllers
         private readonly ITokenService _tokenService;
 
         private static string _tokenNotFoundMessage = "Token not found.";
+        private readonly IClientAccountClient _clientAccountClient;
 
         public UserinfoController(
             ILogFactory logFactory,
             IClientSessionsClient clientSessionsClient,
-            ITokenService tokenService)
+            ITokenService tokenService,
+            IClientAccountClient clientAccountClient)
         {
+            _clientAccountClient = clientAccountClient;
             _log = logFactory.CreateLog(this);
             _clientSessionsClient = clientSessionsClient;
             _tokenService = tokenService;
@@ -92,7 +96,9 @@ namespace Lykke.Service.OAuth.Controllers
                 return NotFound("Session not found.");
             }
 
-            return Json(new { Token = sessionId, session.AuthId });
+            var clientAccount = await _clientAccountClient.GetByIdAsync(session.ClientId);
+
+            return Json(new { Token = sessionId, session.AuthId, clientAccount.NotificationsId });
         }
     }
 }
