@@ -21,5 +21,6 @@ namespace WebAuth.Models
         public string Cid { get; set; }
         public string PartnerId { get; set; }
         public string Phone { get; set; }
+        public string IroncladLogoutUrl { get; set; }
     }
 }

@@ -262,7 +262,7 @@ namespace WebAuth
                 app.UseSession();
 
                 app.UseCsp(options => options
-                    .DefaultSources(directive => directive.Self().CustomSources(BlobSource, "www.google.com"))
+                    .DefaultSources(directive => directive.Self().CustomSources(BlobSource, "www.google.com", "http://localhost:*"))
                     .ImageSources(directive => directive.Self()
                         .CustomSources(AnySource, DataSource, BlobSource))
                     .ScriptSources(directive =>

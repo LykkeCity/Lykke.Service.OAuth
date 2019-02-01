@@ -16,6 +16,7 @@ using Core.Recaptcha;
 using Core.Registration;
 using Core.Services;
 using Core.VerificationCodes;
+using IdentityModel;
 using Lykke.Common;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
@@ -40,6 +41,7 @@ using WebAuth.Managers;
 using WebAuth.Models;
 using WebAuth.Settings.ServiceSettings;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace WebAuth.Controllers
 {
@@ -68,6 +70,7 @@ namespace WebAuth.Controllers
         private readonly ISalesforceService _salesforceService;
         private readonly IExternalUserOperator _externalUserOperator;
         private readonly RedirectSettings _redirectSettings;
+        private readonly ITokenService _tokenService;
 
         public AuthenticationController(
             IRegistrationServiceClient registrationClient,
@@ -85,11 +88,13 @@ namespace WebAuth.Controllers
             IRegistrationRepository registrationRepository,
             ISalesforceService salesforceService,
             IRedirectSettingsAccessor redirectSettingsAccessor,
-            IExternalUserOperator externalUserOperator)
+            IExternalUserOperator externalUserOperator, 
+            ITokenService tokenService)
         {
             _registrationRepository = registrationRepository;
             _salesforceService = salesforceService;
             _externalUserOperator = externalUserOperator;
+            _tokenService = tokenService;
             _redirectSettings = redirectSettingsAccessor.RedirectSettings;
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -140,9 +145,22 @@ namespace WebAuth.Controllers
                     RedirectUri = Url.Action("LykkeLoginCallback", "External")
                 };
 
-                var redirectUri = await _externalUserOperator.GetClientRedirectUriAsync();
-                properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl,
-                    redirectUri ?? afterLykkeLoginReturnUrl);
+                var clientRedirectUri = await _externalUserOperator.GetClientRedirectUriAsync();
+
+                var externalLoginRedirectUrl = clientRedirectUri ?? afterLykkeLoginReturnUrl;
+
+                //TODO:@gafanasiev May be move upper, before if for ironclad.
+                if (User.Identities.Any(identity => identity.IsAuthenticated))
+                {
+                    var redirectUrl = string.IsNullOrWhiteSpace(returnUrl) ? afterLykkeLoginReturnUrl : returnUrl;
+
+                    /* NOTE: We should not use here clientRedirectUri
+                     * because if user is already logged in
+                     * it would be handled in /authorize */
+                    return LocalRedirect(redirectUrl);
+                }
+
+                properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.ExternalLoginRedirectUrl, externalLoginRedirectUrl);
 
                 // Set idp for ironclad, to use lykke as external provider.
                 properties.SetProperty(OpenIdConnectConstantsExt.AuthenticationProperties.AcrValues, _redirectSettings.OldLykkeSignInIroncladAuthAcrValues);
@@ -152,13 +170,27 @@ namespace WebAuth.Controllers
 
             try
             {
+                var lykkeToken = User?.GetClaim(OpenIdConnectConstantsExt.Claims.SessionId);
+
+                //TODO:refactor
+                var logoutUrl = "http://localhost:5005/connect/endsession";
+
+                if (!string.IsNullOrWhiteSpace(lykkeToken))
+                {
+                    var tokens = await _tokenService.GetIroncladTokens(lykkeToken);
+                    var idToken = tokens?.IdToken;
+                    if (!string.IsNullOrWhiteSpace(idToken))
+                        QueryHelpers.AddQueryString(logoutUrl, OidcConstants.EndSessionRequest.IdTokenHint, idToken);
+                }
+
                 var model = new LoginViewModel
                 {
                     ReturnUrl = returnUrl,
                     Referer = HttpContext.GetReferer() ?? Request.GetUri().ToString(),
                     LoginRecaptchaKey = _securitySettings.RecaptchaKey,
                     RegisterRecaptchaKey = _securitySettings.RecaptchaKey,
-                    PartnerId = partnerId
+                    PartnerId = partnerId,
+                    IroncladLogoutUrl = logoutUrl
                 };
 
                 var viewName = PlatformToViewName(platform, partnerId);
