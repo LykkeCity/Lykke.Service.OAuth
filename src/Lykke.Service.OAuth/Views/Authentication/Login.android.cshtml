@@ -13,7 +13,8 @@
 }
 <div class="auth_group">
     <div class="container">
-        <img src="~/images/logo.android.svg" alt="Lykke" class="auth_group__logo" width="80">
+        <img src="~/images/logo.ios.svg" alt="Lykke" class="auth_group__logo" width="120" height="120">
+
         <form novalidate enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin" class="auth_group__form">
             <div class="form-group">
                 <div class="form-group-input">
@@ -34,7 +35,7 @@
                 <div class="g-recaptcha" data-sitekey="@Model.LoginRecaptchaKey" data-theme="white" data-callback="captchaValid"></div>
             </div>
             <div class="auth_group__indent">
-                <button id="submit" type="submit" class="btn btn-block" disabled>Sign in</button>
+                <button id="submit" type="submit" class="btn btn--gradient btn-block" disabled>Sign in</button>
             </div>
             <div class="footer_buttons clearfix">
                 <div class="pull-left">
