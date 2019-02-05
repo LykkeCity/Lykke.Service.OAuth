@@ -189,6 +189,8 @@ a {
     margin-right: auto;
     margin-bottom: 7vh;
     display: block;
+    width: 120px;
+    height: 120px;
 }
 
 .auth_group__buttons {
@@ -307,7 +309,7 @@ a {
 
 .form-control {
     text-align: left;
-    background: #f9f9fa;
+    background-color: #f9f9fa;
     color: #333333;
     border: 0;
     border-bottom: 1px solid #e6e8ea;
@@ -320,7 +322,7 @@ a {
 }
 
     .form-control:focus {
-        background: #f9f9fa;
+        background-color: #f9f9fa;
         padding-bottom: 4px;
         border-bottom: 2px solid #a9afb8;
         color: #333333;
@@ -472,7 +474,7 @@ input {
 }
 
     input.form-control:-webkit-autofill {
-        -webkit-box-shadow: 0 0 0 30px #fff inset;
+        -webkit-box-shadow: 0 0 0 30px #f9f9fa inset !important;
         -webkit-text-fill-color: #333 !important;
         border-bottom-color: #a9afb8;
     }
