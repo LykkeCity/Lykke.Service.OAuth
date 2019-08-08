@@ -174,31 +174,40 @@
         </form>
     </div>
     <div data-ng-show="vm.data.step == 5">
-        <span class="hint_accent">Step 5 of 5</span>
-        <h4>Enter your name and surname</h4>
-        <p class="lead">This is the last step to creating your profile.</p>
-        <form class="form form_register" name="vm.step5Form" novalidate autocomplete="off">
-            <div class="form-group">
-                <div class="input-group" data-ng-class="{'input-group--error': !vm.step5Form.FirstName.$valid && vm.step5Form.FirstName.$touched}">
-                    <input placeholder="First name" class="form-control" name="FirstName" data-ng-model="vm.data.step5Form.firstName" required>
+        <div data-ng-hide="vm.data.step5Form.hideForm">
+            <span class="hint_accent">Step 5 of 5</span>
+            <h4>Enter your name and surname</h4>
+            <p class="lead">This is the last step to creating your profile.</p>
+            <form class="form form_register" name="vm.step5Form" novalidate autocomplete="off">
+                <div class="form-group">
+                    <div class="input-group" data-ng-class="{'input-group--error': !vm.step5Form.FirstName.$valid && vm.step5Form.FirstName.$touched}">
+                        <input placeholder="First name" class="form-control" name="FirstName" data-ng-model="vm.data.step5Form.firstName" required>
+                    </div>
+                    <div ng-show="vm.step5Form.$submitted || vm.step5Form.FirstName.$touched">
+                        <span class="label_error" data-ng-show="vm.step5Form.FirstName.$error.required">First name is required</span>
+                    </div>
                 </div>
-                <div ng-show="vm.step5Form.$submitted || vm.step5Form.FirstName.$touched">
-                    <span class="label_error" data-ng-show="vm.step5Form.FirstName.$error.required">First name is required</span>
+                <div class="form-group">
+                    <div class="input-group" data-ng-class="{'input-group--error': !vm.step5Form.LastName.$valid && vm.step5Form.LastName.$touched}">
+                        <input placeholder="Last name" class="form-control" name="LastName" data-ng-model="vm.data.step5Form.lastName" required>
+                    </div>
+                    <div ng-show="vm.step5Form.$submitted || vm.step5Form.LastName.$touched">
+                        <span class="label_error" data-ng-show="vm.step5Form.LastName.$error.required">Last name is required</span>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <div class="input-group" data-ng-class="{'input-group--error': !vm.step5Form.LastName.$valid && vm.step5Form.LastName.$touched}">
-                    <input placeholder="Last name" class="form-control" name="LastName" data-ng-model="vm.data.step5Form.lastName" required>
+                <div data-ng-repeat="error in vm.data.summaryErrors" class="label_error" data-ng-bind="error"></div>
+                <div class="submit-group">
+                    <button type="submit" class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step5Form.$valid || vm.data.loading" data-ng-click="vm.handlers.register()">Submit</button>
                 </div>
-                <div ng-show="vm.step5Form.$submitted || vm.step5Form.LastName.$touched">
-                    <span class="label_error" data-ng-show="vm.step5Form.LastName.$error.required">Last name is required</span>
-                </div>
-            </div>
-            <div data-ng-repeat="error in vm.data.summaryErrors" class="label_error" data-ng-bind="error"></div>
-            <div class="submit-group">
-                <button type="submit" class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step5Form.$valid || vm.data.loading" data-ng-click="vm.handlers.register()">Submit</button>
-            </div>
-        </form>
+            </form>
+        </div>
+
+        <div data-ng-if="vm.data.step5Form.state === 2">
+            @Html.Partial("_Blocked", "")
+        </div>
+        <div data-ng-if="vm.data.step5Form.state === 1">
+            @Html.Partial("_Suspended", "")
+        </div>
     </div>
 </div>
 @section scripts
