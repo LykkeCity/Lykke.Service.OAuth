@@ -203,10 +203,10 @@
         </div>
 
         <div data-ng-if="vm.data.step5Form.state === 2">
-            @Html.Partial("_Blocked")
+            @Html.Partial("_Blocked", "")
         </div>
         <div data-ng-if="vm.data.step5Form.state === 1">
-            @Html.Partial("_Suspended")
+            @Html.Partial("_Suspended", "")
         </div>
     </div>
 </div>
