@@ -1,0 +1,26 @@
+﻿@model string
+@{
+    string platformClass = "btn--primary";
+
+    switch (Model)
+    {
+        case "android":
+            platformClass = string.Empty;
+            break;
+        case "ios":
+            platformClass = "btn--gradient";
+            break;
+    }
+}
+
+<div>
+   <h2>Service not available in your country</h2>
+   <div style="margin-bottom: 40px;">
+       For reasons outside our control, we are not allowed to onboard users in your territory.
+       <br/><br/>
+       We hope that this situation changes in the near future.
+   </div>
+   <div>
+       <a href="@Url.Action("Signin", "Authentication")" class="btn btn-block @platformClass">Ok, I understand</a>
+   </div>
+</div>

@@ -1,0 +1,45 @@
+﻿@model string
+@{
+    string platformClass = "btn--primary";
+
+    switch (Model)
+    {
+        case "android":
+            platformClass = string.Empty;
+            break;
+        case "ios":
+            platformClass = "btn--gradient";
+            break;
+    }
+}
+
+<style>
+    .todo-list {
+        list-style: disc;
+        margin-inline-start: 20px;
+        padding-inline-start: 0;
+    }
+
+    .todo-list li + li {
+        margin-top: 10px;
+    }
+</style>
+<div>
+    <h3>
+        Almost there!
+    </h3>
+    <div style="margin-bottom: 40px;text-align:left;">
+        We just need clarification on your residency before you finish onboarding.<br/>
+        Please send a clear and legible picture of your proof of address to support@lykke.com
+        <br/><br/>
+        <ul class="todo-list">
+            <li>Use Bank/Card Statement or Gas/Electricity/Water Bill or Official Governmental Documents</li>
+            <li>The document should display Name, Surname, Street address (Non-P.O Box), Date, Issuer name</li>
+            <li>The document you provide should not be older than 3 months and should be different from your ID document</li>
+            <li>Please note that review might take up to 24 hours</li>
+        </ul>
+    </div>
+    <div>
+        <a href="@Url.Action("Signin", "Authentication")" class="btn btn-block @platformClass">Ok, I’ll do it</a>
+    </div>
+</div>
