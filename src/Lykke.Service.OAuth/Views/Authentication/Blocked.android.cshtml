@@ -15,14 +15,6 @@
 
 <div class="auth_group">
     <div class="container">
-        <h2>Service not available in your country</h2>
-        <div>
-            For reasons outside our control, we are not allowed to onboard users in your territory.
-            <br/>
-            We hope that this situation changes in the near future.
-        </div>
-        <div>
-            <a href="@Url.Action("Signin")" class="btn btn-block">Ok, I understand</a>
-        </div>
+        @Html.Partial("_Blocked", "android")
     </div>
 </div>

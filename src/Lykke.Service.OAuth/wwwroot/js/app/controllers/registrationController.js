@@ -44,7 +44,10 @@
                 showConfirmPassword: false,
                 hint: null
             },
-            step5Form: {},
+            step5Form: {
+                state: 0,
+                hideForm: false
+            },
             summaryErrors: []
         };
 
@@ -113,18 +116,18 @@
             vm.data.step1Form.resendingCode = true;
             registerService.resendCode(vm.data.key, vm.data.step1Form.captchaResponse).then(function (result) {
                 vm.data.step1Form.isCodeExpired = result.isCodeExpired;
-                
+
                 if (result.result) {
                     $.notify({ title: 'Code successfully sent!' }, { className: 'success' });
                     vm.data.step1Form.resendCount++;
                     vm.data.step1Form.captchaResponse = null;
                     vm.data.showResendBlock = false;
-                } 
+                }
 
                 if (!result.isCodeExpired) {
                     vcRecaptchaService.reload(vm.data.captchaId);
                 }
-                
+
                 vm.data.step1Form.resendingCode = false;
             });
         }
@@ -144,7 +147,7 @@
         function confirmPhone() {
             if (vm.data.step2Form.phone == null)
                 return;
-            if (vm.data.step2Form.countryOfResidence == null) 
+            if (vm.data.step2Form.countryOfResidence == null)
                 return;
             if (vm.data.isAutoSelect)
                 $("#modal_message").modal('show');
@@ -204,12 +207,17 @@
                         vm.data.step = 4;
                         vm.data.loading = false;
                     } else {
-                        window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
+                        if (result.registrationResponse.account.state !== 0) {
+                            vm.data.loading = false;
+                            vm.data.step5Form.state = result.registrationResponse.account.state;
+                            vm.data.step5Form.hideForm = true;
+                        }
+                        //window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
                     }
                 }
             });
         }
-        
+
         function createCaptcha(id){
             vm.data.captchaId = id;
         }

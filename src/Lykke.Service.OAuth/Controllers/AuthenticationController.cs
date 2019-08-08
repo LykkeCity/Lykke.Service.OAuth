@@ -165,6 +165,9 @@ namespace WebAuth.Controllers
         [HttpGet("~/signin/afterlogin/{platform?}")]
         public ActionResult Afterlogin(AccountState state, string platform = null, string returnUrl = null)
         {
+            if (state == AccountState.Suspended)
+                return View(PlatformViewName(platform, "Suspended"));
+
             switch (platform?.ToLower())
             {
                 case "android":
@@ -438,7 +441,7 @@ namespace WebAuth.Controllers
                     }
                 }
 
-                var result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
+                AccountsRegistrationResponseModel result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
                 {
                     Email = model.Email,
                     Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
@@ -462,13 +465,17 @@ namespace WebAuth.Controllers
                     return regResult;
                 }
 
-                await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName, model.Phone);
+                await Task.WhenAll(
+                    _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName,
+                        model.Phone),
+                    _verificationCodesService.DeleteCodeAsync(model.Key)
+                );
 
-                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, null, result.Token, true);
-
-                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
-
-                await _verificationCodesService.DeleteCodeAsync(model.Key);
+                if (regResult.RegistrationResponse.Account.State == AccountState.Ok)
+                {
+                    var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, null, result.Token, true);
+                    await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+                }
             }
             else
             {
