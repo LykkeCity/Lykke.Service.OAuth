@@ -168,6 +168,9 @@ namespace WebAuth.Controllers
             switch (platform?.ToLower())
             {
                 case "android":
+                    if (state == AccountState.Suspended)
+                        return View(PlatformViewName(platform, "Suspended"));
+
                     return RedirectToAction("GetLykkeWalletTokenMobile", "Userinfo");
                 case "ios":
                     return View("AfterLogin.ios");
