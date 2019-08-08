@@ -1,0 +1,20 @@
+﻿@{
+    Layout = "_LoginLayout.Mobile";
+    ViewData["Title"] = "Service not available";
+}
+
+@section HeadStyles
+{
+    <environment names="Development">
+        <link rel="stylesheet" href="~/styles/android.css" asp-append-version="true">
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="~/dist/android.min.css" asp-append-version="true">
+    </environment>
+}
+
+<div class="auth_group">
+    <div class="container">
+        @Html.Partial("_Blocked", "android")
+    </div>
+</div>

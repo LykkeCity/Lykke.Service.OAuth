@@ -12,7 +12,6 @@ using Core.Extensions;
 using Core.Recaptcha;
 using Core.VerificationCodes;
 using Lykke.Common;
-using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
@@ -144,9 +143,31 @@ namespace WebAuth.Controllers
             }
         }
 
-        [HttpGet("~/signin/afterlogin/{platform?}")]
-        public ActionResult Afterlogin(string platform = null, string returnUrl = null)
+        private static string PlatformViewName(string platform, string viewName,  string partnerId = null)
         {
+            if (partnerId != null)
+            {
+                CustomViewsDictionary.TryGetValue(partnerId.ToLower(), out var customViews);
+                if (customViews != null && customViews.Contains(platform)) return $"{viewName}.{partnerId}.{platform}";
+            }
+
+            switch (platform?.ToLower())
+            {
+                case "android":
+                    return $"{viewName}.android";
+                case "ios":
+                    return $"{viewName}.ios";
+                default:
+                    return viewName;
+            }
+        }
+
+        [HttpGet("~/signin/afterlogin/{platform?}")]
+        public ActionResult Afterlogin(AccountState state, string platform = null, string returnUrl = null)
+        {
+            if (state == AccountState.Suspended)
+                return View(PlatformViewName(platform, "Suspended"));
+
             switch (platform?.ToLower())
             {
                 case "android":
@@ -214,6 +235,12 @@ namespace WebAuth.Controllers
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
                     return View(viewName, model);
                 }
+
+                if (authResult.Status == AuthenticationStatus.Blocked)
+                {
+                    return View(PlatformViewName(platform, "Blocked"));
+                }
+
                 var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, model.Username, authResult.Account.PartnerId, authResult.Token, false);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
@@ -222,7 +249,8 @@ namespace WebAuth.Controllers
                     new RouteValueDictionary(new
                     {
                         platform = platform,
-                        returnUrl = model.ReturnUrl
+                        returnUrl = model.ReturnUrl,
+                        state = authResult.Account.State
                     }));
             }
 
@@ -289,7 +317,7 @@ namespace WebAuth.Controllers
             if (existingCode != null && existingCode.Code == request.Code)
             {
                 result.Code = existingCode;
-                AccountExistsModel accountExistsModel = await _clientAccountClient.IsTraderWithEmailExistsAsync(existingCode.Email, null);
+                var accountExistsModel = await _clientAccountClient.ClientAccountInformation.IsTraderWithEmailExistsAsync(existingCode.Email, null);
                 result.IsEmailTaken = accountExistsModel.IsClientAccountExisting;
 
                 if (result.IsEmailTaken)
@@ -410,7 +438,7 @@ namespace WebAuth.Controllers
                     }
                 }
 
-                var result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
+                AccountsRegistrationResponseModel result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
                 {
                     Email = model.Email,
                     Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
@@ -434,13 +462,17 @@ namespace WebAuth.Controllers
                     return regResult;
                 }
 
-                await _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName, model.Phone);
+                await Task.WhenAll(
+                    _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName,
+                        model.Phone),
+                    _verificationCodesService.DeleteCodeAsync(model.Key)
+                );
 
-                var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, null, result.Token, true);
-
-                await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
-
-                await _verificationCodesService.DeleteCodeAsync(model.Key);
+                if (regResult.RegistrationResponse.Account.State == AccountState.Ok)
+                {
+                    var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, null, result.Token, true);
+                    await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+                }
             }
             else
             {

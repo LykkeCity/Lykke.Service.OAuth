@@ -1,0 +1,21 @@
+﻿@{
+    Layout = "_LoginLayout.Mobile";
+    ViewData["Title"] = "Almost there!";
+}
+
+@section HeadStyles
+{
+    <environment names="Development">
+        <link rel="stylesheet" href="~/styles/ios.css" asp-append-version="true">
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="~/dist/ios.min.css" asp-append-version="true">
+    </environment>
+
+}
+
+<div class="auth_group auth_group--form">
+    <div class="container">
+        @Html.Partial("_Suspended", "ios")
+    </div>
+</div>
