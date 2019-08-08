@@ -33,7 +33,7 @@ namespace WebAuth.Modules
                 .SingleInstance();
 
             builder.RegisterEmailSenderViaAzureQueueMessageProducer(_settings.ConnectionString(x => x.OAuth.Db.ClientPersonalInfoConnString));
-            builder.RegisterLykkeServiceClient(_settings.CurrentValue.ClientAccountServiceClient.ServiceUrl);
+            builder.RegisterClientAccountClient(_settings.CurrentValue.ClientAccountServiceClient.ServiceUrl);
 
             builder.Register(c => new IpGeoLocationClient(_settings.CurrentValue.IpGeoLocationServiceClient.ServiceUrl, c.Resolve<ILogFactory>().CreateLog(this)))
                 .AsImplementedInterfaces()
