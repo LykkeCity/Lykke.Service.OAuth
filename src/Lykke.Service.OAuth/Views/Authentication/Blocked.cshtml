@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Service not available";
+}
+
+<div class="error">
+    <h2 class="text-danger">Service not available in your country</h2>
+    <p>
+        For reasons outside our control, we are not allowed to onboard users in your territory.
+
+        We hope that this situation changes in the near future.
+    </p>
+    <a href="@Url.Action("Signin")" class="btn btn--primary btn-block">Ok, I understand</a>
+</div>

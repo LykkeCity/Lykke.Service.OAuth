@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Lykke.Service.ClientAccount.Client;
-using Lykke.Service.ClientAccount.Client.Models;
+using Lykke.Service.ClientAccount.Client.Models.Response.ClientAccountInformation;
 using NSubstitute;
 using WebAuth.Providers;
 using WebAuth.Tests.OAuth.Utils;
@@ -34,7 +32,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
         {
             // Arrange
             var clientId = Guid.NewGuid().ToString();
-            _clientAccountClient.GetByIdAsync(clientId).Returns(new ClientModel());
+            _clientAccountClient.ClientAccountInformation.GetByIdAsync(clientId).Returns(new ClientInfo());
 
             var context = AuthorizationProviderUtils.CreateHandleUserinfoRequestContext(
                 options =>
@@ -49,7 +47,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
             // Assert
             using (new AssertionScope())
             {
-                await _clientAccountClient.Received(1).GetByIdAsync(clientId);
+                await _clientAccountClient.ClientAccountInformation.Received(1).GetByIdAsync(clientId);
             }
         }
 
@@ -59,7 +57,7 @@ namespace WebAuth.Tests.OAuth.AuthorizationProviderTests
             // Arrange
             var clientId = Guid.NewGuid().ToString();
             var phone = "12412413251";
-            _clientAccountClient.GetByIdAsync(clientId).Returns(new ClientModel(){Phone = phone});
+            _clientAccountClient.ClientAccountInformation.GetByIdAsync(clientId).Returns(new ClientInfo{Phone = phone});
 
             var context = AuthorizationProviderUtils.CreateHandleUserinfoRequestContext(
                 options =>

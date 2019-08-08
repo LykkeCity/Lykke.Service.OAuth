@@ -12,7 +12,6 @@ using Core.Extensions;
 using Core.Recaptcha;
 using Core.VerificationCodes;
 using Lykke.Common;
-using Lykke.Common.Api.Contract.Responses;
 using Lykke.Common.Extensions;
 using Lykke.Common.Log;
 using Lykke.Service.ClientAccount.Client;
@@ -144,8 +143,27 @@ namespace WebAuth.Controllers
             }
         }
 
+        private static string PlatformViewName(string platform, string viewName,  string partnerId = null)
+        {
+            if (partnerId != null)
+            {
+                CustomViewsDictionary.TryGetValue(partnerId.ToLower(), out var customViews);
+                if (customViews != null && customViews.Contains(platform)) return $"{viewName}.{partnerId}.{platform}";
+            }
+
+            switch (platform?.ToLower())
+            {
+                case "android":
+                    return $"{viewName}.android";
+                case "ios":
+                    return $"{viewName}.ios";
+                default:
+                    return viewName;
+            }
+        }
+
         [HttpGet("~/signin/afterlogin/{platform?}")]
-        public ActionResult Afterlogin(string platform = null, string returnUrl = null)
+        public ActionResult Afterlogin(AccountState state, string platform = null, string returnUrl = null)
         {
             switch (platform?.ToLower())
             {
@@ -214,6 +232,12 @@ namespace WebAuth.Controllers
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
                     return View(viewName, model);
                 }
+
+                if (authResult.Status == AuthenticationStatus.Blocked)
+                {
+                    return View(PlatformViewName(platform, "Blocked"));
+                }
+
                 var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, model.Username, authResult.Account.PartnerId, authResult.Token, false);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
@@ -222,7 +246,8 @@ namespace WebAuth.Controllers
                     new RouteValueDictionary(new
                     {
                         platform = platform,
-                        returnUrl = model.ReturnUrl
+                        returnUrl = model.ReturnUrl,
+                        accountState = authResult.Account.State
                     }));
             }
 
@@ -289,7 +314,7 @@ namespace WebAuth.Controllers
             if (existingCode != null && existingCode.Code == request.Code)
             {
                 result.Code = existingCode;
-                AccountExistsModel accountExistsModel = await _clientAccountClient.IsTraderWithEmailExistsAsync(existingCode.Email, null);
+                var accountExistsModel = await _clientAccountClient.ClientAccountInformation.IsTraderWithEmailExistsAsync(existingCode.Email, null);
                 result.IsEmailTaken = accountExistsModel.IsClientAccountExisting;
 
                 if (result.IsEmailTaken)
