@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Primitives;
 using AspNet.Security.OpenIdConnect.Server;
-using Core;
 using Common.Log;
 using Core.Application;
 using Core.Extensions;
@@ -297,7 +296,7 @@ namespace WebAuth.Providers
                 return;
             }
 
-            if (await _accountClient.IsClientBannedAsync(context.Subject))
+            if (await _accountClient.BannedClients.IsClientBannedAsync(context.Subject))
             {
                 context.Reject(OpenIdConnectConstantsExt.Errors.ClientBanned, $"Client {context.Subject} banned");
                 return;
@@ -318,7 +317,7 @@ namespace WebAuth.Providers
 
         public override async Task HandleUserinfoRequest(HandleUserinfoRequestContext context)
         {
-            var clientAccount = await _accountClient.GetByIdAsync(context.Subject);
+            var clientAccount = await _accountClient.ClientAccountInformation.GetByIdAsync(context.Subject);
             context.PhoneNumber = clientAccount.Phone;
             context.PhoneNumberVerified = true;
             await base.HandleUserinfoRequest(context);

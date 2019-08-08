@@ -1,0 +1,26 @@
+﻿@{
+    Layout = "_LoginLayout.Mobile";
+    ViewData["Title"] = "Service not available";
+}
+
+@section HeadStyles
+{
+    <environment names="Development">
+        <link rel="stylesheet" href="~/styles/android.css" asp-append-version="true">
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="~/dist/android.min.css" asp-append-version="true">
+    </environment>
+}
+
+<div class="auth_group">
+    <div class="container">
+        <h2>Please send POA</h2>
+        <div>
+            Send POA.
+        </div>
+        <div>
+            <a href="@Url.Action("GetLykkeWalletTokenMobile", "Userinfo")" class="btn btn-block">Ok, will do</a>
+        </div>
+    </div>
+</div>
