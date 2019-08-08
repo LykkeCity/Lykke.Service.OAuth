@@ -250,7 +250,7 @@ namespace WebAuth.Controllers
                     {
                         platform = platform,
                         returnUrl = model.ReturnUrl,
-                        accountState = authResult.Account.State
+                        state = authResult.Account.State
                     }));
             }
 
