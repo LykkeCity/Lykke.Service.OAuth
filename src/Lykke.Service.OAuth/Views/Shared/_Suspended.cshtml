@@ -1,11 +1,13 @@
 ﻿@model string
 @{
     string platformClass = "btn--primary";
+    string linkClass = null;
 
     switch (Model)
     {
         case "android":
             platformClass = string.Empty;
+            linkClass = "mailto-link";
             break;
         case "ios":
             platformClass = "btn--gradient";
@@ -23,6 +25,11 @@
     .todo-list li + li {
         margin-top: 10px;
     }
+
+    .mailto-link, .mailto-link:visited {
+        color: white;
+        text-decoration: underline;
+    }
 </style>
 <div>
     <h3>
@@ -30,7 +37,7 @@
     </h3>
     <div style="margin-bottom: 40px;text-align:left;">
         We just need clarification on your residency before you finish onboarding.<br/>
-        Please send a clear and legible picture of your proof of address to support@lykke.com
+        Please send a clear and legible picture of your proof of address to <a class="@linkClass" href="mailto:support@lykke.com">support@lykke.com</a>
         <br/><br/>
         <ul class="todo-list">
             <li>Use Bank/Card Statement or Gas/Electricity/Water Bill or Official Governmental Documents</li>
@@ -40,6 +47,7 @@
         </ul>
     </div>
     <div>
-        <a href="@Url.Action("Signin", "Authentication")" class="btn btn-block @platformClass">Ok, I’ll do it</a>
+        <a href="@Url.Action("Signin", "Authentication")" class="btn btn-block @platformClass">Okay, I’ll do it!</a>
+        <a href="@Url.Action("Signin", "Authentication")" style="margin-top:20px;" class="btn btn-block btn--link">Maybe later</a>
     </div>
 </div>
