@@ -2,6 +2,7 @@
 @{
     string platformClass = "btn--primary";
     string linkClass = null;
+    string mailToLink = "mailto:support@lykke.com?subject=Proof of address verification";
 
     switch (Model)
     {
@@ -37,7 +38,7 @@
     </h3>
     <div style="margin-bottom: 40px;text-align:left;">
         We just need clarification on your residency before you finish onboarding.<br/>
-        Please send a clear and legible picture of your proof of address to <a class="@linkClass" href="mailto:support@lykke.com">support@lykke.com</a>
+        Please send a clear and legible picture of your proof of address to <a class="@linkClass" href="@mailToLink">support@lykke.com</a>
         <br/><br/>
         <ul class="todo-list">
             <li>Use Bank/Card Statement or Gas/Electricity/Water Bill or Official Governmental Documents</li>
@@ -47,7 +48,7 @@
         </ul>
     </div>
     <div>
-        <a href="mailto:support@lykke.com" class="btn btn-block @platformClass">Okay, I’ll do it!</a>
+        <a href="@mailToLink" class="btn btn-block @platformClass">Okay, I’ll do it!</a>
         <a href="@Url.Action("Signin", "Authentication")" style="margin-top:20px;" class="btn btn-block btn--link">Maybe later</a>
     </div>
 </div>
