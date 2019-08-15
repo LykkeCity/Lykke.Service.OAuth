@@ -163,11 +163,8 @@ namespace WebAuth.Controllers
         }
 
         [HttpGet("~/signin/afterlogin/{platform?}")]
-        public ActionResult Afterlogin(AccountState state, string platform = null, string returnUrl = null)
+        public ActionResult Afterlogin(string platform = null, string returnUrl = null)
         {
-            if (state == AccountState.Suspended)
-                return View(PlatformViewName(platform, "Suspended"));
-
             switch (platform?.ToLower())
             {
                 case "android":
@@ -244,6 +241,11 @@ namespace WebAuth.Controllers
                     return View(PlatformViewName(platform, "Blocked"));
                 }
 
+                if (authResult.Account.State == AccountState.Suspended)
+                {
+                    return View(PlatformViewName(platform, "Suspended"));
+                }
+
                 var identity = await _userManager.CreateUserIdentityAsync(authResult.Account.Id, authResult.Account.Email, model.Username, authResult.Account.PartnerId, authResult.Token, false);
 
                 await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
@@ -252,8 +254,7 @@ namespace WebAuth.Controllers
                     new RouteValueDictionary(new
                     {
                         platform = platform,
-                        returnUrl = model.ReturnUrl,
-                        state = authResult.Account.State
+                        returnUrl = model.ReturnUrl
                     }));
             }
 
