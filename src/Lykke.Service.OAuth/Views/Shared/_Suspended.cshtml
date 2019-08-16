@@ -2,13 +2,16 @@
 @{
     string platformClass = "btn--primary";
     string linkClass = null;
-    string mailToLink = "mailto:support@lykke.com?subject=Proof of address verification";
+    string mailToLink;
+    string emailLink = mailToLink = "mailto:support@lykke.com?subject=Proof of address verification";
 
     switch (Model)
     {
         case "android":
             platformClass = string.Empty;
             linkClass = "mailto-link";
+            mailToLink = Url.Action("Signin", "Authentication");
+            emailLink = "#";
             break;
         case "ios":
             platformClass = "btn--gradient";
@@ -38,7 +41,7 @@
     </h3>
     <div style="margin-bottom: 40px;text-align:left;">
         We just need clarification on your residency before you finish onboarding.<br/>
-        Please send a clear and legible picture of your proof of address to <a class="@linkClass" href="@mailToLink">support@lykke.com</a>
+        Please send a clear and legible picture of your proof of address to <a class="@linkClass" href="@emailLink">support@lykke.com</a>
         <br/><br/>
         <ul class="todo-list">
             <li>Use Bank/Card Statement or Gas/Electricity/Water Bill or Official Governmental Documents</li>
