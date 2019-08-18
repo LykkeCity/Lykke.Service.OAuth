@@ -1,23 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>2.0.0</Version>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <AssemblyName>BusinessService</AssemblyName>
     <PackageId>BusinessService</PackageId>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lykke.Common" Version="7.1.0" />
+    <PackageReference Include="Lykke.Common" Version="7.4.0" />
     <PackageReference Include="Flurl.Http" Version="1.2.0" />
     <PackageReference Include="Lykke.Messages" Version="1.9.0" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="2.0.3" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="StackExchange.Redis" Version="2.0.505" />
+    <PackageReference Include="StackExchange.Redis" Version="2.0.513" />
   </ItemGroup>
 </Project>

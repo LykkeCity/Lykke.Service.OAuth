@@ -1,46 +1,25 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AspNet.Security.OpenIdConnect.Extensions;
 using AspNet.Security.OpenIdConnect.Primitives;
-using Common;
-using Common.Log;
-using Core.Application;
-using Core.Bitcoin;
 using Core.Extensions;
 using IdentityServer4.AccessTokenValidation;
-using Lykke.Common.Log;
-using Lykke.Service.ClientAccount.Client;
-using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.Session.Client;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebAuth.Extensions;
 using WebAuth.Models;
 
 namespace WebAuth.Controllers
 {
     public class UserinfoController : Controller
     {
-        private readonly ILog _log;
-        private readonly IApplicationRepository _applicationRepository;
         private readonly IClientSessionsClient _clientSessionsClient;
-        private readonly IWalletCredentialsRepository _walletCredentialsRepository;
-        private readonly IClientAccountClient _clientAccountClient;
 
 
         public UserinfoController(
-            ILogFactory logFactory,
-            IApplicationRepository applicationRepository,
-            IClientSessionsClient clientSessionsClient,
-            IWalletCredentialsRepository walletCredentialsRepository,
-            IClientAccountClient clientAccountClient)
-
+            IClientSessionsClient clientSessionsClient
+            )
         {
-            _log = logFactory.CreateLog(this);
-            _applicationRepository = applicationRepository;
             _clientSessionsClient = clientSessionsClient;
-            _walletCredentialsRepository = walletCredentialsRepository;
-            _clientAccountClient = clientAccountClient;
         }
 
         [HttpGet("~/connect/userinfo")]
@@ -84,22 +63,6 @@ namespace WebAuth.Controllers
             var session = await _clientSessionsClient.GetAsync(sessionId);
 
             return Json(new { Token = sessionId, session.AuthId });
-        }
-
-        private async Task<ClientModel> GetClientByIdAsync(string clientId)
-        {
-            ClientModel client = null;
-
-            try
-            {
-                client = await _clientAccountClient.GetByIdAsync(clientId);
-            }
-            catch (Exception)
-            {
-                _log.Info(nameof(GetClientByIdAsync), clientId, "Can't get client info");
-            }
-
-            return client;
         }
     }
 }
