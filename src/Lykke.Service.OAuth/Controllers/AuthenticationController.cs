@@ -358,11 +358,13 @@ namespace WebAuth.Controllers
             result.Result = true;
             return result;
         }
+
         [HttpPost("~/signup/countrieslist")]
         [ValidateAntiForgeryToken]
         public async Task<CountryModel> CountriesList()
         {
             var localityData = await _geoLocationClient.GetLocalityDataAsync(HttpContext.GetIp());
+
             var model = new CountryModel();
             var countries = _countries
                 .Select(o => new CountryViewModel
@@ -373,15 +375,19 @@ namespace WebAuth.Controllers
                     Selected = localityData?.Country != null && localityData.Country == o.Name
                 })
                 .ToList();
+
             model.Data = countries;
+
             return model;
         }
+
         [HttpPost("~/signup/sendPhoneCode")]
         [ValidateAntiForgeryToken]
-        public async Task SendPhoneCode([FromBody] VerificationCodeRequest request)
+        public Task SendPhoneCode([FromBody] VerificationCodeRequest request)
         {
-            await _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest() { Phone = request.Code });
+            return _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest { Phone = request.Code });
         }
+
         [HttpPost("~/signup/verifyPhone")]
         [ValidateAntiForgeryToken]
         public async Task<VerificationCodeResult> VerifyPhone([FromBody] VerificationCodeRequest request)
@@ -395,11 +401,19 @@ namespace WebAuth.Controllers
             result.IsValid = resCode.IsValid;
             return result;
         }
+
         [HttpPost("~/signup/checkPassword")]
         [ValidateAntiForgeryToken]
         public bool CheckPassword([FromBody]string password)
         {
             return IsPasswordComplex(password);
+        }
+
+        [HttpPost("~/signup/checkAffiliateCode")]
+        [ValidateAntiForgeryToken]
+        public Task<bool> CheckAffiliateCode([FromBody]string code)
+        {
+            return _registrationClient.RegistrationApi.CheckAffilicateCodeAsync(code);
         }
 
         [HttpPost("~/signup/complete")]
@@ -408,10 +422,11 @@ namespace WebAuth.Controllers
         {
             var regResult = new RegistrationResultModel
             {
-                IsPasswordComplex = IsPasswordComplex(model.Password)
+                IsPasswordComplex = IsPasswordComplex(model.Password),
+                IsAffiliateCodeCorrect = string.IsNullOrEmpty(model.AffiliateCode) || await _registrationClient.RegistrationApi.CheckAffilicateCodeAsync(model.AffiliateCode)
             };
 
-            if (!regResult.IsPasswordComplex)
+            if (!regResult.IsValid)
                 return regResult;
 
             if (ModelState.IsValid)
@@ -452,7 +467,8 @@ namespace WebAuth.Controllers
                     Cid = model.Cid,
                     Traffic = model.Traffic,
                     Ttl = GetSessionTtl(null),
-                    CountryFromPOA = model.CountryOfResidence
+                    CountryFromPOA = model.CountryOfResidence,
+                    AffiliateCode = model.AffiliateCode
                 });
 
                 regResult.RegistrationResponse = result;

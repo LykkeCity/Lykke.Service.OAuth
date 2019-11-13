@@ -1,7 +1,7 @@
-﻿using System.IO;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore;
 using Microsoft.Extensions.PlatformAbstractions;
 
 namespace WebAuth
@@ -17,19 +17,7 @@ namespace WebAuth
 
             try
             {
-
-                var host = new WebHostBuilder()
-                    .UseKestrel()
-                    .UseContentRoot(Directory.GetCurrentDirectory())
-#if !DEBUG
-                        .UseApplicationInsights()
-                        .UseUrls("http://*:5000/")
-#endif
-                    .UseStartup<Startup>()
-                    .Build();
-
-                await host.RunAsync();
-
+                CreateWebHostBuilder(args).Build().Run();
             }
             catch (Exception ex)
             {
@@ -49,5 +37,13 @@ namespace WebAuth
 
             Console.WriteLine("Terminated");
         }
+
+        private static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+#if !DEBUG
+                .UseApplicationInsights()
+                .UseUrls("http://*:5000/")
+#endif
+                .UseStartup<Startup>();
     }
 }
