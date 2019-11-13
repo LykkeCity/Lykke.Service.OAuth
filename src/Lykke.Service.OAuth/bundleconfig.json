@@ -58,7 +58,8 @@
       "wwwroot/js/app/registerModule.js",
       "wwwroot/js/app/controllers/registrationController.js",
       "wwwroot/js/app/services/registerService.js",
-      "wwwroot/js/app/directives/strongPassword.js"
+      "wwwroot/js/app/directives/strongPassword.js",
+      "wwwroot/js/app/directives/affiliateCode.js"
     ],
     "minify": {
       "enabled": true,

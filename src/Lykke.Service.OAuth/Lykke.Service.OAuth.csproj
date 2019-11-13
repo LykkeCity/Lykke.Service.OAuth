@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
@@ -24,18 +24,19 @@
     <PackageReference Include="Lykke.Common.ApiLibrary" Version="1.12.0" />
     <PackageReference Include="Lykke.Logs" Version="6.0.1" />
     <PackageReference Include="Lykke.Messages" Version="1.9.0" />
-    <PackageReference Include="Lykke.Service.ClientAccount.Client" Version="4.3.1" />
+    <PackageReference Include="Lykke.Service.ClientAccount.Client" Version="4.4.0" />
     <PackageReference Include="Lykke.Service.ConfirmationCodes.Client" Version="1.1.0" />
     <PackageReference Include="Lykke.Service.GoogleAnalyticsWrapper.Client" Version="2.2.0" />
     <PackageReference Include="Lykke.Service.IpGeoLocation" Version="1.1.2" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="2.0.3" />
-    <PackageReference Include="Lykke.Service.Registration" Version="3.4.1" />
-    <PackageReference Include="Lykke.Service.Registration.Contract" Version="1.7.1" />
+    <PackageReference Include="Lykke.Service.Registration" Version="3.5.0" />
+    <PackageReference Include="Lykke.Service.Registration.Contract" Version="1.8.0" />
     <PackageReference Include="Lykke.Service.Session.Client" Version="3.0.0" />
     <PackageReference Include="Lykke.SettingsReader" Version="5.2.0" />
     <PackageReference Include="Lykke.SlackNotification.AzureQueue" Version="2.0.5" />
     <PackageReference Include="Lykke.SlackNotifications" Version="2.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.7.1" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureStorage" Version="2.2.0" />

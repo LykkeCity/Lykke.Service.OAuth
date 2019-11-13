@@ -20,5 +20,6 @@ namespace WebAuth.Models
         public string Hint { get; set; }
         public string Phone { get; set; }
         public string CountryOfResidence { get; set; }
+        public string AffiliateCode { get; set; }
     }
 }

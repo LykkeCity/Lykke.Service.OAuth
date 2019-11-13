@@ -46,7 +46,11 @@
             },
             step5Form: {
                 state: 0,
-                hideForm: false
+                hideForm: false,
+                firstName: null,
+                lastName: null,
+                affiliateCode: null,
+                affiliateCodeCorrect: true
             },
             summaryErrors: []
         };
@@ -195,27 +199,53 @@
         function register() {
             vm.data.model.firstName = vm.data.step5Form.firstName;
             vm.data.model.lastName = vm.data.step5Form.lastName;
+            vm.data.model.affiliateCode = vm.data.step5Form.affiliateCode;
+            vm.data.step5Form.affiliateCodeCorrect = true;
             vm.data.model.key = vm.data.key;
             vm.data.loading = true;
             registerService.register(vm.data.model).then(function (result) {
-                if (result.errors.length) {
-                    vm.data.summaryErrors = result.errors;
+                if (!hasErrors(result)){
+                    window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
+                } else{
                     vm.data.loading = false;
-                }
-                else {
+
+                    if (result.errors.length) {
+                        vm.data.summaryErrors = result.errors;
+                        return;
+                    }
+
                     if (!result.isPasswordComplex) {
                         vm.data.step = 4;
-                        vm.data.loading = false;
-                    } else {
-                        if (result.registrationResponse.account.state !== 0) {
-                            vm.data.loading = false;
-                            vm.data.step5Form.state = result.registrationResponse.account.state;
-                            vm.data.step5Form.hideForm = true;
-                        }
-                        //window.location = vm.data.model.returnUrl ? vm.data.model.returnUrl : '/';
+                        return;
+                    }
+
+                    if (!result.isAffiliateCodeCorrect){
+                        vm.data.step5Form.affiliateCodeCorrect = false;
+                        return;
+                    }
+
+                    if (result.registrationResponse && result.registrationResponse.account && result.registrationResponse.account.state !== 0) {
+                        vm.data.step5Form.state = result.registrationResponse.account.state;
+                        vm.data.step5Form.hideForm = true;
                     }
                 }
+            }, function(){
+                technicalProblems();
+            })
+            .catch(function(fallback) {
+                technicalProblems();
             });
+        }
+
+        function hasErrors(result){
+            return result.errors.length ||
+                !result.isValid ||
+                result.registrationResponse && result.registrationResponse.account && result.registrationResponse.account.state !== 0;
+        }
+
+        function technicalProblems(){
+            vm.data.summaryErrors.push("Technical problems during registration.");
+            vm.data.loading = false;
         }
 
         function createCaptcha(id){
