@@ -358,11 +358,13 @@ namespace WebAuth.Controllers
             result.Result = true;
             return result;
         }
+
         [HttpPost("~/signup/countrieslist")]
         [ValidateAntiForgeryToken]
         public async Task<CountryModel> CountriesList()
         {
             var localityData = await _geoLocationClient.GetLocalityDataAsync(HttpContext.GetIp());
+
             var model = new CountryModel();
             var countries = _countries
                 .Select(o => new CountryViewModel
@@ -373,15 +375,19 @@ namespace WebAuth.Controllers
                     Selected = localityData?.Country != null && localityData.Country == o.Name
                 })
                 .ToList();
+
             model.Data = countries;
+
             return model;
         }
+
         [HttpPost("~/signup/sendPhoneCode")]
         [ValidateAntiForgeryToken]
-        public async Task SendPhoneCode([FromBody] VerificationCodeRequest request)
+        public Task SendPhoneCode([FromBody] VerificationCodeRequest request)
         {
-            await _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest() { Phone = request.Code });
+            return _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest { Phone = request.Code });
         }
+
         [HttpPost("~/signup/verifyPhone")]
         [ValidateAntiForgeryToken]
         public async Task<VerificationCodeResult> VerifyPhone([FromBody] VerificationCodeRequest request)
