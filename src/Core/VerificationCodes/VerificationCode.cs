@@ -14,8 +14,9 @@ namespace Core.VerificationCodes
         public string ReturnUrl { get; set; }
         public string Cid { get; set; }
         public string Traffic { get; set; }
+        public string AffiliateCode { get; set; }
 
-        public VerificationCode (string email, string referer, string returnUrl, string cid, string traffic)
+        public VerificationCode (string email, string referer, string returnUrl, string cid, string traffic, string affiliateCode)
         {
             Code = GenerateCode();
             Key = Guid.NewGuid().ToString("N");
@@ -24,6 +25,7 @@ namespace Core.VerificationCodes
             ReturnUrl = returnUrl;
             Cid = cid;
             Traffic = traffic;
+            AffiliateCode = affiliateCode;
         }
 
         public void UpdateCode()
@@ -31,7 +33,7 @@ namespace Core.VerificationCodes
             Code = GenerateCode();
             ResendCount++;
         }
-        
+
         private static string GenerateCode()
         {
             var rand = new Random(DateTime.UtcNow.Millisecond);
