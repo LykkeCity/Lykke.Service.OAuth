@@ -10,7 +10,7 @@ namespace BusinessService
 {
     public class VerificationCodesService : IVerificationCodesService
     {
-        private const string RedisPrefix = "OAuth:EmailConfirmationCodes:"; 
+        private const string RedisPrefix = "OAuth:EmailConfirmationCodes:";
         private readonly IDatabase _database;
         private readonly TimeSpan _verificationCodesExpiration;
 
@@ -22,10 +22,10 @@ namespace BusinessService
             _database = connectionMultiplexer.GetDatabase();
             _verificationCodesExpiration = verificationCodesExpiration;
         }
-        
-        public async Task<VerificationCode> AddCodeAsync(string email, string referer, string returnUrl, string cid, string traffic)
+
+        public async Task<VerificationCode> AddCodeAsync(string email, string referer, string returnUrl, string cid, string traffic, string affiliateCode)
         {
-            var code = new VerificationCode(email, referer, returnUrl, cid, traffic);
+            var code = new VerificationCode(email, referer, returnUrl, cid, traffic, affiliateCode);
 
             await AddCacheAsync(code);
 
@@ -38,7 +38,7 @@ namespace BusinessService
 
             if (!value.HasValue)
                 return null;
-            
+
             using (var stream = new MemoryStream(value))
             {
                 return MessagePackSerializer.Deserialize<VerificationCode>(stream, StandardResolverAllowPrivate.Instance);
@@ -49,9 +49,9 @@ namespace BusinessService
         {
             var code = await GetCodeAsync(key);
 
-            if (code == null) 
+            if (code == null)
                 return null;
-            
+
             code.UpdateCode();
             await AddCacheAsync(code);
 

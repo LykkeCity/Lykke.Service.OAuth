@@ -88,7 +88,7 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
-        public IActionResult Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
+        public IActionResult Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null, [FromQuery] string code = null)
         {
 
             // Temporally disabled by LWDEV-9406. Enable after the mobile client has been completed.
@@ -110,7 +110,8 @@ namespace WebAuth.Controllers
                     Referer = HttpContext.GetReferer() ?? Request.GetUri().ToString(),
                     LoginRecaptchaKey = _securitySettings.RecaptchaKey,
                     RegisterRecaptchaKey = _securitySettings.RecaptchaKey,
-                    PartnerId = partnerId
+                    PartnerId = partnerId,
+                    AffiliateCode = code
                 };
 
                 var viewName = PlatformToViewName(platform, partnerId);
@@ -279,7 +280,7 @@ namespace WebAuth.Controllers
 
             var traffic = Request.Cookies["sbjs_current"];
 
-            var code = await _verificationCodesService.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
+            var code = await _verificationCodesService.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic, model.AffiliateCode);
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(model.Email, code.Code, url);
 
@@ -292,14 +293,14 @@ namespace WebAuth.Controllers
             if (!key.IsValidPartitionOrRowKey())
                 return RedirectToAction("Signin");
 
-            var code = await _verificationCodesService.GetCodeAsync(key);
+            var verificationCode = await _verificationCodesService.GetCodeAsync(key);
 
-            if (code == null)
+            if (verificationCode == null)
                 return RedirectToAction("Signin");
 
             ViewBag.RecaptchaKey = _securitySettings.RecaptchaKey;
 
-            return View(code);
+            return View(verificationCode);
         }
 
         [HttpPost("~/signup/verifyEmail")]

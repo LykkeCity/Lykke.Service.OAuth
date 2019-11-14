@@ -75,9 +75,10 @@
             checkAffiliateCode: checkAffiliateCode
         };
 
-        vm.init = function(key, resendCount) {
+        vm.init = function(key, affiliateCode, resendCount) {
             vm.data.key = key;
             vm.data.step1Form.resendCount = resendCount;
+            vm.data.step5Form.affiliateCode = affiliateCode;
             vm.data.step1Form.countriesTask = getCountries();
         };
 

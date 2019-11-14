@@ -1,5 +1,5 @@
 ﻿@model Core.VerificationCodes.VerificationCode
-<div data-ng-app="registerApp" data-ng-controller="registrationController as vm" data-ng-init="vm.init('@Model.Key', @Model.ResendCount)" class="ng-cloak">
+<div data-ng-app="registerApp" data-ng-controller="registrationController as vm" data-ng-init="vm.init('@Model.Key', '@Model.AffiliateCode', @Model.ResendCount)" class="ng-cloak">
     @Html.AntiForgeryToken()
 
     <div class="modal modal--message fade" id="modal_message" tabindex="-1" role="dialog">
