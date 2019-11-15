@@ -199,8 +199,8 @@
                 </div>
                 <div class="form-group">
                     <div class="input-group" data-ng-class="{'input-group--error': !vm.data.step5Form.affiliateCodeCorrect && vm.step5Form.AffiliateCode.$touched}">
-                        <input placeholder="Affiliate code (optional)" class="form-control" name="AffiliateCode" data-ng-model-options="{ updateOn: 'blur' }"
-                               data-ng-model="vm.data.step5Form.affiliateCode" data-ng-change="vm.handlers.checkAffiliateCode()">
+                        <input placeholder="Affiliate code (optional)" class="form-control" name="AffiliateCode"
+                               data-ng-model="vm.data.step5Form.affiliateCode" data-ng-blur="vm.handlers.checkAffiliateCode(true)" data-ng-change="vm.handlers.checkAffiliateCode(false)">
                     </div>
                     <div ng-show="vm.step5Form.$submitted || vm.step5Form.AffiliateCode.$touched">
                         <span class="label_error" data-ng-show="!vm.data.step5Form.affiliateCodeCorrect">Invalid code</span>
