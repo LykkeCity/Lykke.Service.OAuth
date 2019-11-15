@@ -1,5 +1,5 @@
 ﻿@model Core.VerificationCodes.VerificationCode
-<div data-ng-app="registerApp" data-ng-controller="registrationController as vm" data-ng-init="vm.init('@Model.Key', @Model.ResendCount)" class="ng-cloak">
+<div data-ng-app="registerApp" data-ng-controller="registrationController as vm" data-ng-init="vm.init('@Model.Key', '@Model.AffiliateCode', @Model.ResendCount)" class="ng-cloak">
     @Html.AntiForgeryToken()
 
     <div class="modal modal--message fade" id="modal_message" tabindex="-1" role="dialog">
@@ -59,6 +59,8 @@
                 </div>
                 <div data-ng-show="vm.data.step1Form.resendCount > 2">Max resend count reached</div>
             </div>
+
+            <div data-ng-repeat="error in vm.data.summaryErrors" class="label_error" data-ng-bind="error"></div>
 
             <div class="submit-group">
                 <button class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" type="submit"
@@ -195,9 +197,18 @@
                         <span class="label_error" data-ng-show="vm.step5Form.LastName.$error.required">Last name is required</span>
                     </div>
                 </div>
+                <div class="form-group">
+                    <div class="input-group" data-ng-class="{'input-group--error': !vm.data.step5Form.affiliateCodeCorrect && vm.step5Form.AffiliateCode.$touched}">
+                        <input placeholder="Affiliate code (optional)" class="form-control" name="AffiliateCode" data-ng-model-options="{ updateOn: 'blur' }"
+                               data-ng-model="vm.data.step5Form.affiliateCode" data-ng-change="vm.handlers.checkAffiliateCode()">
+                    </div>
+                    <div ng-show="vm.step5Form.$submitted || vm.step5Form.AffiliateCode.$touched">
+                        <span class="label_error" data-ng-show="!vm.data.step5Form.affiliateCodeCorrect">Invalid code</span>
+                    </div>
+                </div>
                 <div data-ng-repeat="error in vm.data.summaryErrors" class="label_error" data-ng-bind="error"></div>
                 <div class="submit-group">
-                    <button type="submit" class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step5Form.$valid || vm.data.loading" data-ng-click="vm.handlers.register()">Submit</button>
+                    <button type="submit" class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step5Form.$valid || vm.data.loading || !vm.data.step5Form.affiliateCodeCorrect" data-ng-click="vm.handlers.register()">Submit</button>
                 </div>
             </form>
         </div>

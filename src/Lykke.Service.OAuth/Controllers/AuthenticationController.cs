@@ -88,7 +88,7 @@ namespace WebAuth.Controllers
 
         [HttpGet("~/signin/{platform?}")]
         [HttpGet("~/register")]
-        public IActionResult Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null)
+        public IActionResult Login(string returnUrl = null, string platform = null, [FromQuery] string partnerId = null, [FromQuery] string code = null)
         {
 
             // Temporally disabled by LWDEV-9406. Enable after the mobile client has been completed.
@@ -110,7 +110,8 @@ namespace WebAuth.Controllers
                     Referer = HttpContext.GetReferer() ?? Request.GetUri().ToString(),
                     LoginRecaptchaKey = _securitySettings.RecaptchaKey,
                     RegisterRecaptchaKey = _securitySettings.RecaptchaKey,
-                    PartnerId = partnerId
+                    PartnerId = partnerId,
+                    AffiliateCode = code
                 };
 
                 var viewName = PlatformToViewName(platform, partnerId);
@@ -279,7 +280,7 @@ namespace WebAuth.Controllers
 
             var traffic = Request.Cookies["sbjs_current"];
 
-            var code = await _verificationCodesService.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic);
+            var code = await _verificationCodesService.AddCodeAsync(model.Email, model.Referer, model.ReturnUrl, model.Cid, traffic, model.AffiliateCode);
             var url = Url.Action("Signup", "Authentication", new { key = code.Key }, Request.Scheme);
             await _emailFacadeService.SendVerifyCode(model.Email, code.Code, url);
 
@@ -292,14 +293,14 @@ namespace WebAuth.Controllers
             if (!key.IsValidPartitionOrRowKey())
                 return RedirectToAction("Signin");
 
-            var code = await _verificationCodesService.GetCodeAsync(key);
+            var verificationCode = await _verificationCodesService.GetCodeAsync(key);
 
-            if (code == null)
+            if (verificationCode == null)
                 return RedirectToAction("Signin");
 
             ViewBag.RecaptchaKey = _securitySettings.RecaptchaKey;
 
-            return View(code);
+            return View(verificationCode);
         }
 
         [HttpPost("~/signup/verifyEmail")]
@@ -358,11 +359,13 @@ namespace WebAuth.Controllers
             result.Result = true;
             return result;
         }
+
         [HttpPost("~/signup/countrieslist")]
         [ValidateAntiForgeryToken]
         public async Task<CountryModel> CountriesList()
         {
             var localityData = await _geoLocationClient.GetLocalityDataAsync(HttpContext.GetIp());
+
             var model = new CountryModel();
             var countries = _countries
                 .Select(o => new CountryViewModel
@@ -373,15 +376,19 @@ namespace WebAuth.Controllers
                     Selected = localityData?.Country != null && localityData.Country == o.Name
                 })
                 .ToList();
+
             model.Data = countries;
+
             return model;
         }
+
         [HttpPost("~/signup/sendPhoneCode")]
         [ValidateAntiForgeryToken]
-        public async Task SendPhoneCode([FromBody] VerificationCodeRequest request)
+        public Task SendPhoneCode([FromBody] VerificationCodeRequest request)
         {
-            await _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest() { Phone = request.Code });
+            return _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest { Phone = request.Code });
         }
+
         [HttpPost("~/signup/verifyPhone")]
         [ValidateAntiForgeryToken]
         public async Task<VerificationCodeResult> VerifyPhone([FromBody] VerificationCodeRequest request)
@@ -395,11 +402,19 @@ namespace WebAuth.Controllers
             result.IsValid = resCode.IsValid;
             return result;
         }
+
         [HttpPost("~/signup/checkPassword")]
         [ValidateAntiForgeryToken]
         public bool CheckPassword([FromBody]string password)
         {
             return IsPasswordComplex(password);
+        }
+
+        [HttpPost("~/signup/checkAffiliateCode")]
+        [ValidateAntiForgeryToken]
+        public Task<bool> CheckAffiliateCode([FromBody]string code)
+        {
+            return _registrationClient.RegistrationApi.CheckAffilicateCodeAsync(code);
         }
 
         [HttpPost("~/signup/complete")]
@@ -408,10 +423,11 @@ namespace WebAuth.Controllers
         {
             var regResult = new RegistrationResultModel
             {
-                IsPasswordComplex = IsPasswordComplex(model.Password)
+                IsPasswordComplex = IsPasswordComplex(model.Password),
+                IsAffiliateCodeCorrect = string.IsNullOrEmpty(model.AffiliateCode) || await _registrationClient.RegistrationApi.CheckAffilicateCodeAsync(model.AffiliateCode)
             };
 
-            if (!regResult.IsPasswordComplex)
+            if (!regResult.IsValid)
                 return regResult;
 
             if (ModelState.IsValid)
@@ -452,7 +468,8 @@ namespace WebAuth.Controllers
                     Cid = model.Cid,
                     Traffic = model.Traffic,
                     Ttl = GetSessionTtl(null),
-                    CountryFromPOA = model.CountryOfResidence
+                    CountryFromPOA = model.CountryOfResidence,
+                    AffiliateCode = model.AffiliateCode
                 });
 
                 regResult.RegistrationResponse = result;

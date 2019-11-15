@@ -56,6 +56,13 @@
                 });
         }
 
+        function checkAffiliateCode(code) {
+            return $http.post('/signup/checkAffiliateCode', '\''+ code + '\'')
+                .then(function (data) {
+                    return data.data;
+                });
+        }
+
         return {
             verifyEmail: verifyEmail,
             checkPassword: checkPassword,
@@ -63,7 +70,8 @@
             register: register,
             sendPhoneCode: sendPhoneCode,
             verifyPhone: verifyPhone,
-            getCountries: getCountries
+            getCountries: getCountries,
+            checkAffiliateCode: checkAffiliateCode
         }
     }
 })();

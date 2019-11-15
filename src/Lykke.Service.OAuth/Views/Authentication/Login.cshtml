@@ -48,7 +48,8 @@
         <input type="hidden" name="Referer" value="@Model.Referer" />
         <input type="hidden" name="Cid" id="Cid" />
         <input type="hidden" name="IsLogin" value="false" />
-        
+        <input type="hidden" name="AffiliateCode" value="@Model.AffiliateCode" />
+
     </div>
     <div class="form-group @(Model.IsLogin.HasValue ? (Model.IsLogin.Value ? "hidden" : null) : "hidden")" id="reg-recaptcha">
         @Html.HiddenFor(m => m.RegisterRecaptchaKey)
@@ -83,34 +84,34 @@
                     $this.toggleClass('icon--hide_password');
                 });
         });
-        
+
         function getGaCid(){
             var tracker = ga.getAll()[0];
             $('#Cid').val(tracker.get('clientId'));
         }
-        
+
         function checkLoginCaptcha(e) {
             if (e && $('#login-recaptcha').is(':hidden')) {
                 e.preventDefault();
             }
-            
+
             $('#reg-recaptcha').addClass('hidden');
             $('#login-recaptcha').removeClass('hidden');
         }
-        
+
         function checkRegCaptcha(e) {
             if (e && $('#reg-recaptcha').is(':hidden')) {
                 e.preventDefault();
             }
-            
+
             $('#login-recaptcha').addClass('hidden');
             $('#reg-recaptcha').removeClass('hidden');
         }
-        
+
         function loginCaptchaSuccess() {
             $('#login-recaptcha-error').html('');
         }
-        
+
         function regCaptchaSuccess() {
             $('#reg-recaptcha-error').html('');
         }
