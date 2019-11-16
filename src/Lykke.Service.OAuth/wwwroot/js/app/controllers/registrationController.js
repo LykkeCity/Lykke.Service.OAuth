@@ -307,7 +307,15 @@
             vm.data.step = step;
         }
 
-        function checkAffiliateCode(){
+        function checkAffiliateCode(isBlur){
+            if (isBlur === false) {
+                if (!vm.data.step5Form.affiliateCode){
+                    vm.data.step5Form.affiliateCodeCorrect = true
+                }
+
+                return;
+            }
+
             if (vm.data.step5Form.affiliateCode){
                 vm.data.step5Form.affCodeTask = registerService.checkAffiliateCode(vm.data.step5Form.affiliateCode);
                 vm.data.step5Form.affCodeTask.then(function(result){
