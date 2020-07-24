@@ -10,7 +10,7 @@ namespace WebAuth.Controllers
         [Route("/")]
         public IActionResult Index()
         {
-            ViewBag.Version = typeof(HomeController).GetTypeInfo().Assembly.GetName().Version.ToString();
+            ViewBag.Version = ApplicationInformation.AppVersion;
             return View();
         }
 
@@ -27,14 +27,14 @@ namespace WebAuth.Controllers
         [Route("/home/error")]
         public IActionResult Error()
         {
-            
+
             return View("Error", new OpenIdConnectMessage());
         }
 
         [Route("/version"), HttpGet]
         public IActionResult Version()
         {
-            return Json(typeof(HomeController).GetTypeInfo().Assembly.GetName().Version.ToString());
+            return Json(ApplicationInformation.AppVersion);
         }
 
         [Route("home/test"), HttpGet]
