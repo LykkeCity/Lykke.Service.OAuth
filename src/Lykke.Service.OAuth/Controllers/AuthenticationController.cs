@@ -228,6 +228,8 @@ namespace WebAuth.Controllers
                     return View(viewName, model);
                 }
 
+                _log.Info(authResult.Status == AuthenticationStatus.Ok ? "Successful login" : "Unsuccessful login ", new { status = authResult.Status, requestModel.Ip, requestModel.UserAgent, clientId = authResult.Account?.Id});
+
                 if (authResult.Status == AuthenticationStatus.Error)
                 {
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
