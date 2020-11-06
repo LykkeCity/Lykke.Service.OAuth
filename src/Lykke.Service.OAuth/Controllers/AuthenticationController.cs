@@ -482,6 +482,15 @@ namespace WebAuth.Controllers
                     return regResult;
                 }
 
+                if (regResult.Errors.Any())
+                {
+                    _log.Info("Registration with errors", context: $"errors: {string.Join(", ", regResult.Errors).ToJson()}");
+                }
+                else
+                {
+                    _log.Info("Successful registration", $"result: {new { ip = userIp, userAgent, clientId = regResult.RegistrationResponse.Account.Id}.ToJson()}");
+                }
+
                 await Task.WhenAll(
                     _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName,
                         model.Phone),
