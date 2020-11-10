@@ -228,6 +228,8 @@ namespace WebAuth.Controllers
                     return View(viewName, model);
                 }
 
+                _log.Info(authResult.Status == AuthenticationStatus.Ok ? "Successful login" : "Unsuccessful login ", new { status = authResult.Status, requestModel.Ip, requestModel.UserAgent, clientId = authResult.Account?.Id});
+
                 if (authResult.Status == AuthenticationStatus.Error)
                 {
                     ModelState.AddModelError("", "The username or password you entered is incorrect");
@@ -478,6 +480,15 @@ namespace WebAuth.Controllers
                 {
                     regResult.Errors.Add("Technical problems during registration.");
                     return regResult;
+                }
+
+                if (regResult.Errors.Any())
+                {
+                    _log.Info("Registration with errors", context: $"errors: {string.Join(", ", regResult.Errors).ToJson()}");
+                }
+                else
+                {
+                    _log.Info("Successful registration", $"result: {new { ip = userIp, userAgent, clientId = regResult.RegistrationResponse.Account.Id}.ToJson()}");
                 }
 
                 await Task.WhenAll(
