@@ -386,9 +386,18 @@ namespace WebAuth.Controllers
 
         [HttpPost("~/signup/sendPhoneCode")]
         [ValidateAntiForgeryToken]
-        public Task SendPhoneCode([FromBody] VerificationCodeRequest request)
+        public async Task SendPhoneCode([FromBody] VerificationCodeRequest request)
         {
-            return _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest { Phone = request.Code });
+            var code = await _verificationCodesService.GetCodeAsync(request.Key);
+
+            if (code == null)
+                return;
+
+            if (!code.SmsSent)
+            {
+                await _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest { Phone = request.Phone });
+                await _verificationCodesService.SetSmsSentAsync(request.Key);
+            }
         }
 
         [HttpPost("~/signup/verifyPhone")]
@@ -398,6 +407,11 @@ namespace WebAuth.Controllers
             var result = new VerificationCodeResult();
 
             if (request == null || !request.Key.IsValidPartitionOrRowKey())
+                return result;
+
+            var code = await _verificationCodesService.GetCodeAsync(request.Key);
+
+            if (code == null)
                 return result;
 
             var resCode = await _confirmationCodesClient.VerifySmsCodeAsync(new VerifySmsConfirmationRequest() { Code = request.Code, Phone = request.Phone });

@@ -8,5 +8,6 @@ namespace Core.VerificationCodes
         Task<VerificationCode> GetCodeAsync(string key);
         Task<VerificationCode> UpdateCodeAsync(string key);
         Task DeleteCodeAsync(string key);
+        Task SetSmsSentAsync(string key);
     }
 }

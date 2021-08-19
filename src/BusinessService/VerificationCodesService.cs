@@ -63,6 +63,17 @@ namespace BusinessService
             return _database.KeyDeleteAsync(GetRedisKey(key));
         }
 
+        public async Task SetSmsSentAsync(string key)
+        {
+            var code = await GetCodeAsync(key);
+
+            if (code == null)
+                return;
+
+            code.SmsSent = true;
+            await AddCacheAsync(code);
+        }
+
         private async Task AddCacheAsync(VerificationCode code)
         {
             var value = MessagePackSerializer.Serialize(code);
