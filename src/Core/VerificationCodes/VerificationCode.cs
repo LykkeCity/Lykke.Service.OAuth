@@ -10,6 +10,7 @@ namespace Core.VerificationCodes
         public string Key { get; set; }
         public string Email { get; set; }
         public int ResendCount { get; set; }
+        public bool SmsSent { get; set; }
         public string Referer { get; set; }
         public string ReturnUrl { get; set; }
         public string Cid { get; set; }
