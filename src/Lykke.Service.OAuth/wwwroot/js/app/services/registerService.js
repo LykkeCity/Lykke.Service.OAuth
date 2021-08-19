@@ -16,8 +16,8 @@
                 });
         }
 
-        function sendPhoneCode(key, phone, prefix) {
-            return $http.post('/signup/sendPhoneCode', { key: key, code: phone, selectedPrefix: prefix })
+        function sendPhoneCode(key, phone) {
+            return $http.post('/signup/sendPhoneCode', { key: key, phone: phone})
                 .then(function (data) {
                     return data.data;
                 });
