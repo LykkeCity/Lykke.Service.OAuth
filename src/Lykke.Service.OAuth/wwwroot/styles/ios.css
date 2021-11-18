@@ -108,7 +108,7 @@ a {
 
     .btn:not([disabled]):hover {
         color: #fff;
-        background: #039df2;
+        background: #e56c5f;
     }
 
     .btn:not([disabled]):focus, .btn:not([disabled]):active {
@@ -116,7 +116,7 @@ a {
     }
 
     .btn:not([disabled]):active, .btn:not([disabled]).active {
-        background: #039df2;
+        background: #e56c5f;
         -webkit-transform: translate3d(0, 0, 0) scale(0.98);
         transform: translate3d(0, 0, 0) scale(0.98);
     }
