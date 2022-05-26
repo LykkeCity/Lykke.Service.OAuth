@@ -103,6 +103,10 @@
                 <div ng-show="vm.step2Form.$submitted">
                     <span class="label_error" data-ng-show="vm.data.step2Form.phone == null">Phone number is required</span>
                 </div>
+                <div>
+                    <span class="label_error" data-ng-show="vm.data.step2Form.result && vm.data.step2Form.isPhoneTaken"
+                          data-ng-bind="'Phone number '+vm.data.step2Form.phone+ ' is already in use.'"></span>
+                </div>
             </div>
             <div class="submit-group">
                 <button class="btn btn--primary btn-block" type="submit" data-ng-disabled="!vm.step2Form.$valid" data-ng-click="vm.handlers.confirmPhone()">Submit</button>
