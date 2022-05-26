@@ -32,7 +32,8 @@
             },
             step2Form: {
                 phone: null,
-                countryOfResidence: null
+                countryOfResidence: null,
+                isPhoneTaken: false
             },
             step3Form: {
                 code: null,
@@ -167,9 +168,14 @@
             vm.data.model.phone = vm.data.step2Form.phone;
             vm.data.model.countryOfResidence = vm.data.step2Form.countryOfResidence;
             registerService.sendPhoneCode(vm.data.key, vm.data.model.phone).then(function (result) {
-                vm.data.step2Form.result = true;
                 vm.data.loading = false;
-                setStep(3);
+                vm.data.step2Form.result = true;
+                vm.data.step2Form.isPhoneTaken = result.isPhoneTaken;
+                if(!result.isPhoneTaken) {
+                    setStep(3);
+                }
+            }, function(){
+                technicalProblems("Technical problems during phone number verification");
             });
         }
 
