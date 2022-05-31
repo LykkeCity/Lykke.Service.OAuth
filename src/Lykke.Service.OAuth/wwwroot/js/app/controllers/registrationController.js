@@ -154,9 +154,9 @@
         }
 
         function confirmPhone() {
-            if (vm.data.step2Form.phone == null)
+            if (!vm.data.step2Form.phone)
                 return;
-            if (vm.data.step2Form.countryOfResidence == null)
+            if (!vm.data.step2Form.countryOfResidence)
                 return;
             if (vm.data.isAutoSelect)
                 $("#modal_message").modal('show');
