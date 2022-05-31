@@ -450,26 +450,34 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<RegistrationResultModel> CompleteRegistration([FromBody]SignUpViewModel model)
         {
-            var regResult = new RegistrationResultModel
+            var isAffiliateCodeCorrect = string.IsNullOrEmpty(model.AffiliateCode);
+
+            if (!isAffiliateCodeCorrect)
+            {
+                isAffiliateCodeCorrect =
+                    await _registrationClient.RegistrationApi.CheckAffilicateCodeAsync(model.AffiliateCode);
+            }
+
+            var registrationResult = new RegistrationResultModel
             {
                 IsPasswordComplex = IsPasswordComplex(model.Password),
-                IsAffiliateCodeCorrect = string.IsNullOrEmpty(model.AffiliateCode) || await _registrationClient.RegistrationApi.CheckAffilicateCodeAsync(model.AffiliateCode)
+                IsAffiliateCodeCorrect = isAffiliateCodeCorrect
             };
 
-            if (!regResult.IsValid)
-                return regResult;
+            if (!registrationResult.IsValid)
+                return registrationResult;
 
             if (ModelState.IsValid)
             {
                 if (!model.Email.IsValidEmailAndRowKey())
                 {
-                    regResult.Errors.Add("Invalid email address");
-                    return regResult;
+                    registrationResult.Errors.Add("Invalid email address");
+                    return registrationResult;
                 }
 
-                string userIp = HttpContext.GetIp();
                 string referer = null;
-                string userAgent = HttpContext.GetUserAgent();
+                var userIp = HttpContext.GetIp();
+                var userAgent = HttpContext.GetUserAgent();
 
                 if (!string.IsNullOrEmpty(model.Referer))
                 {
@@ -479,12 +487,12 @@ namespace WebAuth.Controllers
                     }
                     catch
                     {
-                        regResult.Errors.Add("Invalid referer url");
-                        return regResult;
+                        registrationResult.Errors.Add("Invalid referer url");
+                        return registrationResult;
                     }
                 }
 
-                AccountsRegistrationResponseModel result = await _registrationClient.RegistrationApi.RegisterAsync(new AccountRegistrationModel
+                var registrationRequest = new AccountRegistrationModel
                 {
                     Email = model.Email,
                     Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
@@ -498,36 +506,51 @@ namespace WebAuth.Controllers
                     Traffic = model.Traffic,
                     Ttl = GetSessionTtl(null),
                     CountryFromPOA = model.CountryOfResidence,
-                    AffiliateCode = model.AffiliateCode
-                });
+                    AffiliateCode = model.AffiliateCode,
+                    ContactPhone = model.Phone
+                };
 
-                regResult.RegistrationResponse = result;
+                var registrationResponse = await _registrationClient.RegistrationApi.RegisterAsync(registrationRequest);
 
-                if (regResult.RegistrationResponse == null)
+                registrationResult.RegistrationResponse = registrationResponse;
+
+                if (registrationResult.RegistrationResponse == null)
                 {
-                    regResult.Errors.Add("Technical problems during registration.");
-                    return regResult;
+                    registrationResult.Errors.Add("Technical problems during registration.");
+                    return registrationResult;
                 }
 
-                if (regResult.Errors.Any())
+                if (registrationResult.Errors.Any())
                 {
-                    _log.Info("Registration with errors", context: $"errors: {string.Join(", ", regResult.Errors).ToJson()}");
+                    _log.Info("Registration with errors",
+                        context: $"errors: {string.Join(", ", registrationResult.Errors).ToJson()}");
                 }
                 else
                 {
-                    _log.Info("Successful registration", $"result: {new { ip = userIp, userAgent, clientId = regResult.RegistrationResponse.Account.Id}.ToJson()}");
+                    _log.Info("Successful registration",
+                        $"result: {new {ip = userIp, userAgent, clientId = registrationResult.RegistrationResponse.Account.Id}.ToJson()}");
                 }
 
                 await Task.WhenAll(
-                    _profileActionHandler.UpdatePersonalInformation(result.Account.Id, model.FirstName, model.LastName,
+                    _profileActionHandler.UpdatePersonalInformation(
+                        registrationResponse.Account.Id,
+                        model.FirstName,
+                        model.LastName,
                         model.Phone),
                     _verificationCodesService.DeleteCodeAsync(model.Key)
                 );
 
-                if (regResult.RegistrationResponse.Account.State == AccountState.Ok)
+                if (registrationResult.RegistrationResponse.Account.State == AccountState.Ok)
                 {
-                    var identity = await _userManager.CreateUserIdentityAsync(result.Account.Id, model.Email, model.Email, null, result.Token, true);
-                    await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme, new ClaimsPrincipal(identity));
+                    var identity = await _userManager.CreateUserIdentityAsync(
+                        registrationResponse.Account.Id,
+                        model.Email,
+                        model.Email,
+                        null,
+                        registrationResponse.Token,
+                        true);
+                    await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
+                        new ClaimsPrincipal(identity));
                 }
             }
             else
@@ -538,11 +561,11 @@ namespace WebAuth.Controllers
 
                 foreach (var error in errors)
                 {
-                    regResult.Errors.Add(error.ErrorMessage);
+                    registrationResult.Errors.Add(error.ErrorMessage);
                 }
             }
 
-            return regResult;
+            return registrationResult;
         }
 
         [HttpGet("~/signout")]
