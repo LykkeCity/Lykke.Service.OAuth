@@ -98,14 +98,11 @@
             </div>
             <div class="form-group">
                 <div class="input-group" data-ng-class="{'input-group--error': !vm.step2Form.phone.$valid && vm.step2Form.phone.$touched}">
-                    <input type="text" class="form-control" data-ng-model="vm.data.step2Form.phone" minlength="4" maxlength="15" />
+                    <input type="text" class="form-control" data-ng-model="vm.data.step2Form.phone" ng-change="vm.data.step2Form.isPhoneTaken = false" minlength="4" maxlength="15" />
                 </div>
                 <div ng-show="vm.step2Form.$submitted">
                     <span class="label_error" data-ng-show="vm.data.step2Form.phone == null">Phone number is required</span>
-                </div>
-                <div>
-                    <span class="label_error" data-ng-show="vm.data.step2Form.result && vm.data.step2Form.isPhoneTaken"
-                          data-ng-bind="'Phone number '+vm.data.step2Form.phone+ ' is already in use.'"></span>
+                    <span class="label_error" data-ng-show="vm.data.step2Form.isPhoneTaken">Phone number is already in use.</span>
                 </div>
             </div>
             <div class="submit-group">
