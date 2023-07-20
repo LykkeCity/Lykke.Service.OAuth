@@ -406,7 +406,13 @@ namespace WebAuth.Controllers
 
             if (!code.SmsSent)
             {
-                await _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest { Phone = request.Phone });
+                await _confirmationCodesClient.SendSmsConfirmationAsync(new SendSmsConfirmationRequest 
+                { 
+                    Phone = request.Phone,
+                    Reason = "Lykke.Service.OAuth:/signup/sendPhoneCode",
+                    OuterRequestId = HttpContext.TraceIdentifier
+                });
+
                 await _verificationCodesService.SetSmsSentAsync(request.Key);
             }
 
