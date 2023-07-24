@@ -25,7 +25,7 @@
     <PackageReference Include="Lykke.Logs" Version="6.0.1" />
     <PackageReference Include="Lykke.Messages" Version="1.9.0" />
     <PackageReference Include="Lykke.Service.ClientAccount.Client" Version="4.4.0" />
-    <PackageReference Include="Lykke.Service.ConfirmationCodes.Client" Version="1.1.0" />
+    <PackageReference Include="Lykke.Service.ConfirmationCodes.Client" Version="1.10.0" />
     <PackageReference Include="Lykke.Service.GoogleAnalyticsWrapper.Client" Version="2.2.0" />
     <PackageReference Include="Lykke.Service.IpGeoLocation" Version="1.1.2" />
     <PackageReference Include="Lykke.Service.PersonalData" Version="2.0.3" />
