@@ -870,7 +870,7 @@ label.error { display: none !important; }
 
 .btn--new-brand { background-color: #d75960; border-radius: 0.75rem; width: fit-content; padding: 1rem 1.5rem; font-weight: 600; }
 
-.btn--new-brand:hover { background-color: #d14049; }
+.btn--new-brand:hover { background-color: #d14049 !important; }
 
 .btn:not([disabled]):hover { color: #fff; background: #039df2; }
 
