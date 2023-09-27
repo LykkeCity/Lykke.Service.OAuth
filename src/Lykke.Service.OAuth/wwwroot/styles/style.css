@@ -12,7 +12,7 @@
 
 html { font-size: 16px; min-height: 100%; height: auto; position: relative; }
 
-body { font-family: "Proxima Nova", "Segoe UI", Roboto, "Droid Sans", "Helvetica Neue", Arial, sans-serif; font-weight: 400; -webkit-text-size-adjust: none; font-size-adjust: none; line-height: normal; color: #3f4d60; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-size: 16px; font-size: 1rem; padding-bottom: 100px; padding-bottom: 6.25rem; }
+body { background-color: #EFE9E3; font-family: "Proxima Nova", "Segoe UI", Roboto, "Droid Sans", "Helvetica Neue", Arial, sans-serif; font-weight: 400; -webkit-text-size-adjust: none; font-size-adjust: none; line-height: normal; color: #3f4d60; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-size: 16px; font-size: 1rem; padding-bottom: 100px; padding-bottom: 6.25rem; }
 
 a { color: #0da7fc; text-decoration: none; transition: all 0.3s ease; }
 
@@ -3017,7 +3017,7 @@ a.action_link:hover img, button.action_link:hover img { opacity: 1; }
 
 .hr_or:after { content: ''; position: absolute; left: 0; right: 0; border-bottom: 1px solid #ebedef; top: 50%; margin-top: -1px; z-index: 1; }
 
-.hr_or span { display: inline-block; line-height: 1.43; text-align: center; color: #8c94a0; position: relative; z-index: 2; background-color: #fff; padding: 0 15px; padding: 0 0.9375rem; font-size: 14px; font-size: 0.875rem; }
+.hr_or span { display: inline-block; line-height: 1.43; text-align: center; color: #222222; position: relative; z-index: 2; padding: 0 15px; padding: 0 0.9375rem; font-size: 16px; font-size: 1rem; font-weight: 500; }
 
 .label_error { line-height: 1.54; text-align: left; color: #ff3e2e; font-size: 13px; font-size: 0.8125rem; margin-top: 5px; margin-top: 0.3125rem; }
 
