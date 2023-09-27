@@ -16,8 +16,8 @@
                                 </div>
                             </div>
                             <div class="modal__footer">
-                                <button type="button" class="btn btn--flat" data-dismiss="modal">Select other</button>
-                                <button type="button" class="btn btn--primary" data-dismiss="modal" data-ng-click="vm.handlers.setPhone()">Confirm</button>
+                                <button type="button" class="btn btn--flat--brand" data-dismiss="modal">Select other</button>
+                                <button type="button" class="btn btn--brand" data-dismiss="modal" data-ng-click="vm.handlers.setPhone()">Confirm</button>
                             </div>
                         </div>
                     </div>
@@ -41,7 +41,7 @@
                     <span class="label_error" data-ng-show="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken"
                           data-ng-bind="'Email '+vm.data.step1Form.email+ ' is already in use. Your verification code is no longer valid. Try with another email.'"></span>
                 </div>
-                <button class="btn btn--flat" type="button" data-ng-click="vm.data.showResendBlock = !vm.data.showResendBlock"
+                <button class="btn btn--flat--brand" type="button" data-ng-click="vm.data.showResendBlock = !vm.data.showResendBlock"
                         data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired">
                     Resend the code
                 </button>
@@ -51,7 +51,7 @@
                 <div class="form-group" data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.resendCount > 2 || vm.data.step1Form.isCodeExpired">
                     <div class="g-recaptcha" vc-recaptcha key="'@ViewBag.RecaptchaKey'" on-success="vm.handlers.successCaptcha(response)" on-expire="vm.handlers.errorCaptcha()" required="false"></div>
                     <div class="text-center" style="margin-top: 10px;">
-                        <button type="button" class="btn btn--primary btn-sm" data-ng-disabled="!vm.data.step1Form.captchaResponse || vm.data.step1Form.resendCount > 2"
+                        <button type="button" class="btn btn--brand btn-sm" data-ng-disabled="!vm.data.step1Form.captchaResponse || vm.data.step1Form.resendCount > 2"
                                 data-ng-class="{'btn_loading': vm.data.step1Form.resendingCode}"
                                 data-ng-bind="vm.data.step1Form.resendCount === 0 ? 'Send' : 'Send again'"
                                 data-ng-click="vm.handlers.resendCode()"></button>
@@ -63,13 +63,13 @@
             <div data-ng-repeat="error in vm.data.summaryErrors" class="label_error" data-ng-bind="error"></div>
 
             <div class="submit-group">
-                <button class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" type="submit"
+                <button class="btn btn--brand btn-block" data-ng-class="{'btn_loading': vm.data.loading}" type="submit"
                         data-ng-hide="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired"
                         data-ng-disabled="!vm.step1Form.$valid || vm.data.loading"
                         data-ng-click="vm.handlers.verifyEmail()">
                     Submit
                 </button>
-                <button data-ng-show="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired" class="btn btn--primary btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
+                <button data-ng-show="vm.data.step1Form.result && vm.data.step1Form.isEmailTaken || vm.data.step1Form.isCodeExpired" class="btn btn--brand btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
             </div>
         </form>
     </div>
@@ -106,7 +106,7 @@
                 </div>
             </div>
             <div class="submit-group">
-                <button class="btn btn--primary btn-block" type="submit" data-ng-disabled="!vm.step2Form.$valid" data-ng-click="vm.handlers.confirmPhone()">Submit</button>
+                <button class="btn btn--brand btn-block" type="submit" data-ng-disabled="!vm.step2Form.$valid" data-ng-click="vm.handlers.confirmPhone()">Submit</button>
             </div>
         </form>
     </div>
@@ -126,10 +126,9 @@
             </div>
 
             <div class="submit-group">
-                <button class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step3Form.$valid  || vm.data.loading" type="submit" data-ng-click="vm.handlers.setPhoneCode()">
-                    Submit
+brand                    Submit
                 </button>
-                <button data-ng-show="vm.data.step3Form.result" class="btn btn--primary btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
+                <button data-ng-show="vm.data.step3Form.result" class="btn btn--brand btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
             </div>
         </form>
     </div>
@@ -168,7 +167,7 @@
                 </div>
             </div>
             <div class="submit-group">
-                <button class="btn btn--primary btn-block" type="submit" data-ng-disabled="vm.handlers.isStep4FormSubmitDisabled()" data-ng-click="vm.handlers.setPassword()">Submit</button>
+                <button class="btn btn--brand btn-block" type="submit" data-ng-disabled="vm.handlers.isStep4FormSubmitDisabled()" data-ng-click="vm.handlers.setPassword()">Submit</button>
             </div>
         </form>
     </div>
@@ -205,7 +204,7 @@
                 @* </div> *@
                 <div data-ng-repeat="error in vm.data.summaryErrors" class="label_error" data-ng-bind="error"></div>
                 <div class="submit-group">
-                    <button type="submit" class="btn btn--primary btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step5Form.$valid || vm.data.loading || !vm.data.step5Form.affiliateCodeCorrect" data-ng-click="vm.handlers.register()">Submit</button>
+                    <button type="submit" class="btn btn--brand btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step5Form.$valid || vm.data.loading || !vm.data.step5Form.affiliateCodeCorrect" data-ng-click="vm.handlers.register()">Submit</button>
                 </div>
             </form>
         </div>

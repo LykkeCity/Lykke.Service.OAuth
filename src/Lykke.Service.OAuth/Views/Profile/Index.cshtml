@@ -163,8 +163,8 @@
                                 </div>
                             </div>
                             <div class="modal__footer">
-                                <button type="button" class="btn btn--flat" data-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn--primary" data-dismiss="modal" data-ng-click="vm.handlers.deleteAvatar()">Yes</button>
+                                <button type="button" class="btn btn--flat--brand" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn--brand" data-dismiss="modal" data-ng-click="vm.handlers.deleteAvatar()">Yes</button>
                             </div>
                         </div>
                     </div>
@@ -206,8 +206,8 @@
                                 <div class="label_error" data-ng-show="vm.personalDataForm.file.$error.maxSize">File too large. Maximum allowed 3Mb</div>
                             </div>
                             <div class="modal__footer">
-                                <button type="button" class="btn btn--flat" data-ng-click="vm.handlers.closeUploadModal()">Cancel</button>
-                                <button type="button" class="btn btn--primary" data-ng-click="vm.handlers.uploadAvatar()" 
+                                <button type="button" class="btn btn--flat--brand" data-ng-click="vm.handlers.closeUploadModal()">Cancel</button>
+                                <button type="button" class="btn btn--brand" data-ng-click="vm.handlers.uploadAvatar()" 
                                         data-ng-disabled="!vm.data.avatar.file || vm.data.form.avatarLoading">Upload</button>
                             </div>
                         </div>
