@@ -126,7 +126,8 @@
             </div>
 
             <div class="submit-group">
-brand                    Submit
+                <button class="btn btn--brand btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step3Form.$valid  || vm.data.loading" type="submit" data-ng-click="vm.handlers.setPhoneCode()">
+                    Submit
                 </button>
                 <button data-ng-show="vm.data.step3Form.result" class="btn btn--brand btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
             </div>
