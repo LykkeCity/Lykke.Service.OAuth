@@ -3017,7 +3017,7 @@ a.action_link:hover img, button.action_link:hover img { opacity: 1; }
 
 .hr_or:after { content: ''; position: absolute; left: 0; right: 0; border-bottom: 1px solid #ebedef; top: 50%; margin-top: -1px; z-index: 1; }
 
-.hr_or span { display: inline-block; line-height: 1.43; text-align: center; color: #8c94a0; position: relative; z-index: 2; padding: 0 15px; padding: 0 0.9375rem; font-size: 14px; font-size: 0.875rem; }
+.hr_or span { display: inline-block; line-height: 1.43; text-align: center; color: #222222; position: relative; z-index: 2; padding: 0 15px; padding: 0 0.9375rem; font-size: 16px; font-size: 1rem; font-weight: 500; }
 
 .label_error { line-height: 1.54; text-align: left; color: #ff3e2e; font-size: 13px; font-size: 0.8125rem; margin-top: 5px; margin-top: 0.3125rem; }
 
