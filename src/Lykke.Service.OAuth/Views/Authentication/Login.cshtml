@@ -1,5 +1,39 @@
 ﻿@model WebAuth.Models.LoginViewModel
 
+<h4>Sign up</h4>
+<form novalidate onsubmit="checkRegCaptcha(event)" class="form form_register" enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin">
+    <div class="form-group">
+        <div class="input-group" lykke-validation-for="Email" lykke-validationerror-class="input-group--error">
+            <i class="input-group-addon icon icon--email"></i>
+            <input type="email" class="form-control" placeholder="E-mail address" asp-for="Email" onfocus="checkRegCaptcha()">
+        </div>
+        <span class="label_error" asp-validation-for="Email"></span>
+
+        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
+        <input type="hidden" name="Referer" value="@Model.Referer" />
+        <input type="hidden" name="Cid" id="Cid" />
+        <input type="hidden" name="IsLogin" value="false" />
+        <input type="hidden" name="AffiliateCode" value="@Model.AffiliateCode" />
+
+    </div>
+    <div class="form-group @(Model.IsLogin.HasValue ? (Model.IsLogin.Value ? "hidden" : null) : "hidden")" id="reg-recaptcha">
+        @Html.HiddenFor(m => m.RegisterRecaptchaKey)
+        <div class="g-recaptcha" data-sitekey="@Model.RegisterRecaptchaKey" data-callback="regCaptchaSuccess"></div>
+        <span id="reg-recaptcha-error" class="label_error" asp-validation-for="RegisterRecaptchaKey"></span>
+    </div>
+    <div class="submit-group">
+        <button class="btn btn--brand btn-block" onclick="getGaCid()" type="submit">Sign up</button>
+    </div>
+</form>
+
+<div class="hint">
+    By pressing Sign up you agree to our <a href="https://www.lykke.com/terms-of-use" target="_blank">Terms and Use</a> and <a href="https://www.lykke.com/privacy-policy" target="_blank">Privacy policy</a>
+</div>
+
+<div class="hr_or">
+    <span>or</span>
+</div>
+
 <h4>Sign in</h4>
 <form novalidate onsubmit="checkLoginCaptcha(event)" class="form form_register" enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin">
     <div class="form-group">
@@ -27,44 +61,9 @@
     </div>
     <div asp-validation-summary="ModelOnly" class="label_error"></div>
     <div class="submit-group">
-        <button class="btn btn--primary btn-block" type="submit">Sign in</button>
+        <button class="btn btn--brand btn-block" type="submit">Sign in</button>
     </div>
 </form>
-
-<div class="hr_or">
-    <span>or</span>
-</div>
-
-<h4>Sign up</h4>
-<form novalidate onsubmit="checkRegCaptcha(event)" class="form form_register" enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin">
-    <div class="form-group">
-        <div class="input-group" lykke-validation-for="Email" lykke-validationerror-class="input-group--error">
-            <i class="input-group-addon icon icon--email"></i>
-            <input type="email" class="form-control" placeholder="E-mail address" asp-for="Email" onfocus="checkRegCaptcha()">
-        </div>
-        <span class="label_error" asp-validation-for="Email"></span>
-
-        <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
-        <input type="hidden" name="Referer" value="@Model.Referer" />
-        <input type="hidden" name="Cid" id="Cid" />
-        <input type="hidden" name="IsLogin" value="false" />
-        <input type="hidden" name="AffiliateCode" value="@Model.AffiliateCode" />
-
-    </div>
-    <div class="form-group @(Model.IsLogin.HasValue ? (Model.IsLogin.Value ? "hidden" : null) : "hidden")" id="reg-recaptcha">
-        @Html.HiddenFor(m => m.RegisterRecaptchaKey)
-        <div class="g-recaptcha" data-sitekey="@Model.RegisterRecaptchaKey" data-callback="regCaptchaSuccess"></div>
-        <span id="reg-recaptcha-error" class="label_error" asp-validation-for="RegisterRecaptchaKey"></span>
-    </div>
-    <div class="submit-group">
-        <button class="btn btn--primary btn-block" onclick="getGaCid()" type="submit">Sign up</button>
-    </div>
-</form>
-
-
-<div class="hint">
-    By pressing Sign up you agree to our <a href="https://www.lykke.com/terms-of-use" target="_blank">Terms and Use</a> and <a href="https://www.lykke.com/privacy-policy" target="_blank">Privacy policy</a>
-</div>
 
 @section HeadScripts
 {

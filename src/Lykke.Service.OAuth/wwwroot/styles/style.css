@@ -12,7 +12,7 @@
 
 html { font-size: 16px; min-height: 100%; height: auto; position: relative; }
 
-body { background-color: #EFE9E3; font-family: "Proxima Nova", "Segoe UI", Roboto, "Droid Sans", "Helvetica Neue", Arial, sans-serif; font-weight: 400; -webkit-text-size-adjust: none; font-size-adjust: none; line-height: normal; color: #3f4d60; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-size: 16px; font-size: 1rem; padding-bottom: 100px; padding-bottom: 6.25rem; }
+body { background-color: #EFE9E3; font-family: "Proxima Nova", "Segoe UI", Roboto, "Droid Sans", "Helvetica Neue", Arial, sans-serif; font-weight: 400; -webkit-text-size-adjust: none; font-size-adjust: none; line-height: normal; color: #3f4d60; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-size: 16px; font-size: 1rem; }
 
 a { color: #0da7fc; text-decoration: none; transition: all 0.3s ease; }
 
@@ -876,6 +876,14 @@ label.error { display: none !important; }
 
 .btn[disabled] { background: #EBEDEF !important; color: rgba(63, 77, 96, 0.3) !important; opacity: 1; }
 
+.btn.btn--brand { background-color: #d75960; border-radius: 0.75rem; width: fit-content; padding: 1rem 1.5rem; font-weight: 600; }
+
+.btn.btn--brand:not([disabled]):hover { background-color: #d14049 !important; }
+
+.btn.btn--brand:not([disabled]):active { background-color: #d14049 !important; }
+
+.btn.btn--brand[disabled] { background-color: #d75960 !important; color: white !important; opacity: 0.5 !important; }
+
 .btn--gradient { /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ff9100+0,ff0029+50,ab00ff+100 */ background: #0DA7FC !important; /* Old browsers */ background: -moz-linear-gradient(left, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important; /* FF3.6-15 */ background: -webkit-linear-gradient(left, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important; /* Chrome10-25,Safari5.1-6 */ background: linear-gradient(to right, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important; /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff9100', endColorstr='#ab00ff',GradientType=1 ) !important; /* IE6-9 */ }
 
 .btn--icon { color: #8C94A0; background: transparent !important; line-height: normal; border-radius: 0; padding: 4px; padding: 0.25rem; }
@@ -899,6 +907,10 @@ label.error { display: none !important; }
 .btn--flat { background: transparent !important; color: #0DA7FC !important; }
 
 .btn--flat[disabled] { background-color: transparent !important; }
+
+.btn.btn--flat--brand { background: transparent !important; color: #d75960 !important; }
+
+.btn.btn--flat--brand[disabled] { background-color: transparent !important; opacity: 0.5 !important; }
 
 .btn--go { margin: 60px 0 40px; }
 
@@ -2655,7 +2667,7 @@ a.action_link:hover img, button.action_link:hover img { opacity: 1; }
 
 .container { width: 1200px; max-width: 100%; }
 
-.content { padding-bottom: 65px; padding-bottom: 4.0625rem; }
+.content { padding-bottom: 0; }
 
 .tab-pane .text * { font-family: "Proxima Nova", "Segoe UI", Roboto, "Droid Sans", "Helvetica Neue", Arial, sans-serif !important; }
 
