@@ -868,6 +868,8 @@ label.error { display: none !important; }
 
 .btn { border: 0; color: #fff; font-weight: 600; background: #0DA7FC; position: relative; overflow: hidden; display: inline-block; -webkit-border-radius: 100px; -moz-border-radius: 100px; -ms-border-radius: 100px; -o-border-radius: 100px; border-radius: 100px; -webkit-transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, -webkit-transform 0.3s ease; -moz-transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, -moz-transform 0.3s ease; -o-transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, -o-transform 0.3s ease; transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, transform 0.3s ease; -webkit-box-shadow: none !important; -moz-box-shadow: none !important; box-shadow: none !important; font-size: 18px; font-size: 1.125rem; padding: 13px 28px 12px; padding: 0.8125rem 1.75rem 0.75rem; }
 
+.btn--new-brand { background-color: #d75960; border-radius: 0.75rem; width: fit-content; padding: 1rem 1.5rem; font-weight: 600; }
+
 .btn:not([disabled]):hover { color: #fff; background: #039df2; }
 
 .btn:not([disabled]):focus, .btn:not([disabled]):active { color: #fff; }
