@@ -868,10 +868,6 @@ label.error { display: none !important; }
 
 .btn { border: 0; color: #fff; font-weight: 600; background: #0DA7FC; position: relative; overflow: hidden; display: inline-block; -webkit-border-radius: 100px; -moz-border-radius: 100px; -ms-border-radius: 100px; -o-border-radius: 100px; border-radius: 100px; -webkit-transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, -webkit-transform 0.3s ease; -moz-transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, -moz-transform 0.3s ease; -o-transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, -o-transform 0.3s ease; transition: background 0.3s ease, color 0.3s ease, border 0.3s ease, transform 0.3s ease; -webkit-box-shadow: none !important; -moz-box-shadow: none !important; box-shadow: none !important; font-size: 18px; font-size: 1.125rem; padding: 13px 28px 12px; padding: 0.8125rem 1.75rem 0.75rem; }
 
-.btn--new-brand { background-color: #d75960; border-radius: 0.75rem; width: fit-content; padding: 1rem 1.5rem; font-weight: 600; }
-
-.btn--new-brand:hover { background-color: #d14049 !important; }
-
 .btn:not([disabled]):hover { color: #fff; background: #039df2; }
 
 .btn:not([disabled]):focus, .btn:not([disabled]):active { color: #fff; }
@@ -879,6 +875,14 @@ label.error { display: none !important; }
 .btn:not([disabled]):active, .btn:not([disabled]).active { background: #039df2; -webkit-transform: scale(0.98); -moz-transform: scale(0.98); -ms-transform: scale(0.98); -o-transform: scale(0.98); transform: scale(0.98); }
 
 .btn[disabled] { background: #EBEDEF !important; color: rgba(63, 77, 96, 0.3) !important; opacity: 1; }
+
+.btn.btn--brand { background-color: #d75960; border-radius: 0.75rem; width: fit-content; padding: 1rem 1.5rem; font-weight: 600; }
+
+.btn.btn--brand:not([disabled]):hover { background-color: #d14049 !important; }
+
+.btn.btn--brand:not([disabled]):active { background-color: #d14049 !important; }
+
+.btn.btn--brand[disabled] { background-color: #d75960 !important; color: white !important; opacity: 0.5 !important; }
 
 .btn--gradient { /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ff9100+0,ff0029+50,ab00ff+100 */ background: #0DA7FC !important; /* Old browsers */ background: -moz-linear-gradient(left, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important; /* FF3.6-15 */ background: -webkit-linear-gradient(left, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important; /* Chrome10-25,Safari5.1-6 */ background: linear-gradient(to right, #ff9100 0%, #ff0029 50%, #ab00ff 100%) !important; /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff9100', endColorstr='#ab00ff',GradientType=1 ) !important; /* IE6-9 */ }
 
@@ -903,6 +907,10 @@ label.error { display: none !important; }
 .btn--flat { background: transparent !important; color: #0DA7FC !important; }
 
 .btn--flat[disabled] { background-color: transparent !important; }
+
+.btn.btn--flat--brand { background: transparent !important; color: #d75960 !important; }
+
+.btn.btn--flat--brand[disabled] { background-color: transparent !important; opacity: 0.5 !important; }
 
 .btn--go { margin: 60px 0 40px; }
 
