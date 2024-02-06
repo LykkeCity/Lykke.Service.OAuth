@@ -14,12 +14,13 @@ namespace WebAuth.ViewComponents
             DefaultUrl = "https://www.lykke.com/";
         }
 
-        public Task<IViewComponentResult> InvokeAsync(string url)
+        public Task<IViewComponentResult> InvokeAsync(string url, bool useWhiteLogo)
         {
             var href = String.IsNullOrEmpty(url) ? DefaultUrl : url;
             var model = new LykkeLogoViewModel
             {
                 Url = href,
+                UseWhiteLogo = useWhiteLogo,
             };
 
             return Task.FromResult<IViewComponentResult>(View(model));

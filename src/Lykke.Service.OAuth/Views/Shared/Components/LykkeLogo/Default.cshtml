@@ -1,5 +1,9 @@
 ﻿@model WebAuth.Models.LykkeLogoViewModel
 
+@{
+    var src = Model.UseWhiteLogo ? "/images/lykke-white.svg" : "/images/lykke_new.svg";
+}
+
 <a href="@Model.Url">
-    <img alt="lykke_logo" class="header_logo__img" src="/images/lykke_new.svg">
+    <img alt="lykke_logo" class="header_logo__img" src=@src>
 </a>

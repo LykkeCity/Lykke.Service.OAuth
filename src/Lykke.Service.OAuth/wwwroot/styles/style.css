@@ -12,7 +12,7 @@
 
 html { font-size: 16px; min-height: 100%; height: auto; position: relative; }
 
-body { background-color: #EFE9E3; font-family: "Proxima Nova", "Segoe UI", Roboto, "Droid Sans", "Helvetica Neue", Arial, sans-serif; font-weight: 400; -webkit-text-size-adjust: none; font-size-adjust: none; line-height: normal; color: #3f4d60; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-size: 16px; font-size: 1rem; }
+body { background-color: #FFF; font-family: "Proxima Nova", "Segoe UI", Roboto, "Droid Sans", "Helvetica Neue", Arial, sans-serif; font-weight: 400; -webkit-text-size-adjust: none; font-size-adjust: none; line-height: normal; color: #3f4d60; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-size: 16px; font-size: 1rem; }
 
 a { color: #0da7fc; text-decoration: none; transition: all 0.3s ease; }
 
@@ -3001,7 +3001,56 @@ a.action_link:hover img, button.action_link:hover img { opacity: 1; }
 
 .section_subtitle { line-height: 1.59; text-align: left; color: rgba(63, 77, 96, 0.6); font-size: 22px; font-size: 1.375rem; }
 
-.page_auth .section--padding { padding: 96px 0; padding: 6rem 0; }
+.page_auth .login-image-container {
+  background-image: url('/images/login-bg.jpeg');
+  background-size: cover;
+  background-position: bottom;
+  height: 460px;
+
+  @media screen and (width < 768px) {
+    padding: 2rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  @media screen and (768px <= width < 1024px) {
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  @media screen and (width >= 1024px) {
+    border-radius: 0.5rem;
+    height: 600px;
+    padding: 2rem;
+    margin-right: 1rem;
+  }
+}
+
+.page_auth .login-image-container a img {
+  width: auto;
+
+  @media screen and (width < 768px) {
+    height: 50px;
+
+  }
+
+  @media screen and (768px <= width < 1024px) {
+    height: 70px;
+  }
+
+  @media screen and (width >= 1024px) {
+    height: 50px;
+  }
+}
+
+.page_auth .section--padding { 
+  @media screen and (width < 1024px) {
+    padding: 0;
+  }
+
+  @media screen and (width >= 1024px) {
+    padding: 96px 0; padding: 6rem 0;
+  }
+}
 
 .page_auth .header_logo { width: auto; margin-top: 0; margin-bottom: 60px; margin-bottom: 3.75rem; }
 
@@ -3018,8 +3067,6 @@ a.action_link:hover img, button.action_link:hover img { opacity: 1; }
 .page_auth .hint a { color: #3f4d60; }
 
 .page_auth .lead { line-height: 1.56; color: rgba(63, 77, 96, 0.8); font-size: 16px; font-size: 1rem; margin-bottom: 22px; margin-bottom: 1.375rem; }
-
-@media all and (max-width: 767px) { .page_auth .section--padding { padding: 50px 0; } }
 
 .hint_accent { line-height: 1.85; text-align: left; color: rgba(63, 77, 96, 0.6); text-transform: uppercase; display: block; font-size: 13px; font-size: 0.8125rem; margin-bottom: 10px; margin-bottom: 0.625rem; letter-spacing: 2.4px; letter-spacing: 0.15rem; }
 
