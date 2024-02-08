@@ -62,17 +62,10 @@
             <div class="container">
 
                 <div class="row">
-                    <div class="col-md-10 automargin">
-                        <div class="header__logo header_logo">
-                            @await Component.InvokeAsync("LykkeLogo")
-                        </div>
-
+                    <div class="col-md-11 automargin">
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="section_header">
-                                    <div class="section_title">Trade free!</div>
-                                    <div class="section_subtitle">You will use this login information to access all Lykke products and services</div>
-                                </div>
+                            <div class="col-md-6 login-image-container">
+                                @await Component.InvokeAsync("LykkeLogo", new { useWhiteLogo = true })
                             </div>
                             <div class="col-md-5">
                                 @RenderBody()

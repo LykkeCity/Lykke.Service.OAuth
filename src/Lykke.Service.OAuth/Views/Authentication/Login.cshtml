@@ -1,11 +1,22 @@
 ﻿@model WebAuth.Models.LoginViewModel
 
+<div class="login--onboarding">
+    <h4>Corporate Onboarding</h4>
+    <p>
+        If you are a company, then <a href="https://www.lykke.com/organisational-onboarding" target="_blank">click
+        here</a> so you can trade with zero fees.
+    </p>
+</div>
+
 <h4>Sign up</h4>
-<form novalidate onsubmit="checkRegCaptcha(event)" class="form form_register" enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin">
+<form novalidate onsubmit="checkRegCaptcha(event)" class="form form_register"
+    enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl"
+    asp-controller="Authentication" asp-action="Signin">
     <div class="form-group">
         <div class="input-group" lykke-validation-for="Email" lykke-validationerror-class="input-group--error">
             <i class="input-group-addon icon icon--email"></i>
-            <input type="email" class="form-control" placeholder="E-mail address" asp-for="Email" onfocus="checkRegCaptcha()">
+            <input type="email" class="form-control" placeholder="E-mail address" asp-for="Email"
+                onfocus="checkRegCaptcha()">
         </div>
         <span class="label_error" asp-validation-for="Email"></span>
 
@@ -16,7 +27,8 @@
         <input type="hidden" name="AffiliateCode" value="@Model.AffiliateCode" />
 
     </div>
-    <div class="form-group @(Model.IsLogin.HasValue ? (Model.IsLogin.Value ? "hidden" : null) : "hidden")" id="reg-recaptcha">
+    <div class="form-group @(Model.IsLogin.HasValue ? (Model.IsLogin.Value ? "hidden" : null) : "hidden")"
+        id="reg-recaptcha">
         @Html.HiddenFor(m => m.RegisterRecaptchaKey)
         <div class="g-recaptcha" data-sitekey="@Model.RegisterRecaptchaKey" data-callback="regCaptchaSuccess"></div>
         <span id="reg-recaptcha-error" class="label_error" asp-validation-for="RegisterRecaptchaKey"></span>
@@ -27,7 +39,8 @@
 </form>
 
 <div class="hint">
-    By pressing Sign up you agree to our <a href="https://www.lykke.com/terms-of-use" target="_blank">Terms and Use</a> and <a href="https://www.lykke.com/privacy-policy" target="_blank">Privacy policy</a>
+    By pressing Sign up you agree to our <a href="https://www.lykke.com/terms-of-use" target="_blank">Terms and Use</a>
+    and <a href="https://www.lykke.com/privacy-policy" target="_blank">Privacy policy</a>
 </div>
 
 <div class="hr_or">
@@ -35,18 +48,22 @@
 </div>
 
 <h4>Sign in</h4>
-<form novalidate onsubmit="checkLoginCaptcha(event)" class="form form_register" enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl" asp-controller="Authentication" asp-action="Signin">
+<form novalidate onsubmit="checkLoginCaptcha(event)" class="form form_register"
+    enctype="application/x-www-form-urlencoded" method="post" asp-route-returnurl="@Model.ReturnUrl"
+    asp-controller="Authentication" asp-action="Signin">
     <div class="form-group">
         <div class="input-group" lykke-validation-for="Username" lykke-validationerror-class="input-group--error">
             <i class="icon icon--email input-group-addon"></i>
-            <input type="email" id="login-email" placeholder="E-mail address" class="form-control" asp-for="Username" onclick="checkLoginCaptcha()" />
+            <input type="email" id="login-email" placeholder="E-mail address" class="form-control" asp-for="Username"
+                onclick="checkLoginCaptcha()" />
         </div>
         <span class="label_error" asp-validation-for="Username"></span>
     </div>
     <div class="form-group">
         <div class="input-group" lykke-validation-for="Password" lykke-validationerror-class="input-group--error">
             <i class="icon icon--lock input-group-addon"></i>
-            <input type="password" placeholder="Password" class="form-control" asp-for="Password" onclick="checkLoginCaptcha()" />
+            <input type="password" placeholder="Password" class="form-control" asp-for="Password"
+                onclick="checkLoginCaptcha()" />
             <i id="show-password" class="icon icon--show_password input-group-addon" onclick=""></i>
         </div>
         <span class="label_error" asp-validation-for="Password"></span>
@@ -54,7 +71,8 @@
         <input type="hidden" name="IsLogin" value="true" />
         <input type="hidden" name="PartnerId" value="@Model.PartnerId" />
     </div>
-    <div class="form-group @(Model.IsLogin.HasValue ? (Model.IsLogin.Value ? null : "hidden") : "hidden")" id="login-recaptcha">
+    <div class="form-group @(Model.IsLogin.HasValue ? (Model.IsLogin.Value ? null : "hidden") : "hidden")"
+        id="login-recaptcha">
         @Html.HiddenFor(m => m.LoginRecaptchaKey)
         <div class="g-recaptcha" data-sitekey="@Model.LoginRecaptchaKey" data-callback="loginCaptchaSuccess"></div>
         <span id="login-recaptcha-error" class="label_error" asp-validation-for="LoginRecaptchaKey"></span>
@@ -66,16 +84,18 @@
 </form>
 
 @section HeadScripts
+
 {
     <script src='https://www.google.com/recaptcha/api.js'></script>
 }
 
 @section scripts
+
 {
     <script>
-        $(function() {
+        $(function () {
             $('#show-password').on('click',
-                function() {
+                function () {
                     var $this = $(this);
                     var pass = $('#Password');
                     pass.prop('type', pass.prop('type') === 'text' ? 'password' : 'text');
@@ -84,7 +104,7 @@
                 });
         });
 
-        function getGaCid(){
+        function getGaCid() {
             var tracker = ga.getAll()[0];
             $('#Cid').val(tracker.get('clientId'));
         }
