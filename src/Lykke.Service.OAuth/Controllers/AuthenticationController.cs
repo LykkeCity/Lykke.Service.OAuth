@@ -435,6 +435,21 @@ namespace WebAuth.Controllers
 
             var resCode = await _confirmationCodesClient.VerifySmsCodeAsync(new VerifySmsConfirmationRequest() { Code = request.Code, Phone = request.Phone });
             result.IsValid = resCode.IsValid;
+
+            result.IsUkUser = await IsUkUser(request.CountryOfResidence);
+
+            return result;
+        }
+
+        [HttpPost("~/signup/applyUkUserQuestionnarie")]
+        [ValidateAntiForgeryToken]
+        public async Task<ApplyUkUserQuestionnarieRequest> ApplyUkUserQuestionnarie([FromBody] ApplyUkUserQuestionnarieRequest request)
+        {
+            var result = new ApplyUkUserQuestionnarieRequest();
+
+            if (request == null)
+                return result;
+
             return result;
         }
 
@@ -602,6 +617,29 @@ namespace WebAuth.Controllers
                     default:
                         return null;
             }
+        }
+
+        private async Task<bool> IsUkUser(string countryOfResidence)
+        {
+            // LM-3152: Users with a UK IP address and/or who specify the UK as a country of residence need to be redirected to the new webpage
+
+            const string UnitedKindomIso3Code = "GBR";
+                        
+            if (countryOfResidence == UnitedKindomIso3Code)
+            {
+                return true;
+            }
+            else
+            {
+                var localityData = await _geoLocationClient.GetLocalityDataAsync(HttpContext.GetIp());
+
+                if (localityData.Country == CountryManager.GetCountryNameByIso3(UnitedKindomIso3Code))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

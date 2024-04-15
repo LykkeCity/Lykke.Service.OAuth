@@ -22,8 +22,14 @@
                     return data.data;
                 });
         }
-        function verifyPhone(key, code, phone, prefix) {
-            return $http.post('/signup/verifyPhone', { key: key, code: code, phone: phone, selectedPrefix: prefix })
+        function verifyPhone(key, code, phone, countryOfResidence) {
+            return $http.post('/signup/verifyPhone', { key: key, code: code, phone: phone, countryOfResidence: countryOfResidence })
+                .then(function (data) {
+                    return data.data;
+                });
+        }
+        function applyUkUserQuestionnarie(answers) {
+            return $http.post('/signup/applyUkUserQuestionnarie', { answers })
                 .then(function (data) {
                     return data.data;
                 });
@@ -70,6 +76,7 @@
             register: register,
             sendPhoneCode: sendPhoneCode,
             verifyPhone: verifyPhone,
+            applyUkUserQuestionnarie: applyUkUserQuestionnarie,
             getCountries: getCountries,
             checkAffiliateCode: checkAffiliateCode
         }

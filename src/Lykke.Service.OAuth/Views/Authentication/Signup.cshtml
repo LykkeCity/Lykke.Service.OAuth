@@ -106,7 +106,7 @@
                 </div>
             </div>
             <div class="submit-group">
-                <button class="btn btn--brand btn-block" type="submit" data-ng-disabled="!vm.step2Form.$valid" data-ng-click="vm.handlers.confirmPhone()">Submit</button>
+                <button class="btn btn--brand btn-block" data-ng-class="{'btn_loading': vm.data.loading}" type="submit" data-ng-disabled="!vm.step2Form.$valid" data-ng-click="vm.handlers.confirmPhone()">Submit</button>
             </div>
         </form>
     </div>
@@ -126,13 +126,60 @@
             </div>
 
             <div class="submit-group">
-                <button class="btn btn--brand btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step3Form.$valid  || vm.data.loading" type="submit" data-ng-click="vm.handlers.setPhoneCode()">
+                <button class="btn btn--brand btn-block" data-ng-class="{'btn_loading': vm.data.loading}" data-ng-disabled="!vm.step3Form.$valid || vm.data.loading" type="submit" data-ng-click="vm.handlers.setPhoneCode()">
                     Submit
                 </button>
                 <button data-ng-show="vm.data.step3Form.result" class="btn btn--brand btn-block" type="submit" data-ng-click="vm.handlers.goToLogin()">Back</button>
             </div>
         </form>
     </div>
+
+    <div data-ng-show="vm.data.step == 'ukQuestionnaire'">
+        <span class="hint_accent">Additional questionnaire for UK users. Question {{ vm.data.ukUserQuestionnarieForm.currentQuestionIndex + 1 }} of {{ vm.ukUserQuestionnarie.length }}</span>
+        <h4>UK users questionnaire</h4>
+        <form name="vm.ukUserQuestionnarieForm" class="form form_register" novalidate autocomplete="off">
+
+            <div class="form-group">
+                <div class="input-group">
+                    <p>{{vm.data.ukUserQuestionnarieForm.currentQuestionnaireEntry.question}}</p>
+
+                    <div class="row form-check"
+                         ng-repeat="answer in vm.data.ukUserQuestionnarieForm.currentQuestionnaireEntry.answers">
+                        <div class="col-xs-1">
+                            <input class="form-check-input" 
+                                   id="ukUserQuestionnarieFormAnswer_{{ $index }}"
+                                   name="ukUserQuestionnarieFormAnswer_{{ $index }}"
+                                   type="radio"                                   
+                                   data-ng-value="{{ $index }}"
+                                   data-ng-model="vm.data.ukUserQuestionnarieForm.selectedAnswerIndex" />
+                            </div>
+                        <div class="col-xs-11">
+                            <label class="form-check-label" for="ukUserQuestionnarieFormAnswer_{{ $index }}">{{ answer }}</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-group">
+                <button class="btn btn--brand btn-block"                        
+                        type="submit"
+                        data-ng-class="{'btn_loading': vm.data.loading}"
+                        data-ng-disabled="vm.data.ukUserQuestionnarieForm.currentQuestionIndex == 0 || vm.data.loading"
+                        data-ng-click="vm.handlers.ukQuestionnaireBack()">
+                    Back
+                </button>
+                <button class="btn btn--brand btn-block"
+                        style="margin-top: 0px;"
+                        type="submit"
+                        data-ng-class="{'btn_loading': vm.data.loading}" 
+                        data-ng-disabled="vm.data.ukUserQuestionnarieForm.selectedAnswerIndex === null || vm.data.loading" 
+                        data-ng-click="vm.handlers.setUkQuestionnaireAnswer()">
+                    {{ vm.data.ukUserQuestionnarieForm.isLastQuestion ? "Submit" : "Next" }}
+                </button>                
+            </div>
+        </form>
+    </div>
+
     <div data-ng-show="vm.data.step == 4">
         <span class="hint_accent">Step 4 of 5</span>
         <h4>Create password</h4>
