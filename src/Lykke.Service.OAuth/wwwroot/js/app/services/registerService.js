@@ -28,12 +28,6 @@
                     return data.data;
                 });
         }
-        function applyUkUserQuestionnarie(answers) {
-            return $http.post('/signup/applyUkUserQuestionnarie', { answers })
-                .then(function (data) {
-                    return data.data;
-                });
-        }
         function getCountries() {
             return $http.post('/signup/countrieslist')
                 .then(function (data) {
@@ -76,7 +70,6 @@
             register: register,
             sendPhoneCode: sendPhoneCode,
             verifyPhone: verifyPhone,
-            applyUkUserQuestionnarie: applyUkUserQuestionnarie,
             getCountries: getCountries,
             checkAffiliateCode: checkAffiliateCode
         }

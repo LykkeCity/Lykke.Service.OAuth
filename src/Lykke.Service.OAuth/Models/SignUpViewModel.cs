@@ -21,5 +21,6 @@ namespace WebAuth.Models
         public string Phone { get; set; }
         public string CountryOfResidence { get; set; }
         public string AffiliateCode { get; set; }
+        public UkUserQuestionnaire UkUserQuestionnarie { get; set; }
     }
 }

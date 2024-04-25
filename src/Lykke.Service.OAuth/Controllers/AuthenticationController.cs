@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
@@ -19,6 +20,8 @@ using Lykke.Service.ClientAccount.Client.Models;
 using Lykke.Service.ConfirmationCodes.Client;
 using Lykke.Service.ConfirmationCodes.Client.Models.Request;
 using Lykke.Service.IpGeoLocation;
+using Lykke.Service.Kyc.Abstractions.Domain.Documents.Types;
+using Lykke.Service.Kyc.Abstractions.Services;
 using Lykke.Service.OAuth.Models;
 using Lykke.Service.Registration;
 using Lykke.Service.Registration.Contract.Client.Enums;
@@ -29,6 +32,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
+using Newtonsoft.Json;
 using WebAuth.ActionHandlers;
 using WebAuth.Managers;
 using WebAuth.Models;
@@ -48,6 +52,7 @@ namespace WebAuth.Controllers
         private readonly IRecaptchaService _recaptchaService;
         private readonly SecuritySettings _securitySettings;
         private readonly IClientSessionsClient _clientSessionsClient;
+        private readonly IKycDocumentsServiceV2 _kycDocumentsService;
         private readonly ILog _log;
         private static readonly Dictionary<string, List<string>> CustomViewsDictionary = new Dictionary<string, List<string>>
         {
@@ -68,7 +73,9 @@ namespace WebAuth.Controllers
             SecuritySettings securitySettings,
             IConfirmationCodesClient confirmationCodesClient,
             IIpGeoLocationClient geoLocationClient,
-            ILogFactory logFactory, IClientSessionsClient clientSessionsClient)
+            ILogFactory logFactory, 
+            IClientSessionsClient clientSessionsClient,
+            IKycDocumentsServiceV2 kycDocumentsService)
         {
             _registrationClient = registrationClient;
             _verificationCodesService = verificationCodesService;
@@ -82,6 +89,7 @@ namespace WebAuth.Controllers
             _geoLocationClient = geoLocationClient;
             _log = logFactory.CreateLog(this);
             _clientSessionsClient = clientSessionsClient;
+            _kycDocumentsService = kycDocumentsService;
             var codes = new CountryPhoneCodes();
             _countries = codes.GetCountries();
         }
@@ -441,18 +449,6 @@ namespace WebAuth.Controllers
             return result;
         }
 
-        [HttpPost("~/signup/applyUkUserQuestionnarie")]
-        [ValidateAntiForgeryToken]
-        public async Task<ApplyUkUserQuestionnarieRequest> ApplyUkUserQuestionnarie([FromBody] ApplyUkUserQuestionnarieRequest request)
-        {
-            var result = new ApplyUkUserQuestionnarieRequest();
-
-            if (request == null)
-                return result;
-
-            return result;
-        }
-
         [HttpPost("~/signup/checkPassword")]
         [ValidateAntiForgeryToken]
         public bool CheckPassword([FromBody]string password)
@@ -471,6 +467,22 @@ namespace WebAuth.Controllers
         [ValidateAntiForgeryToken]
         public async Task<RegistrationResultModel> CompleteRegistration([FromBody]SignUpViewModel model)
         {
+            string referer = null;
+            var userIp = HttpContext.GetIp();
+            var userAgent = HttpContext.GetUserAgent();
+            var sanitizedEmail = model.Email?.SanitizeEmail();
+            var sanitizedPhone = model.Phone?.SanitizePhone();
+
+            _log.Info("Registration completion is being processed", context: new
+            {
+                Ip = userIp,
+                UserAgent = userAgent,
+                Email = sanitizedEmail,
+                Phone = sanitizedPhone,
+                FirstName = model.FirstName,
+                LastName = model.LastName
+            });
+
             var isAffiliateCodeCorrect = string.IsNullOrEmpty(model.AffiliateCode);
 
             if (!isAffiliateCodeCorrect)
@@ -486,95 +498,21 @@ namespace WebAuth.Controllers
             };
 
             if (!registrationResult.IsValid)
-                return registrationResult;
-
-            if (ModelState.IsValid)
             {
-                if (!model.Email.IsValidEmailAndRowKey())
+                _log.Info("Registration completion failed: insufficient password complexity or invalid affiliate code", context: new
                 {
-                    registrationResult.Errors.Add("Invalid email address");
-                    return registrationResult;
-                }
-
-                string referer = null;
-                var userIp = HttpContext.GetIp();
-                var userAgent = HttpContext.GetUserAgent();
-
-                if (!string.IsNullOrEmpty(model.Referer))
-                {
-                    try
-                    {
-                        referer = new Uri(model.Referer).Host;
-                    }
-                    catch
-                    {
-                        registrationResult.Errors.Add("Invalid referer url");
-                        return registrationResult;
-                    }
-                }
-
-                var registrationRequest = new AccountRegistrationModel
-                {
-                    Email = model.Email,
-                    Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
-                    Hint = model.Hint,
                     Ip = userIp,
-                    Changer = RecordChanger.Client,
                     UserAgent = userAgent,
-                    Referer = referer,
-                    CreatedAt = DateTime.UtcNow,
-                    Cid = model.Cid,
-                    Traffic = model.Traffic,
-                    Ttl = GetSessionTtl(null),
-                    CountryFromPOA = model.CountryOfResidence,
-                    AffiliateCode = model.AffiliateCode,
-                    ContactPhone = model.Phone
-                };
+                    Email = sanitizedEmail,
+                    Phone = sanitizedPhone,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName
+                });
 
-                var registrationResponse = await _registrationClient.RegistrationApi.RegisterAsync(registrationRequest);
-
-                registrationResult.RegistrationResponse = registrationResponse;
-
-                if (registrationResult.RegistrationResponse == null)
-                {
-                    registrationResult.Errors.Add("Technical problems during registration.");
-                    return registrationResult;
-                }
-
-                if (registrationResult.Errors.Any())
-                {
-                    _log.Info("Registration with errors",
-                        context: $"errors: {string.Join(", ", registrationResult.Errors).ToJson()}");
-                }
-                else
-                {
-                    _log.Info("Successful registration",
-                        $"result: {new {ip = userIp, userAgent, clientId = registrationResult.RegistrationResponse.Account.Id}.ToJson()}");
-                }
-
-                await Task.WhenAll(
-                    _profileActionHandler.UpdatePersonalInformation(
-                        registrationResponse.Account.Id,
-                        model.FirstName,
-                        model.LastName,
-                        model.Phone),
-                    _verificationCodesService.DeleteCodeAsync(model.Key)
-                );
-
-                if (registrationResult.RegistrationResponse.Account.State == AccountState.Ok)
-                {
-                    var identity = await _userManager.CreateUserIdentityAsync(
-                        registrationResponse.Account.Id,
-                        model.Email,
-                        model.Email,
-                        null,
-                        registrationResponse.Token,
-                        true);
-                    await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
-                        new ClaimsPrincipal(identity));
-                }
+                return registrationResult;
             }
-            else
+
+            if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values
                     .Where(item => item.ValidationState == ModelValidationState.Invalid)
@@ -585,6 +523,210 @@ namespace WebAuth.Controllers
                     registrationResult.Errors.Add(error.ErrorMessage);
                 }
             }
+
+            if (!model.Email.IsValidEmailAndRowKey())
+            {
+                registrationResult.Errors.Add("Invalid email address");
+
+                _log.Info("Registration completion failed: invalid email", context: new
+                {
+                    Ip = userIp,
+                    UserAgent = userAgent,
+                    Email = sanitizedEmail,
+                    Phone = sanitizedPhone,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName
+                });
+
+                return registrationResult;
+            }
+
+            if (!string.IsNullOrEmpty(model.Referer))
+            {
+                try
+                {
+                    referer = new Uri(model.Referer).Host;
+                }
+                catch
+                {
+                    registrationResult.Errors.Add("Invalid referer url");
+
+                    _log.Info("Registration completion failed: invalid referer url", context: new
+                    {
+                        Ip = userIp,
+                        UserAgent = userAgent,
+                        Email = sanitizedEmail,
+                        Phone = sanitizedPhone,
+                        FirstName = model.FirstName,
+                        LastName = model.LastName
+                    });
+
+                    return registrationResult;
+                }
+            }
+
+            var registrationRequest = new AccountRegistrationModel
+            {
+                Email = model.Email,
+                Password = PasswordKeepingUtils.GetClientHashedPwd(model.Password),
+                Hint = model.Hint,
+                Ip = userIp,
+                Changer = RecordChanger.Client,
+                UserAgent = userAgent,
+                Referer = referer,
+                CreatedAt = DateTime.UtcNow,
+                Cid = model.Cid,
+                Traffic = model.Traffic,
+                Ttl = GetSessionTtl(null),
+                CountryFromPOA = model.CountryOfResidence,
+                AffiliateCode = model.AffiliateCode,
+                ContactPhone = model.Phone
+            };
+
+            var registrationResponse = await _registrationClient.RegistrationApi.RegisterAsync(registrationRequest);
+
+            registrationResult.RegistrationResponse = registrationResponse;
+
+            if (registrationResult.RegistrationResponse == null)
+            {
+                registrationResult.Errors.Add("Technical problems during registration.");
+
+                _log.Info($"Registration completion failed: failed to invoke registration API. Empty response. Error: '{registrationResult.Errors?.ToJson()}'", context: new
+                {
+                    Ip = userIp,
+                    UserAgent = userAgent,
+                    Email = sanitizedEmail,
+                    Phone = sanitizedPhone,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName
+                });
+
+                return registrationResult;
+            }
+
+            if (registrationResult.Errors.Any())
+            {
+                _log.Info($"Registration completion failed: failed to invoke registration API. Error: '{registrationResult.Errors?.ToJson()}'", context: new
+                {
+                    Ip = userIp,
+                    UserAgent = userAgent,
+                    Email = sanitizedEmail,
+                    Phone = sanitizedPhone,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName
+                });
+
+                return registrationResult;
+            }
+
+            var clientId = registrationResult.RegistrationResponse.Account.Id;
+
+            _log.Info("Registration completion: registration API invoked successfully", context: new
+            {
+                ClientId = clientId,
+                Ip = userIp,
+                UserAgent = userAgent,
+                Email = sanitizedEmail,
+                Phone = sanitizedPhone,
+                FirstName = model.FirstName,
+                LastName = model.LastName
+            });
+
+            await Task.WhenAll(
+                _profileActionHandler.UpdatePersonalInformation(
+                    registrationResponse.Account.Id,
+                    model.FirstName,
+                    model.LastName,
+                    model.Phone),
+                _verificationCodesService.DeleteCodeAsync(model.Key)
+            );
+
+            _log.Info("Registration completion: personal information and verification codes updated", context: new
+            {
+                ClientId = clientId,
+                Ip = userIp,
+                UserAgent = userAgent,
+                Email = sanitizedEmail,
+                Phone = sanitizedPhone,
+                FirstName = model.FirstName,
+                LastName = model.LastName
+            });
+
+            if (registrationResult.RegistrationResponse.Account.State != AccountState.Ok)
+            {
+                _log.Info($"Registration completion: invalid account state: {registrationResult.RegistrationResponse.Account.State}", context: new
+                {
+                    ClientId = clientId,
+                    Ip = userIp,
+                    UserAgent = userAgent,
+                    Email = sanitizedEmail,
+                    Phone = sanitizedPhone,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName
+                });
+
+                return registrationResult;
+            }
+
+            var identity = await _userManager.CreateUserIdentityAsync(
+                registrationResponse.Account.Id,
+                model.Email,
+                model.Email,
+                null,
+                registrationResponse.Token,
+                true);
+
+            _log.Info("Registration completion: user identity has been created", context: new
+            {
+                ClientId = clientId,
+                Ip = userIp,
+                UserAgent = userAgent,
+                Email = sanitizedEmail,
+                Phone = sanitizedPhone,
+                FirstName = model.FirstName,
+                LastName = model.LastName
+            });
+
+            await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
+                new ClaimsPrincipal(identity));
+
+            if (model.UkUserQuestionnarie != null)
+            {
+                var ukUserQuestionnaireJson = JsonConvert.SerializeObject(model.UkUserQuestionnarie, Formatting.Indented);
+                var ukUserQuestionnaireJsonBytes = Encoding.UTF8.GetBytes(ukUserQuestionnaireJson);
+                    
+                await _kycDocumentsService.UploadFileAsync(
+                    registrationResult.RegistrationResponse.Account.Id,
+                    OtherDocument.Name,
+                    "json",
+                    "UK questionnaire",
+                    "UkQuestionnaire.json",
+                    "application/json",
+                    ukUserQuestionnaireJsonBytes,
+                    "User");
+
+                _log.Info("Registration completion: UK user questionnaire uploaded", context: new
+                {
+                    ClientId = clientId,
+                    Ip = userIp,
+                    UserAgent = userAgent,
+                    Email = sanitizedEmail,
+                    Phone = sanitizedPhone,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName
+                });
+            }
+
+            _log.Info("Registration completion finished", context: new
+            {
+                ClientId = clientId,
+                Ip = userIp,
+                UserAgent = userAgent,
+                Email = sanitizedEmail,
+                Phone = sanitizedPhone,
+                FirstName = model.FirstName,
+                LastName = model.LastName
+            });     
 
             return registrationResult;
         }

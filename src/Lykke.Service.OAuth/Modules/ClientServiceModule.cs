@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using Common.Log;
 using Lykke.Common.Log;
 using Lykke.Messages.Email;
 using Lykke.Service.ClientAccount.Client;
@@ -12,6 +11,9 @@ using Lykke.SettingsReader;
 using WebAuth.Settings;
 using Lykke.Service.ConfirmationCodes.Client;
 using Lykke.Service.IpGeoLocation;
+using Lykke.Service.Kyc;
+using Lykke.Service.Kyc.Abstractions.Services;
+using Lykke.Service.Kyc.Client;
 
 namespace WebAuth.Modules
 {
@@ -19,7 +21,8 @@ namespace WebAuth.Modules
     {
         private readonly IReloadingManager<AppSettings> _settings;
 
-        public ClientServiceModule(IReloadingManager<AppSettings> settings)
+        public ClientServiceModule(
+            IReloadingManager<AppSettings> settings)
         {
             _settings = settings;
         }
@@ -28,7 +31,9 @@ namespace WebAuth.Modules
         {
             builder.RegisterClientSessionClient(_settings.CurrentValue.SessionServiceClient);
             builder.RegisterRegistrationServiceClient(_settings.CurrentValue.RegistrationServiceClient);
-            builder.Register(c => new PersonalDataService(_settings.CurrentValue.PersonalDataServiceSettings, c.Resolve<ILogFactory>().CreateLog(typeof(PersonalDataService))))
+            builder.Register(c => new PersonalDataService(
+                    _settings.CurrentValue.PersonalDataServiceSettings,
+                    c.Resolve<ILogFactory>()))
                 .As<IPersonalDataService>()
                 .SingleInstance();
 
@@ -42,6 +47,13 @@ namespace WebAuth.Modules
             builder.RegisterConfirmationCodesClient(_settings.CurrentValue.ConfirmationCodesClient);
 
             builder.RegisterGoogleAnalyticsWrapperClient(_settings.CurrentValue.GaWrapperServiceClient.ServiceUrl);
+
+            builder.Register(c =>
+                new KycDocumentsServiceV2Client(
+                    _settings.CurrentValue.KycServiceClient,
+                    c.Resolve<ILogFactory>()))
+                .As<IKycDocumentsServiceV2>()
+                .SingleInstance();
         }
     }
 }

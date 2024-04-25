@@ -134,8 +134,101 @@
         </form>
     </div>
 
+    <div data-ng-show="vm.data.step == 'ukQuestionnaireHelp'">
+        <span class="hint_accent">Additional questionnaire for UK users. Help</span>
+        <h4>UK users questionnaire. Help</h4>
+
+        <form name="vm.ukUserQuestionnarieHelpForm" class="form form_register" novalidate autocomplete="off">
+            <div class="form-group">
+                <strong>Why do I have to do this?</strong>
+                <p>
+                We are required by the Financial Conduct Authority to ensure all customers fall into one of three investor profiles. 
+                This enables us to offer you our services. Learn more here.
+                </p>
+
+                <strong>High risk investments are:</strong>
+                <p>
+                Peer-to-Peer (P2P) loans; investment-based crowdfunding; units in long-term asset funds; unlisted debt and equity 
+                (such as in companies not listed on a stock exchange like the London Stock Exchange).
+                </p>
+
+                <strong>Annual income does not include:</strong>
+                <p>
+                Any one-off pension withdrawals.
+                </p>
+
+                <strong>Net assets to not include:</strong>
+                <p>
+                Your home (primary residence), your pension (or any pension withdrawals) or any right under qualifying contracts of insurance.
+                </p>
+            </div>
+
+            <div class="submit-group">
+                <button class="btn btn--brand btn-block"
+                        style="margin-top: 0px;"
+                        type="submit"
+                        data-ng-click="vm.handlers.beginUkQuestionnaire()">
+                    Begin 
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div data-ng-show="vm.data.step == 'ukQuestionnaireInvestorType'">
+        <span class="hint_accent">Additional questionnaire for UK users. Investor type</span>
+        <h4>UK users questionnaire</h4>
+        <form name="vm.ukUserQuestionnarieInvestorTypeForm" class="form form_register" novalidate autocomplete="off">
+
+            <div class="form-group">
+                <div class="input-group">
+                    <p>
+                        All crypto exchanges in the UK are required to collect a self categorization of investors into one of three profiles. 
+                        Please select the one that you think fits you best.
+                    </p>
+                    <p>
+                        Please note that we can not offer you our services if you do not fall into one of the categories above
+                    </p>
+
+                    <div class="row form-check"
+                         ng-repeat="answer in vm.ukUserQuestionnarie.investorTypeClassificationAnswers">
+                        <div class="col-xs-1">
+                            <input class="form-check-input"
+                                   id="ukUserQuestionnarieInvestorTypeFormAnswer_{{ $index }}"
+                                   name="ukUserQuestionnarieInvestorTypeFormAnswer_{{ $index }}"
+                                   type="radio"
+                                   data-ng-value="{{ $index }}"
+                                   data-ng-model="vm.data.ukUserQuestionnarieInvestorTypeForm.selectedAnswerIndex" />
+                        </div>
+                        <div class="col-xs-11">
+                            <label class="form-check-label" for="ukUserQuestionnarieInvestorTypeFormAnswer_{{ $index }}">{{ answer.title }}</label>
+                            <p>{{ answer.description }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-group">
+                <button class="btn btn--brand btn-block"
+                        type="submit"
+                        data-ng-class="{'btn_loading': vm.data.loading}"
+                        data-ng-disabled="vm.data.loading"
+                        data-ng-click="vm.handlers.ukQuestionnaireInvestorTypeBack()">
+                    Back
+                </button>
+                <button class="btn btn--brand btn-block"
+                        style="margin-top: 0px;"
+                        type="submit"
+                        data-ng-class="{'btn_loading': vm.data.loading}"
+                        data-ng-disabled="vm.data.ukUserQuestionnarieInvestorTypeForm.selectedAnswerIndex === null || vm.data.loading"
+                        data-ng-click="vm.handlers.setUkQuestionnaireInvestorTypeAnswer()">
+                    Next
+                </button>
+            </div>
+        </form>
+    </div>
+
     <div data-ng-show="vm.data.step == 'ukQuestionnaire'">
-        <span class="hint_accent">Additional questionnaire for UK users. Question {{ vm.data.ukUserQuestionnarieForm.currentQuestionIndex + 1 }} of {{ vm.ukUserQuestionnarie.length }}</span>
+        <span class="hint_accent">Additional questionnaire for UK users. Question {{ vm.data.ukUserQuestionnarieForm.currentQuestionIndex + 1 }} of {{ vm.ukUserQuestionnarie.generalQuestions.length }}</span>
         <h4>UK users questionnaire</h4>
         <form name="vm.ukUserQuestionnarieForm" class="form form_register" novalidate autocomplete="off">
 
