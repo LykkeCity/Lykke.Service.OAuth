@@ -138,7 +138,7 @@
         <span class="hint_accent">Additional questionnaire for UK users. Help</span>
         <h4>UK users questionnaire. Help</h4>
 
-        <form name="vm.ukUserQuestionnarieHelpForm" class="form form_register" novalidate autocomplete="off">
+        <form name="vm.ukUserQuestionnaireHelpForm" class="form form_register" novalidate autocomplete="off">
             <div class="form-group">
                 <strong>Why do I have to do this?</strong>
                 <p>
@@ -177,7 +177,7 @@
     <div data-ng-show="vm.data.step == 'ukQuestionnaireInvestorType'">
         <span class="hint_accent">Additional questionnaire for UK users. Investor type</span>
         <h4>UK users questionnaire</h4>
-        <form name="vm.ukUserQuestionnarieInvestorTypeForm" class="form form_register" novalidate autocomplete="off">
+        <form name="vm.ukUserQuestionnaireInvestorTypeForm" class="form form_register" novalidate autocomplete="off">
 
             <div class="form-group">
                 <div class="input-group">
@@ -190,17 +190,17 @@
                     </p>
 
                     <div class="row form-check"
-                         ng-repeat="answer in vm.ukUserQuestionnarie.investorTypeClassificationAnswers">
+                         ng-repeat="answer in vm.ukUserQuestionnaire.investorTypeClassificationAnswers">
                         <div class="col-xs-1">
                             <input class="form-check-input"
-                                   id="ukUserQuestionnarieInvestorTypeFormAnswer_{{ $index }}"
-                                   name="ukUserQuestionnarieInvestorTypeFormAnswer_{{ $index }}"
+                                   id="ukUserQuestionnaireInvestorTypeFormAnswer_{{ $index }}"
+                                   name="ukUserQuestionnaireInvestorTypeFormAnswer_{{ $index }}"
                                    type="radio"
                                    data-ng-value="{{ $index }}"
-                                   data-ng-model="vm.data.ukUserQuestionnarieInvestorTypeForm.selectedAnswerIndex" />
+                                   data-ng-model="vm.data.ukUserQuestionnaireInvestorTypeForm.selectedAnswerIndex" />
                         </div>
                         <div class="col-xs-11">
-                            <label class="form-check-label" for="ukUserQuestionnarieInvestorTypeFormAnswer_{{ $index }}">{{ answer.title }}</label>
+                            <label class="form-check-label" for="ukUserQuestionnaireInvestorTypeFormAnswer_{{ $index }}">{{ answer.title }}</label>
                             <p>{{ answer.description }}</p>
                         </div>
                     </div>
@@ -219,7 +219,7 @@
                         style="margin-top: 0px;"
                         type="submit"
                         data-ng-class="{'btn_loading': vm.data.loading}"
-                        data-ng-disabled="vm.data.ukUserQuestionnarieInvestorTypeForm.selectedAnswerIndex === null || vm.data.loading"
+                        data-ng-disabled="vm.data.ukUserQuestionnaireInvestorTypeForm.selectedAnswerIndex === null || vm.data.loading"
                         data-ng-click="vm.handlers.setUkQuestionnaireInvestorTypeAnswer()">
                     Next
                 </button>
@@ -227,27 +227,152 @@
         </form>
     </div>
 
+    <div data-ng-show="vm.data.step == 'ukQuestionnaireInvestorStatement'">
+        <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'CertifiedSophisticated'">
+            <span class="hint_accent">Additional questionnaire for UK users. SOPHISTICATED INVESTOR STATEMENT</span>
+            <h4>UK users questionnaire</h4>
+            
+            <form name="vm.ukUserQuestionnaireForm" class="form form_register" novalidate autocomplete="off">
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <p>
+                            {{ vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.question }}
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSophisticatedInvestorStatementForm_No"
+                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_No"
+                                       type="radio"
+                                       data-ng-value="0"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSophisticatedInvestorStatementForm_No">No</label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSophisticatedInvestorStatementForm_Yes"
+                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_Yes"
+                                       type="radio"
+                                       data-ng-value="1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSophisticatedInvestorStatementForm_Yes">Yes</label>
+                            </div>
+                        </div>
+
+                        <p class="mt-1rem">{{ vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.firmNameQuestion }}</p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-12">
+                                
+                                <input type="text" 
+                                       class="form-control"
+                                       placeholder="Firm name" 
+                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_AuthorisedFirmName"
+                                       data-ng-required="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex == 1"
+                                       data-ng-disabled="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex != 1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.authorisedFirmName" />
+                            </div>
+                        </div>                      
+
+                        <p class="mt-1rem">OR</p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">                                
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSophisticatedInvestorStatementForm_DoesntApply"
+                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_DoesntApply"
+                                       type="radio"
+                                       data-ng-value="2"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSophisticatedInvestorStatementForm_DoesntApply">This does not apply to me.</label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check mt-2rem">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSophisticatedInvestorStatementForm_Signature"
+                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_Signature"
+                                       type="checkbox"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isSigned" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSophisticatedInvestorStatementForm_Signature">
+                                    I accept that being a sophisticated investor will expose me to promotions for investment where there is a
+                                    significant risk of losing all the money I invest. I am aware that it is open to me to seek professional
+                                    advice before making any investment in a high-risk investment.
+                                </label>
+                            </div>
+                        </div>
+
+                        <p class="mt-1rem">Date: {{ vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.date.toLocaleDateString() }}</p>
+
+                    </div>
+                </div>
+
+                <div class="submit-group">
+                    <button class="btn btn--brand btn-block"
+                            type="submit"
+                            data-ng-class="{'btn_loading': vm.data.loading}"
+                            data-ng-disabled="vm.data.loading"
+                            data-ng-click="vm.handlers.ukQuestionnaireInvestorStatementBack()">
+                        Back
+                    </button>
+                    <button class="btn btn--brand btn-block"
+                            style="margin-top: 0px;"
+                            type="submit"
+                            data-ng-class="{'btn_loading': vm.data.loading}"
+                            data-ng-disabled="!vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isFilled() || vm.data.loading"
+                            data-ng-click="vm.handlers.setUkQuestionnaireSophisticatedInvestorStatementAnswer()">
+                        Next
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'SelfCertifiedSophisticated'">
+            SelfCertifiedSophisticated
+        </div>
+        <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'Restricted'">
+            Restricted
+        </div>
+        <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'HighNetWorthIndividual'">
+            HighNetWorthIndividual
+        </div>
+    </div>
+
     <div data-ng-show="vm.data.step == 'ukQuestionnaire'">
-        <span class="hint_accent">Additional questionnaire for UK users. Question {{ vm.data.ukUserQuestionnarieForm.currentQuestionIndex + 1 }} of {{ vm.ukUserQuestionnarie.generalQuestions.length }}</span>
+        <span class="hint_accent">Additional questionnaire for UK users. Question {{ vm.data.ukUserQuestionnaireForm.currentQuestionIndex + 1 }} of {{ vm.ukUserQuestionnaire.generalQuestions.length }}</span>
         <h4>UK users questionnaire</h4>
-        <form name="vm.ukUserQuestionnarieForm" class="form form_register" novalidate autocomplete="off">
+        <form name="vm.ukUserQuestionnaireForm" class="form form_register" novalidate autocomplete="off">
 
             <div class="form-group">
                 <div class="input-group">
-                    <p>{{vm.data.ukUserQuestionnarieForm.currentQuestionnaireEntry.question}}</p>
+                    <p>{{vm.data.ukUserQuestionnaireForm.currentQuestionnaireEntry.question}}</p>
 
                     <div class="row form-check"
-                         ng-repeat="answer in vm.data.ukUserQuestionnarieForm.currentQuestionnaireEntry.answers">
+                         ng-repeat="answer in vm.data.ukUserQuestionnaireForm.currentQuestionnaireEntry.answers">
                         <div class="col-xs-1">
                             <input class="form-check-input" 
-                                   id="ukUserQuestionnarieFormAnswer_{{ $index }}"
-                                   name="ukUserQuestionnarieFormAnswer_{{ $index }}"
+                                   id="ukUserQuestionnaireFormAnswer_{{ $index }}"
+                                   name="ukUserQuestionnaireFormAnswer_{{ $index }}"
                                    type="radio"                                   
                                    data-ng-value="{{ $index }}"
-                                   data-ng-model="vm.data.ukUserQuestionnarieForm.selectedAnswerIndex" />
+                                   data-ng-model="vm.data.ukUserQuestionnaireForm.selectedAnswerIndex" />
                             </div>
                         <div class="col-xs-11">
-                            <label class="form-check-label" for="ukUserQuestionnarieFormAnswer_{{ $index }}">{{ answer }}</label>
+                            <label class="form-check-label" for="ukUserQuestionnaireFormAnswer_{{ $index }}">{{ answer }}</label>
                         </div>
                     </div>
                 </div>
@@ -257,7 +382,7 @@
                 <button class="btn btn--brand btn-block"                        
                         type="submit"
                         data-ng-class="{'btn_loading': vm.data.loading}"
-                        data-ng-disabled="vm.data.ukUserQuestionnarieForm.currentQuestionIndex == 0 || vm.data.loading"
+                        data-ng-disabled="vm.data.loading"
                         data-ng-click="vm.handlers.ukQuestionnaireBack()">
                     Back
                 </button>
@@ -265,9 +390,9 @@
                         style="margin-top: 0px;"
                         type="submit"
                         data-ng-class="{'btn_loading': vm.data.loading}" 
-                        data-ng-disabled="vm.data.ukUserQuestionnarieForm.selectedAnswerIndex === null || vm.data.loading" 
+                        data-ng-disabled="vm.data.ukUserQuestionnaireForm.selectedAnswerIndex === null || vm.data.loading" 
                         data-ng-click="vm.handlers.setUkQuestionnaireAnswer()">
-                    {{ vm.data.ukUserQuestionnarieForm.isLastQuestion ? "Submit" : "Next" }}
+                    {{ vm.data.ukUserQuestionnaireForm.isLastQuestion ? "Submit" : "Next" }}
                 </button>                
             </div>
         </form>

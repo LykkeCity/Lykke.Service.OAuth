@@ -20,6 +20,9 @@
             selectedCountry: null,
             selectedCountryName: null,
             selectedPrefix: null,
+            ukUserQuestionnaire: {
+                investorType: null,
+            },
             step1Form: {
                 code: null,
                 result: true,
@@ -39,16 +42,32 @@
                 code: null,
                 isNotValidCode: false,
             },
-            ukUserQuestionnarieForm: {
+            ukUserQuestionnaireInvestorTypeForm: {
+                selectedAnswerIndex: 0
+            },
+            ukUserQuestionnaireSophisticatedInvestorStatementForm: {
+                selectedAnswerIndex: null,
+                authorisedFirmName: null,
+                date: null,
+                isSigned: false,
+                question: "Please confirm whether you qualify as a sophisticated investor on the basis that in the last three years you have received a certificate from an authorised firm confirming you understand the risks involved with high - risk investments.",
+                firmNameQuestion: "If yes, what is the name of the authorised firm?",
+                isFilled: () => {
+                    return !(vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex === null ||
+                        !vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isSigned ||
+                        (
+                            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex == 1 &&
+                            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.authorisedFirmName == null
+                        ));
+                }
+            },
+            ukUserQuestionnaireForm: {
                 currentQuestionnaireEntry: null,
                 currentQuestionIndex: 0,
                 selectedAnswerIndex: null,
                 answers: {},
                 answerIndexes: {}
-            },
-            ukUserQuestionnarieInvestorTypeForm: {
-                selectedAnswerIndex: 0
-            },
+            },            
             step4Form: {
                 phone: null,
                 code: null,
@@ -75,6 +94,8 @@
             beginUkQuestionnaire: beginUkQuestionnaire,
             ukQuestionnaireInvestorTypeBack: ukQuestionnaireInvestorTypeBack,
             setUkQuestionnaireInvestorTypeAnswer: setUkQuestionnaireInvestorTypeAnswer,
+            setUkQuestionnaireSophisticatedInvestorStatementAnswer: setUkQuestionnaireSophisticatedInvestorStatementAnswer,
+            ukQuestionnaireInvestorStatementBack: ukQuestionnaireInvestorStatementBack,
             setUkQuestionnaireAnswer: setUkQuestionnaireAnswer,
             ukQuestionnaireBack: ukQuestionnaireBack,
             resendCode: resendCode,
@@ -98,7 +119,7 @@
             HighNetWorthIndividual: "HighNetWorthIndividual"
         };
 
-        vm.ukUserQuestionnarie = {
+        vm.ukUserQuestionnaire = {
             "investorTypeClassificationAnswers": [
                 {
                     title: "Certified Sophisticated investor",
@@ -210,12 +231,19 @@
             vm.data.step1Form.resendCount = resendCount;
             vm.data.step5Form.affiliateCode = affiliateCode;
             vm.data.step1Form.countriesTask = getCountries();
-            vm.data.ukUserQuestionnarieForm.currentQuestionnaireEntry = vm.ukUserQuestionnarie.generalQuestions[0];
-            vm.data.ukUserQuestionnarieForm.currentQuestionIndex = 0;
-            vm.data.ukUserQuestionnarieForm.selectedAnswerIndex = null;
-            vm.data.ukUserQuestionnarieForm.answers = {};
-            vm.data.ukUserQuestionnarieForm.answerIndexes = {};
-            vm.data.ukUserQuestionnarieInvestorTypeForm.selectedAnswerIndex = null;
+
+            vm.data.ukUserQuestionnaireForm.currentQuestionnaireEntry = vm.ukUserQuestionnaire.generalQuestions[0];
+            vm.data.ukUserQuestionnaireForm.currentQuestionIndex = 0;
+            vm.data.ukUserQuestionnaireForm.selectedAnswerIndex = null;
+            vm.data.ukUserQuestionnaireForm.answers = {};
+            vm.data.ukUserQuestionnaireForm.answerIndexes = {};
+
+            vm.data.ukUserQuestionnaireInvestorTypeForm.selectedAnswerIndex = null;
+
+            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex = null;
+            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.authorisedFirmName = null;
+            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.date = new Date();
+            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isSigned = false;
         };
 
         function verifyEmail() {
@@ -348,8 +376,8 @@
 
         function beginUkQuestionnaire() {
 
-            if (!vm.data.model.ukUserQuestionnarie) {
-                vm.data.model.ukUserQuestionnarie = {};
+            if (!vm.data.model.ukUserQuestionnaire) {
+                vm.data.model.ukUserQuestionnaire = {};
             }
 
             setStep('ukQuestionnaireInvestorType');
@@ -361,62 +389,102 @@
 
         function setUkQuestionnaireInvestorTypeAnswer() {
 
-            let answerIndex = vm.data.ukUserQuestionnarieInvestorTypeForm.selectedAnswerIndex;
-            let answer = vm.ukUserQuestionnarie.investorTypeClassificationAnswers[answerIndex];
+            let answerIndex = vm.data.ukUserQuestionnaireInvestorTypeForm.selectedAnswerIndex;
+            let answer = vm.ukUserQuestionnaire.investorTypeClassificationAnswers[answerIndex];
 
-            vm.data.model.ukUserQuestionnarie.investorTypeAnswer = answer;
+            vm.data.ukUserQuestionnaire.investorType = answer.investorType;
+            vm.data.model.ukUserQuestionnaire.investorTypeAnswer = answer;
 
-            console.log(vm.data.model);
+            setStep('ukQuestionnaireInvestorStatement');
+        }
+
+        function setUkQuestionnaireSophisticatedInvestorStatementAnswer() {
+
+            let question = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.question;
+            let firmNameQuestion = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.firmNameQuestion;
+            let answerIndex = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex;
+            let firmName = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.authorisedFirmName;
+            let isSigned = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isSigned;
+            let date = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.date;
+            let statement = {
+                isSigned: isSigned,
+                date: date
+            };
+
+            switch (answerIndex) {
+                case 0:
+                    statement[question] = "No";
+                    break;
+
+                case 1:
+                    statement[question] = "Yes";
+                    statement[firmNameQuestion] = firmName;
+                    break;
+
+                case 2:
+                    statement[question] = "This does not apply to me.";
+                    break;
+
+                default:
+                    throw "Unknown answer: " + answerIndex;
+            }
+
+            vm.data.model.ukUserQuestionnaire.investorStatement = statement;
 
             setStep('ukQuestionnaire');
         }
 
+        function ukQuestionnaireInvestorStatementBack() {
+            setStep('ukQuestionnaireInvestorType');
+        }
+
         function setUkQuestionnaireAnswer() {
 
-            let questionIndex = vm.data.ukUserQuestionnarieForm.currentQuestionIndex;
+            let questionIndex = vm.data.ukUserQuestionnaireForm.currentQuestionIndex;
             let nextQuestionIndex = questionIndex + 1;
-            let questionnaireEntry = vm.ukUserQuestionnarie.generalQuestions[questionIndex];
+            let questionnaireEntry = vm.ukUserQuestionnaire.generalQuestions[questionIndex];
             let question = questionnaireEntry.question;
-            let answerIndex = vm.data.ukUserQuestionnarieForm.selectedAnswerIndex;
+            let answerIndex = vm.data.ukUserQuestionnaireForm.selectedAnswerIndex;
             let answer = questionnaireEntry.answers[answerIndex];
 
-            vm.data.ukUserQuestionnarieForm.answers[question] = answer;
-            vm.data.ukUserQuestionnarieForm.answerIndexes[questionIndex] = answerIndex;
-            vm.data.ukUserQuestionnarieForm.isLastQuestion = nextQuestionIndex == vm.ukUserQuestionnarie.generalQuestions.length - 1;
+            vm.data.ukUserQuestionnaireForm.answers[question] = answer;
+            vm.data.ukUserQuestionnaireForm.answerIndexes[questionIndex] = answerIndex;
+            vm.data.ukUserQuestionnaireForm.isLastQuestion = nextQuestionIndex == vm.ukUserQuestionnaire.generalQuestions.length - 1;
 
-            if (nextQuestionIndex < vm.ukUserQuestionnarie.generalQuestions.length) {
-                vm.data.ukUserQuestionnarieForm.currentQuestionIndex = nextQuestionIndex;
-                vm.data.ukUserQuestionnarieForm.currentQuestionnaireEntry = vm.ukUserQuestionnarie.generalQuestions[nextQuestionIndex];
-                if (vm.data.ukUserQuestionnarieForm.answerIndexes[nextQuestionIndex] === undefined) {
-                    vm.data.ukUserQuestionnarieForm.selectedAnswerIndex = null;
+            if (nextQuestionIndex < vm.ukUserQuestionnaire.generalQuestions.length) {
+                vm.data.ukUserQuestionnaireForm.currentQuestionIndex = nextQuestionIndex;
+                vm.data.ukUserQuestionnaireForm.currentQuestionnaireEntry = vm.ukUserQuestionnaire.generalQuestions[nextQuestionIndex];
+                if (vm.data.ukUserQuestionnaireForm.answerIndexes[nextQuestionIndex] === undefined) {
+                    vm.data.ukUserQuestionnaireForm.selectedAnswerIndex = null;
                 } else {
-                    vm.data.ukUserQuestionnarieForm.selectedAnswerIndex = vm.data.ukUserQuestionnarieForm.answerIndexes[nextQuestionIndex];
+                    vm.data.ukUserQuestionnaireForm.selectedAnswerIndex = vm.data.ukUserQuestionnaireForm.answerIndexes[nextQuestionIndex];
                 }            
             } else {
-                vm.data.model.ukUserQuestionnarie.generalAnswers = vm.data.ukUserQuestionnarieForm.answers;
+                vm.data.model.ukUserQuestionnaire.generalAnswers = vm.data.ukUserQuestionnaireForm.answers;
 
                 setStep(4);
             }
-        }
+        }        
 
         function ukQuestionnaireBack() {
 
-            if (vm.data.ukUserQuestionnarieForm.currentQuestionIndex == 0) {
+            if (vm.data.ukUserQuestionnaireForm.currentQuestionIndex == 0) {
+                setStep('ukQuestionnaireInvestorStatement');
                 return;
             }
 
-            let questionIndex = vm.data.ukUserQuestionnarieForm.currentQuestionIndex;
+            let questionIndex = vm.data.ukUserQuestionnaireForm.currentQuestionIndex;
             let nextQuestionIndex = questionIndex - 1;
 
-            vm.data.ukUserQuestionnarieForm.currentQuestionIndex = nextQuestionIndex;
-            vm.data.ukUserQuestionnarieForm.isLastQuestion = false;
+            vm.data.ukUserQuestionnaireForm.currentQuestionIndex = nextQuestionIndex;
+            vm.data.ukUserQuestionnaireForm.isLastQuestion = false;
 
-            vm.data.ukUserQuestionnarieForm.currentQuestionnaireEntry = vm.ukUserQuestionnarie.generalQuestions[nextQuestionIndex];
+            vm.data.ukUserQuestionnaireForm.currentQuestionnaireEntry = vm.ukUserQuestionnaire.generalQuestions[nextQuestionIndex];
 
-            if (vm.data.ukUserQuestionnarieForm.answerIndexes[nextQuestionIndex] === undefined) {
-                vm.data.ukUserQuestionnarieForm.selectedAnswerIndex = null;
+            if (vm.data.ukUserQuestionnaireForm.answerIndexes[nextQuestionIndex] === undefined) {
+                vm.data.ukUserQuestionnaireForm.selectedAnswerIndex = null;
             } else {
-                vm.data.ukUserQuestionnarieForm.selectedAnswerIndex = vm.data.ukUserQuestionnarieForm.answerIndexes[nextQuestionIndex];
+                vm.data.ukUserQuestionnaireForm.selectedAnswerIndex = vm.data.ukUserQuestionnaireForm.answerIndexes[nextQuestionIndex];
             }            
         }
 

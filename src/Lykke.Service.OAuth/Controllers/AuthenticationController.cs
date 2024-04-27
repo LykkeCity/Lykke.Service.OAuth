@@ -690,9 +690,9 @@ namespace WebAuth.Controllers
             await HttpContext.SignInAsync(OpenIdConnectConstantsExt.Auth.DefaultScheme,
                 new ClaimsPrincipal(identity));
 
-            if (model.UkUserQuestionnarie != null)
+            if (model.UkUserQuestionnaire != null)
             {
-                var ukUserQuestionnaireJson = JsonConvert.SerializeObject(model.UkUserQuestionnarie, Formatting.Indented);
+                var ukUserQuestionnaireJson = JsonConvert.SerializeObject(model.UkUserQuestionnaire, Formatting.Indented);
                 var ukUserQuestionnaireJsonBytes = Encoding.UTF8.GetBytes(ukUserQuestionnaireJson);
                     
                 await _kycDocumentsService.UploadFileAsync(
