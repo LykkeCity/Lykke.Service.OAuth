@@ -45,19 +45,18 @@
             ukUserQuestionnaireInvestorTypeForm: {
                 selectedAnswerIndex: 0
             },
-            ukUserQuestionnaireSophisticatedInvestorStatementForm: {
+            ukUserQuestionnaireSISForm: {
                 selectedAnswerIndex: null,
                 authorisedFirmName: null,
                 date: null,
                 isSigned: false,
-                question: "Please confirm whether you qualify as a sophisticated investor on the basis that in the last three years you have received a certificate from an authorised firm confirming you understand the risks involved with high - risk investments.",
-                firmNameQuestion: "If yes, what is the name of the authorised firm?",
+                firmNameQuestion: "",
                 isFilled: () => {
-                    return !(vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex === null ||
-                        !vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isSigned ||
+                    return !(vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex === null ||
+                        !vm.data.ukUserQuestionnaireSISForm.isSigned ||
                         (
-                            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex == 1 &&
-                            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.authorisedFirmName == null
+                            vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex == 1 &&
+                            vm.data.ukUserQuestionnaireSISForm.authorisedFirmName == null
                         ));
                 }
             },
@@ -94,7 +93,7 @@
             beginUkQuestionnaire: beginUkQuestionnaire,
             ukQuestionnaireInvestorTypeBack: ukQuestionnaireInvestorTypeBack,
             setUkQuestionnaireInvestorTypeAnswer: setUkQuestionnaireInvestorTypeAnswer,
-            setUkQuestionnaireSophisticatedInvestorStatementAnswer: setUkQuestionnaireSophisticatedInvestorStatementAnswer,
+            setUkQuestionnaireSISAnswer: setUkQuestionnaireSISAnswer,
             ukQuestionnaireInvestorStatementBack: ukQuestionnaireInvestorStatementBack,
             setUkQuestionnaireAnswer: setUkQuestionnaireAnswer,
             ukQuestionnaireBack: ukQuestionnaireBack,
@@ -240,10 +239,10 @@
 
             vm.data.ukUserQuestionnaireInvestorTypeForm.selectedAnswerIndex = null;
 
-            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex = null;
-            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.authorisedFirmName = null;
-            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.date = new Date();
-            vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isSigned = false;
+            vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex = null;
+            vm.data.ukUserQuestionnaireSISForm.authorisedFirmName = null;
+            vm.data.ukUserQuestionnaireSISForm.date = new Date();
+            vm.data.ukUserQuestionnaireSISForm.isSigned = false;
         };
 
         function verifyEmail() {
@@ -398,14 +397,14 @@
             setStep('ukQuestionnaireInvestorStatement');
         }
 
-        function setUkQuestionnaireSophisticatedInvestorStatementAnswer() {
+        function setUkQuestionnaireSISAnswer() {
 
-            let question = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.question;
-            let firmNameQuestion = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.firmNameQuestion;
-            let answerIndex = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex;
-            let firmName = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.authorisedFirmName;
-            let isSigned = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isSigned;
-            let date = vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.date;
+            var question = angular.element('#ukUserQuestionnaireSISForm_Question').html();
+            var yesExtraQuestion = angular.element("#ukUserQuestionnaireSISForm_YesExtraQuestion").html();
+            let answerIndex = vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex;
+            let firmName = vm.data.ukUserQuestionnaireSISForm.authorisedFirmName;
+            let isSigned = vm.data.ukUserQuestionnaireSISForm.isSigned;
+            let date = vm.data.ukUserQuestionnaireSISForm.date;
             let statement = {
                 isSigned: isSigned,
                 date: date
@@ -418,7 +417,7 @@
 
                 case 1:
                     statement[question] = "Yes";
-                    statement[firmNameQuestion] = firmName;
+                    statement[yesExtraQuestion] = firmName;
                     break;
 
                 case 2:

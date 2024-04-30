@@ -232,43 +232,48 @@
             <span class="hint_accent">Additional questionnaire for UK users. SOPHISTICATED INVESTOR STATEMENT</span>
             <h4>UK users questionnaire</h4>
             
-            <form name="vm.ukUserQuestionnaireForm" class="form form_register" novalidate autocomplete="off">
+            <form name="vm.ukUserQuestionnaireSISForm" class="form form_register" novalidate autocomplete="off">
 
                 <div class="form-group">
                     <div class="input-group">
-                        <p>
-                            {{ vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.question }}
+                        <p id="ukUserQuestionnaireSISForm_Question">
+                            Please confirm whether you qualify as a sophisticated investor on the basis that in the last 
+                            three years you have received a certificate from an authorised firm confirming you understand 
+                            the risks involved with high - risk investments.
                         </p>
 
                         <div class="row form-check">
                             <div class="col-xs-1">
                                 <input class="form-check-input"
-                                       id="ukUserQuestionnaireSophisticatedInvestorStatementForm_No"
-                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_No"
+                                       id="ukUserQuestionnaireSISForm_No"
+                                       name="ukUserQuestionnaireSISForm_No"
                                        type="radio"
                                        data-ng-value="0"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex" />
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
                             </div>
                             <div class="col-xs-11">
-                                <label class="form-check-label" for="ukUserQuestionnaireSophisticatedInvestorStatementForm_No">No</label>
+                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_No">No</label>
                             </div>
                         </div>
 
                         <div class="row form-check">
                             <div class="col-xs-1">
                                 <input class="form-check-input"
-                                       id="ukUserQuestionnaireSophisticatedInvestorStatementForm_Yes"
-                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_Yes"
+                                       id="ukUserQuestionnaireSISForm_Yes"
+                                       name="ukUserQuestionnaireSISForm_Yes"
                                        type="radio"
                                        data-ng-value="1"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex" />
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
                             </div>
                             <div class="col-xs-11">
-                                <label class="form-check-label" for="ukUserQuestionnaireSophisticatedInvestorStatementForm_Yes">Yes</label>
+                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_Yes">Yes</label>
                             </div>
                         </div>
 
-                        <p class="mt-1rem">{{ vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.firmNameQuestion }}</p>
+                        <p id="ukUserQuestionnaireSISForm_YesExtraQuestion"
+                           class="mt-1rem">
+                            If yes, what is the name of the authorised firm?
+                        </p>
 
                         <div class="row form-check">
                             <div class="col-xs-12">
@@ -276,10 +281,10 @@
                                 <input type="text" 
                                        class="form-control"
                                        placeholder="Firm name" 
-                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_AuthorisedFirmName"
-                                       data-ng-required="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex == 1"
-                                       data-ng-disabled="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex != 1"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.authorisedFirmName" />
+                                       name="ukUserQuestionnaireSISForm_AuthorisedFirmName"
+                                       data-ng-required="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex == 1"
+                                       data-ng-disabled="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex != 1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.authorisedFirmName" />
                             </div>
                         </div>                      
 
@@ -288,27 +293,27 @@
                         <div class="row form-check">
                             <div class="col-xs-1">                                
                                 <input class="form-check-input"
-                                       id="ukUserQuestionnaireSophisticatedInvestorStatementForm_DoesntApply"
-                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_DoesntApply"
+                                       id="ukUserQuestionnaireSISForm_DoesntApply"
+                                       name="ukUserQuestionnaireSISForm_DoesntApply"
                                        type="radio"
                                        data-ng-value="2"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.selectedAnswerIndex" />
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
                             </div>
                             <div class="col-xs-11">
-                                <label class="form-check-label" for="ukUserQuestionnaireSophisticatedInvestorStatementForm_DoesntApply">This does not apply to me.</label>
+                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_DoesntApply">This does not apply to me.</label>
                             </div>
                         </div>
 
                         <div class="row form-check mt-2rem">
                             <div class="col-xs-1">
                                 <input class="form-check-input"
-                                       id="ukUserQuestionnaireSophisticatedInvestorStatementForm_Signature"
-                                       name="ukUserQuestionnaireSophisticatedInvestorStatementForm_Signature"
+                                       id="ukUserQuestionnaireSISForm_Signature"
+                                       name="ukUserQuestionnaireSISForm_Signature"
                                        type="checkbox"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isSigned" />
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.isSigned" />
                             </div>
                             <div class="col-xs-11">
-                                <label class="form-check-label" for="ukUserQuestionnaireSophisticatedInvestorStatementForm_Signature">
+                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_Signature">
                                     I accept that being a sophisticated investor will expose me to promotions for investment where there is a
                                     significant risk of losing all the money I invest. I am aware that it is open to me to seek professional
                                     advice before making any investment in a high-risk investment.
@@ -316,7 +321,121 @@
                             </div>
                         </div>
 
-                        <p class="mt-1rem">Date: {{ vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.date.toLocaleDateString() }}</p>
+                        <p class="mt-1rem">Date: {{ vm.data.ukUserQuestionnaireSISForm.date.toLocaleDateString() }}</p>
+
+                    </div>
+                </div>
+
+                <div class="submit-group">
+                    <button class="btn btn--brand btn-block"
+                            type="submit"
+                            data-ng-class="{'btn_loading': vm.data.loading}"
+                            data-ng-disabled="vm.data.loading"
+                            data-ng-click="console.log('hi')">
+                            @*data-ng-click="vm.handlers.ukQuestionnaireInvestorStatementBack()">*@
+                        Back
+                    </button>
+                    <button class="btn btn--brand btn-block"
+                            style="margin-top: 0px;"
+                            type="submit"
+                            data-ng-class="{'btn_loading': vm.data.loading}"
+                            data-ng-disabled="!vm.data.ukUserQuestionnaireSISForm.isFilled() || vm.data.loading"
+                            data-ng-click="vm.handlers.setUkQuestionnaireSISAnswer()">
+                        Next
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        @*<div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'SelfCertifiedSophisticated'">
+            <span class="hint_accent">Additional questionnaire for UK users. SELF-CERTIFIED SOPHISTICATED INVESTOR STATEMENT</span>
+            <h4>UK users questionnaire</h4>
+            
+            <form name="vm.ukUserQuestionnaireSCSISForm" class="form form_register" novalidate autocomplete="off">
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <p>
+                            {{ vm.data.ukUserQuestionnaireSCSISForm.question }}
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSISForm_No"
+                                       name="ukUserQuestionnaireSISForm_No"
+                                       type="radio"
+                                       data-ng-value="0"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_No">No</label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSISForm_Yes"
+                                       name="ukUserQuestionnaireSISForm_Yes"
+                                       type="radio"
+                                       data-ng-value="1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_Yes">Yes</label>
+                            </div>
+                        </div>
+
+                        <p class="mt-1rem">{{ vm.data.ukUserQuestionnaireSISForm.firmNameQuestion }}</p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-12">
+                                
+                                <input type="text" 
+                                       class="form-control"
+                                       placeholder="Firm name" 
+                                       name="ukUserQuestionnaireSISForm_AuthorisedFirmName"
+                                       data-ng-required="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex == 1"
+                                       data-ng-disabled="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex != 1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.authorisedFirmName" />
+                            </div>
+                        </div>                      
+
+                        <p class="mt-1rem">OR</p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">                                
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSISForm_DoesntApply"
+                                       name="ukUserQuestionnaireSISForm_DoesntApply"
+                                       type="radio"
+                                       data-ng-value="2"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_DoesntApply">This does not apply to me.</label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check mt-2rem">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSISForm_Signature"
+                                       name="ukUserQuestionnaireSISForm_Signature"
+                                       type="checkbox"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.isSigned" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_Signature">
+                                    I accept that being a sophisticated investor will expose me to promotions for investment where there is a
+                                    significant risk of losing all the money I invest. I am aware that it is open to me to seek professional
+                                    advice before making any investment in a high-risk investment.
+                                </label>
+                            </div>
+                        </div>
+
+                        <p class="mt-1rem">Date: {{ vm.data.ukUserQuestionnaireSISForm.date.toLocaleDateString() }}</p>
 
                     </div>
                 </div>
@@ -333,17 +452,13 @@
                             style="margin-top: 0px;"
                             type="submit"
                             data-ng-class="{'btn_loading': vm.data.loading}"
-                            data-ng-disabled="!vm.data.ukUserQuestionnaireSophisticatedInvestorStatementForm.isFilled() || vm.data.loading"
-                            data-ng-click="vm.handlers.setUkQuestionnaireSophisticatedInvestorStatementAnswer()">
+                            data-ng-disabled="!vm.data.ukUserQuestionnaireSISForm.isFilled() || vm.data.loading"
+                            data-ng-click="vm.handlers.setUkQuestionnaireSISAnswer()">
                         Next
                     </button>
                 </div>
             </form>
-        </div>
-
-        <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'SelfCertifiedSophisticated'">
-            SelfCertifiedSophisticated
-        </div>
+        </div>*@
         <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'Restricted'">
             Restricted
         </div>
