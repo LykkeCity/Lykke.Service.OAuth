@@ -281,142 +281,12 @@
                                 <input type="text" 
                                        class="form-control"
                                        placeholder="Firm name" 
-                                       name="ukUserQuestionnaireSISForm_AuthorisedFirmName"
+                                       name="ukUserQuestionnaireSISForm_YesExtraAnswer"
                                        data-ng-required="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex == 1"
                                        data-ng-disabled="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex != 1"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.authorisedFirmName" />
+                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.yesExtraAnswer" />
                             </div>
                         </div>                      
-
-                        <p class="mt-1rem">OR</p>
-
-                        <div class="row form-check">
-                            <div class="col-xs-1">                                
-                                <input class="form-check-input"
-                                       id="ukUserQuestionnaireSISForm_DoesntApply"
-                                       name="ukUserQuestionnaireSISForm_DoesntApply"
-                                       type="radio"
-                                       data-ng-value="2"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
-                            </div>
-                            <div class="col-xs-11">
-                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_DoesntApply">This does not apply to me.</label>
-                            </div>
-                        </div>
-
-                        <div class="row form-check mt-2rem">
-                            <div class="col-xs-1">
-                                <input class="form-check-input"
-                                       id="ukUserQuestionnaireSISForm_Signature"
-                                       name="ukUserQuestionnaireSISForm_Signature"
-                                       type="checkbox"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.isSigned" />
-                            </div>
-                            <div class="col-xs-11">
-                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_Signature">
-                                    I accept that being a sophisticated investor will expose me to promotions for investment where there is a
-                                    significant risk of losing all the money I invest. I am aware that it is open to me to seek professional
-                                    advice before making any investment in a high-risk investment.
-                                </label>
-                            </div>
-                        </div>
-
-                        <p class="mt-1rem">Date: {{ vm.data.ukUserQuestionnaireSISForm.date.toLocaleDateString() }}</p>
-
-                    </div>
-                </div>
-
-                <div class="submit-group">
-                    <button class="btn btn--brand btn-block"
-                            type="submit"
-                            data-ng-class="{'btn_loading': vm.data.loading}"
-                            data-ng-disabled="vm.data.loading"
-                            data-ng-click="console.log('hi')">
-                            @*data-ng-click="vm.handlers.ukQuestionnaireInvestorStatementBack()">*@
-                        Back
-                    </button>
-                    <button class="btn btn--brand btn-block"
-                            style="margin-top: 0px;"
-                            type="submit"
-                            data-ng-class="{'btn_loading': vm.data.loading}"
-                            data-ng-disabled="!vm.data.ukUserQuestionnaireSISForm.isFilled() || vm.data.loading"
-                            data-ng-click="vm.handlers.setUkQuestionnaireSISAnswer()">
-                        Next
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        @*<div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'SelfCertifiedSophisticated'">
-            <span class="hint_accent">Additional questionnaire for UK users. SELF-CERTIFIED SOPHISTICATED INVESTOR STATEMENT</span>
-            <h4>UK users questionnaire</h4>
-            
-            <form name="vm.ukUserQuestionnaireSCSISForm" class="form form_register" novalidate autocomplete="off">
-
-                <div class="form-group">
-                    <div class="input-group">
-                        <p>
-                            {{ vm.data.ukUserQuestionnaireSCSISForm.question }}
-                        </p>
-
-                        <div class="row form-check">
-                            <div class="col-xs-1">
-                                <input class="form-check-input"
-                                       id="ukUserQuestionnaireSISForm_No"
-                                       name="ukUserQuestionnaireSISForm_No"
-                                       type="radio"
-                                       data-ng-value="0"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
-                            </div>
-                            <div class="col-xs-11">
-                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_No">No</label>
-                            </div>
-                        </div>
-
-                        <div class="row form-check">
-                            <div class="col-xs-1">
-                                <input class="form-check-input"
-                                       id="ukUserQuestionnaireSISForm_Yes"
-                                       name="ukUserQuestionnaireSISForm_Yes"
-                                       type="radio"
-                                       data-ng-value="1"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
-                            </div>
-                            <div class="col-xs-11">
-                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_Yes">Yes</label>
-                            </div>
-                        </div>
-
-                        <p class="mt-1rem">{{ vm.data.ukUserQuestionnaireSISForm.firmNameQuestion }}</p>
-
-                        <div class="row form-check">
-                            <div class="col-xs-12">
-                                
-                                <input type="text" 
-                                       class="form-control"
-                                       placeholder="Firm name" 
-                                       name="ukUserQuestionnaireSISForm_AuthorisedFirmName"
-                                       data-ng-required="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex == 1"
-                                       data-ng-disabled="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex != 1"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.authorisedFirmName" />
-                            </div>
-                        </div>                      
-
-                        <p class="mt-1rem">OR</p>
-
-                        <div class="row form-check">
-                            <div class="col-xs-1">                                
-                                <input class="form-check-input"
-                                       id="ukUserQuestionnaireSISForm_DoesntApply"
-                                       name="ukUserQuestionnaireSISForm_DoesntApply"
-                                       type="radio"
-                                       data-ng-value="2"
-                                       data-ng-model="vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex" />
-                            </div>
-                            <div class="col-xs-11">
-                                <label class="form-check-label" for="ukUserQuestionnaireSISForm_DoesntApply">This does not apply to me.</label>
-                            </div>
-                        </div>
 
                         <div class="row form-check mt-2rem">
                             <div class="col-xs-1">
@@ -458,7 +328,266 @@
                     </button>
                 </div>
             </form>
-        </div>*@
+        </div>
+
+        <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'SelfCertifiedSophisticated'">
+            <span class="hint_accent">Additional questionnaire for UK users. SELF-CERTIFIED SOPHISTICATED INVESTOR STATEMENT</span>
+            <h4>UK users questionnaire</h4>
+            
+            <form name="vm.ukUserQuestionnaireSCSISForm" class="form form_register" novalidate autocomplete="off">
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <div id="ukUserQuestionnaireSCSISForm_GeneralQuestion">
+                            <p>
+                                Please confirm whether you qualify as a self-certified sophisticated investor on the basis that A, B, C or D apply to you.
+                            </p>
+                            <p>
+                                In the last two years have you:
+                            </p>
+                        </div>
+
+                        <p id="ukUserQuestionnaireSCSISForm_AQuestion">
+                            A) worked in private equity or in the provision of finance for small and medium enterprises?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSCSISForm_ANo"
+                                       name="ukUserQuestionnaireSCSISForm_ANo"
+                                       type="radio"
+                                       data-ng-value="0"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.aSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSCSISForm_ANo">No</label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSCSISForm_AYes"
+                                       name="ukUserQuestionnaireSCSISForm_AYes"
+                                       type="radio"
+                                       data-ng-value="1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.aSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSCSISForm_AYes">Yes</label>
+                            </div>
+                        </div>
+
+                        <p id="ukUserQuestionnaireSCSISForm_AYesExtraQuestion"
+                           class="mt-1rem">
+                            If yes, what is the name of the business or organization?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-12">                                
+                                <input type="text" 
+                                       class="form-control"
+                                       placeholder="Firm name" 
+                                       name="ukUserQuestionnaireSCSISForm_AYesExtraAnswer"
+                                       data-ng-required="vm.data.ukUserQuestionnaireSCSISForm.aSelectedAnswerIndex == 1"
+                                       data-ng-disabled="vm.data.ukUserQuestionnaireSCSISForm.aSelectedAnswerIndex != 1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.aYesExtraAnswer" />
+                            </div>
+                        </div>
+
+                        <p id="ukUserQuestionnaireSCSISForm_BQuestion"
+                           class="mt-2rem">
+                            B) been the director of a company with an annual turnover of at least GBP 1 million?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSCSISForm_BNo"
+                                       name="ukUserQuestionnaireSCSISForm_BNo"
+                                       type="radio"
+                                       data-ng-value="0"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.bSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSCSISForm_BNo">No</label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSCSISForm_BYes"
+                                       name="ukUserQuestionnaireSCSISForm_BYes"
+                                       type="radio"
+                                       data-ng-value="1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.bSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSCSISForm_BYes">Yes</label>
+                            </div>
+                        </div>
+
+                        <p id="ukUserQuestionnaireSCSISForm_BYesExtraQuestion"
+                           class="mt-1rem">
+                            If yes, what is the name of the company?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-12">
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="Firm name"
+                                       name="ukUserQuestionnaireSCSISForm_BYesExtraAnswer"
+                                       data-ng-required="vm.data.ukUserQuestionnaireSCSISForm.bSelectedAnswerIndex == 1"
+                                       data-ng-disabled="vm.data.ukUserQuestionnaireSCSISForm.bSelectedAnswerIndex != 1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.bYesExtraAnswer" />
+                            </div>
+                        </div>
+
+                        <p id="ukUserQuestionnaireSCSISForm_CQuestion"
+                           class="mt-2rem">
+                            C) made two or more investments in an unlisted company?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSCSISForm_CNo"
+                                       name="ukUserQuestionnaireSCSISForm_CNo"
+                                       type="radio"
+                                       data-ng-value="0"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.cSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSCSISForm_CNo">No</label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSCSISForm_CYes"
+                                       name="ukUserQuestionnaireSCSISForm_CYes"
+                                       type="radio"
+                                       data-ng-value="1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.cSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSCSISForm_CYes">Yes</label>
+                            </div>
+                        </div>
+
+                        <p id="ukUserQuestionnaireSCSISForm_CYesExtraQuestion"
+                           class="mt-1rem">
+                            If yes, how many investments in unlisted companies have you made in the last two years?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-12">
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="Firm name"
+                                       name="ukUserQuestionnaireSCSISForm_CYesExtraAnswer"
+                                       data-ng-required="vm.data.ukUserQuestionnaireSCSISForm.cSelectedAnswerIndex == 1"
+                                       data-ng-disabled="vm.data.ukUserQuestionnaireSCSISForm.cSelectedAnswerIndex != 1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.cYesExtraAnswer" />
+                            </div>
+                        </div>
+
+                        <p id="ukUserQuestionnaireSCSISForm_DQuestion"
+                           class="mt-2rem">
+                            D) been a member of a network or syndicate of business angels for more than six months?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSCSISForm_DNo"
+                                       name="ukUserQuestionnaireSCSISForm_DNo"
+                                       type="radio"
+                                       data-ng-value="0"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.dSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSCSISForm_DNo">No</label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSCSISForm_DYes"
+                                       name="ukUserQuestionnaireSCSISForm_DYes"
+                                       type="radio"
+                                       data-ng-value="1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.dSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSCSISForm_DYes">Yes</label>
+                            </div>
+                        </div>
+
+                        <p id="ukUserQuestionnaireSCSISForm_DYesExtraQuestion"
+                           class="mt-1rem">
+                            If yes, what is the name of the network or syndicate?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-12">
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="Firm name"
+                                       name="ukUserQuestionnaireSCSISForm_DYesExtraAnswer"
+                                       data-ng-required="vm.data.ukUserQuestionnaireSCSISForm.dSelectedAnswerIndex == 1"
+                                       data-ng-disabled="vm.data.ukUserQuestionnaireSCSISForm.dSelectedAnswerIndex != 1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.dYesExtraAnswer" />
+                            </div>
+                        </div>
+
+                        <div class="row form-check mt-2rem">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireSCSISForm_Signature"
+                                       name="ukUserQuestionnaireSCSISForm_Signature"
+                                       type="checkbox"
+                                       data-ng-model="vm.data.ukUserQuestionnaireSCSISForm.isSigned" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireSCSISForm_Signature">
+                                    I accept that being a sophisticated investor will expose me to promotions for investment 
+                                    where there is a significant risk of losing all the money I invest. I am aware that it is 
+                                    open to me to seek professional advice before making any investment in a high-risk investment.
+                                </label>
+                            </div>
+                        </div>
+
+                        <p class="mt-1rem">Date: {{ vm.data.ukUserQuestionnaireSCSISForm.date.toLocaleDateString() }}</p>
+
+                    </div>
+                </div>
+
+                <div class="submit-group">
+                    <button class="btn btn--brand btn-block"
+                            type="submit"
+                            data-ng-class="{'btn_loading': vm.data.loading}"
+                            data-ng-disabled="vm.data.loading"
+                            data-ng-click="vm.handlers.ukQuestionnaireInvestorStatementBack()">
+                        Back
+                    </button>
+                    <button class="btn btn--brand btn-block"
+                            style="margin-top: 0px;"
+                            type="submit"
+                            data-ng-class="{'btn_loading': vm.data.loading}"
+                            data-ng-disabled="!vm.data.ukUserQuestionnaireSCSISForm.isFilled() || vm.data.loading"
+                            data-ng-click="vm.handlers.setUkQuestionnaireSCSISAnswer()">
+                        Next
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'Restricted'">
             Restricted
         </div>

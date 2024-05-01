@@ -47,17 +47,46 @@
             },
             ukUserQuestionnaireSISForm: {
                 selectedAnswerIndex: null,
-                authorisedFirmName: null,
+                yesExtraAnswer: null,
                 date: null,
                 isSigned: false,
-                firmNameQuestion: "",
                 isFilled: () => {
-                    return !(vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex === null ||
-                        !vm.data.ukUserQuestionnaireSISForm.isSigned ||
+                    return vm.data.ukUserQuestionnaireSISForm.isSigned &&
+                        vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex == 1 &&
+                        vm.data.ukUserQuestionnaireSISForm.yesExtraAnswer != null &&
+                        vm.data.ukUserQuestionnaireSISForm.yesExtraAnswer.length > 0;
+                }
+            },
+            ukUserQuestionnaireSCSISForm: {
+                aSelectedAnswerIndex: null,
+                bSelectedAnswerIndex: null,
+                cSelectedAnswerIndex: null,
+                dSelectedAnswerIndex: null,
+                aYesExtraAnswer: null,
+                bYesExtraAnswer: null,
+                cYesExtraAnswer: null,
+                dYesExtraAnswer: null,
+                date: null,
+                isSigned: false,
+                isFilled: () => {
+                    return vm.data.ukUserQuestionnaireSCSISForm.isSigned &&
                         (
-                            vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex == 1 &&
-                            vm.data.ukUserQuestionnaireSISForm.authorisedFirmName == null
-                        ));
+                            vm.data.ukUserQuestionnaireSCSISForm.aSelectedAnswerIndex == 1 &&
+                            vm.data.ukUserQuestionnaireSCSISForm.aYesExtraAnswer != null &&
+                            vm.data.ukUserQuestionnaireSCSISForm.aYesExtraAnswer.length > 0 ||
+
+                            vm.data.ukUserQuestionnaireSCSISForm.bSelectedAnswerIndex == 1 &&
+                            vm.data.ukUserQuestionnaireSCSISForm.bYesExtraAnswer != null &&
+                            vm.data.ukUserQuestionnaireSCSISForm.bYesExtraAnswer.length > 0 ||
+
+                            vm.data.ukUserQuestionnaireSCSISForm.cSelectedAnswerIndex == 1 &&
+                            vm.data.ukUserQuestionnaireSCSISForm.cYesExtraAnswer != null &&
+                            vm.data.ukUserQuestionnaireSCSISForm.cYesExtraAnswer.length > 0 ||
+
+                            vm.data.ukUserQuestionnaireSCSISForm.dSelectedAnswerIndex == 1 &&
+                            vm.data.ukUserQuestionnaireSCSISForm.dYesExtraAnswer != null &&
+                            vm.data.ukUserQuestionnaireSCSISForm.dYesExtraAnswer.length > 0
+                        );
                 }
             },
             ukUserQuestionnaireForm: {
@@ -94,6 +123,7 @@
             ukQuestionnaireInvestorTypeBack: ukQuestionnaireInvestorTypeBack,
             setUkQuestionnaireInvestorTypeAnswer: setUkQuestionnaireInvestorTypeAnswer,
             setUkQuestionnaireSISAnswer: setUkQuestionnaireSISAnswer,
+            setUkQuestionnaireSCSISAnswer: setUkQuestionnaireSCSISAnswer,
             ukQuestionnaireInvestorStatementBack: ukQuestionnaireInvestorStatementBack,
             setUkQuestionnaireAnswer: setUkQuestionnaireAnswer,
             ukQuestionnaireBack: ukQuestionnaireBack,
@@ -240,9 +270,20 @@
             vm.data.ukUserQuestionnaireInvestorTypeForm.selectedAnswerIndex = null;
 
             vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex = null;
-            vm.data.ukUserQuestionnaireSISForm.authorisedFirmName = null;
+            vm.data.ukUserQuestionnaireSISForm.yesExtraAnswer = null;
             vm.data.ukUserQuestionnaireSISForm.date = new Date();
             vm.data.ukUserQuestionnaireSISForm.isSigned = false;
+
+            vm.data.ukUserQuestionnaireSCSISForm.aSelectedAnswerIndex = null;
+            vm.data.ukUserQuestionnaireSCSISForm.aYesExtraAnswer = null;
+            vm.data.ukUserQuestionnaireSCSISForm.bSelectedAnswerIndex = null;
+            vm.data.ukUserQuestionnaireSCSISForm.bYesExtraAnswer = null;
+            vm.data.ukUserQuestionnaireSCSISForm.cSelectedAnswerIndex = null;
+            vm.data.ukUserQuestionnaireSCSISForm.cYesExtraAnswer = null;
+            vm.data.ukUserQuestionnaireSCSISForm.dSelectedAnswerIndex = null;
+            vm.data.ukUserQuestionnaireSCSISForm.dYesExtraAnswer = null;
+            vm.data.ukUserQuestionnaireSCSISForm.date = new Date();
+            vm.data.ukUserQuestionnaireSCSISForm.isSigned = false;
         };
 
         function verifyEmail() {
@@ -402,7 +443,7 @@
             var question = angular.element('#ukUserQuestionnaireSISForm_Question').html();
             var yesExtraQuestion = angular.element("#ukUserQuestionnaireSISForm_YesExtraQuestion").html();
             let answerIndex = vm.data.ukUserQuestionnaireSISForm.selectedAnswerIndex;
-            let firmName = vm.data.ukUserQuestionnaireSISForm.authorisedFirmName;
+            let yesExtraAnswer = vm.data.ukUserQuestionnaireSISForm.yesExtraAnswer;
             let isSigned = vm.data.ukUserQuestionnaireSISForm.isSigned;
             let date = vm.data.ukUserQuestionnaireSISForm.date;
             let statement = {
@@ -417,15 +458,69 @@
 
                 case 1:
                     statement[question] = "Yes";
-                    statement[yesExtraQuestion] = firmName;
-                    break;
-
-                case 2:
-                    statement[question] = "This does not apply to me.";
+                    statement[yesExtraQuestion] = yesExtraAnswer;
                     break;
 
                 default:
                     throw "Unknown answer: " + answerIndex;
+            }
+
+            vm.data.model.ukUserQuestionnaire.investorStatement = statement;
+
+            setStep('ukQuestionnaire');
+        }
+
+        function setUkQuestionnaireSCSISAnswer() {
+
+            var generalQuestion = angular.element('#ukUserQuestionnaireSCSISForm_GeneralQuestion').html();
+            var questions = [
+                angular.element("#ukUserQuestionnaireSCSISForm_AQuestion").html(),
+                angular.element("#ukUserQuestionnaireSCSISForm_BQuestion").html(),
+                angular.element("#ukUserQuestionnaireSCSISForm_CQuestion").html(),
+                angular.element("#ukUserQuestionnaireSCSISForm_DQuestion").html()];
+            var yesExtraQuestions = [
+                angular.element("#ukUserQuestionnaireSCSISForm_AYesExtraQuestion").html(),
+                angular.element("#ukUserQuestionnaireSCSISForm_BYesExtraQuestion").html(),
+                angular.element("#ukUserQuestionnaireSCSISForm_CYesExtraQuestion").html(),
+                angular.element("#ukUserQuestionnaireSCSISForm_DYesExtraQuestion").html()];
+            let answerIndexes = [
+                vm.data.ukUserQuestionnaireSCSISForm.aSelectedAnswerIndex,
+                vm.data.ukUserQuestionnaireSCSISForm.bSelectedAnswerIndex,
+                vm.data.ukUserQuestionnaireSCSISForm.cSelectedAnswerIndex,
+                vm.data.ukUserQuestionnaireSCSISForm.dSelectedAnswerIndex];
+            let yesExtraAnswers = [
+                vm.data.ukUserQuestionnaireSCSISForm.aYesExtraAnswer,
+                vm.data.ukUserQuestionnaireSCSISForm.bYesExtraAnswer,
+                vm.data.ukUserQuestionnaireSCSISForm.cYesExtraAnswer,
+                vm.data.ukUserQuestionnaireSCSISForm.dYesExtraAnswer];
+            let isSigned = vm.data.ukUserQuestionnaireSCSISForm.isSigned;
+            let date = vm.data.ukUserQuestionnaireSCSISForm.date;
+            let statement = {
+                generalQuestion: generalQuestion,
+                isSigned: isSigned,
+                date: date
+            };
+
+            for (var i = 0; i < questions.length; ++i) {
+
+                let question = questions[i];
+                let answerIndex = answerIndexes[i];
+                let yesExtraQuestion = yesExtraQuestions[i];
+                let yesExtraAnswer = yesExtraAnswers[i];
+
+                switch (answerIndex) {
+                    case 0:
+                        statement[question] = "No";
+                        break;
+
+                    case 1:
+                        statement[question] = "Yes";
+                        statement[yesExtraQuestion] = yesExtraAnswer;
+                        break;
+
+                    default:
+                        throw "Unknown answer: " + answerIndex + " question index:" + i;
+                }
             }
 
             vm.data.model.ukUserQuestionnaire.investorStatement = statement;
