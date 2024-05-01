@@ -589,7 +589,199 @@
         </div>
 
         <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'Restricted'">
-            Restricted
+            <span class="hint_accent">Additional questionnaire for UK users. RESTRICTED INVESTOR STATEMENT</span>
+            <h4>UK users questionnaire</h4>
+            
+            <form name="vm.ukUserQuestionnaireRISForm" class="form form_register" novalidate autocomplete="off">
+
+                <div class="form-group">
+                    <div class="input-group">
+                        <div id="ukUserQuestionnaireRISForm_GeneralQuestion">
+                            <p>
+                                Putting all your money into a single business or type of investment is risky.
+                                Spreading your money across different investments makes you less dependent on any one to do well.
+                            </p>
+                            <p>
+                                You should not invest more than 10% of your net assets in high-risk investments. 
+                                Doing so could expose you to significant losses.
+                            </p>
+                            <p>
+                                For the purposes of this statement, net assets DO NOT include: your home
+                                (primary residence), your pension (or any pension withdrawals) or any rights 
+                                under qualifying contracts of insurance.
+                            </p>
+                            <p>
+                                For the purposes of this statement high-risk investments are: peer-to-peer
+                                (P2P) loans; investment based crowdfunding; units in a long-term asset
+                                fund; cryptoassets (such as bitcoin); and unlisted debt and equity 
+                                (such as in companies not listed on an exchange like the London Stock Exchange).
+                            </p>
+                            <p>
+                                Please confirm whether you qualify as a restricted investor on the basis that A and B apply to you.
+                            </p>
+                        </div>
+
+                        <p id="ukUserQuestionnaireRISForm_AQuestion">
+                            A) In the past twelve months have you invested less than 10% of your net assets in high-riskinvestments (as defined above)?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireRISForm_ANo"
+                                       name="ukUserQuestionnaireRISForm_ANo"
+                                       type="radio"
+                                       data-ng-value="0"
+                                       data-ng-model="vm.data.ukUserQuestionnaireRISForm.aSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label id="ukUserQuestionnaireRISForm_ANo_Label" 
+                                       class="form-check-label" 
+                                       for="ukUserQuestionnaireRISForm_ANo">
+                                       No (I have invested more than 10% of my net assets)
+                                 </label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireRISForm_AYes"
+                                       name="ukUserQuestionnaireRISForm_AYes"
+                                       type="radio"
+                                       data-ng-value="1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireRISForm.aSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label id="ukUserQuestionnaireRISForm_AYes_Label" 
+                                       class="form-check-label" 
+                                       for="ukUserQuestionnaireRISForm_AYes">
+                                       Yes (I have invested less than 10% of my net assets)
+                                </label>
+                            </div>
+                        </div>
+
+                        <p id="ukUserQuestionnaireRISForm_AYesExtraQuestion"
+                           class="mt-1rem">
+                            If yes, over the last twelve months roughly what percentage of your net assets 
+                            have you invested in high-risk investments (as defined above)?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-12">                                
+                                <input type="text" 
+                                       class="form-control"
+                                       placeholder="Firm name" 
+                                       name="ukUserQuestionnaireRISForm_AYesExtraAnswer"
+                                       data-ng-required="vm.data.ukUserQuestionnaireRISForm.aSelectedAnswerIndex == 1"
+                                       data-ng-disabled="vm.data.ukUserQuestionnaireRISForm.aSelectedAnswerIndex != 1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireRISForm.aYesExtraAnswer" />
+                            </div>
+                        </div>
+
+                        <p class="mt-2rem">
+                            and
+                        </p>
+
+                        <p id="ukUserQuestionnaireRISForm_BQuestion"
+                           class="mt-2rem">
+                            B) In the next twelve months do you intend to limit your investment in high-risk investments (as defined above) to less than 10% of your net Assets?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireRISForm_BNo"
+                                       name="ukUserQuestionnaireRISForm_BNo"
+                                       type="radio"
+                                       data-ng-value="0"
+                                       data-ng-model="vm.data.ukUserQuestionnaireRISForm.bSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label id="ukUserQuestionnaireRISForm_BNo_Label" 
+                                       class="form-check-label" 
+                                       for="ukUserQuestionnaireRISForm_BNo">
+                                       No (I intend to invested more than 10% of my net assets)
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="row form-check">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireRISForm_BYes"
+                                       name="ukUserQuestionnaireRISForm_BYes"
+                                       type="radio"
+                                       data-ng-value="1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireRISForm.bSelectedAnswerIndex" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label id="ukUserQuestionnaireRISForm_BYes_Label" 
+                                       class="form-check-label" 
+                                       for="ukUserQuestionnaireRISForm_BYes">
+                                       Yes (I intend to invested less than 10% of my net assets)
+                                </label>
+                            </div>
+                        </div>
+
+                        <p id="ukUserQuestionnaireRISForm_BYesExtraQuestion"
+                           class="mt-1rem">
+                            If yes, in the next twelve months roughly what percentage of your net assets do you intend to invest in high-risk investments (as defined above)?
+                        </p>
+
+                        <div class="row form-check">
+                            <div class="col-xs-12">
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="Firm name"
+                                       name="ukUserQuestionnaireRISForm_BYesExtraAnswer"
+                                       data-ng-required="vm.data.ukUserQuestionnaireRISForm.bSelectedAnswerIndex == 1"
+                                       data-ng-disabled="vm.data.ukUserQuestionnaireRISForm.bSelectedAnswerIndex != 1"
+                                       data-ng-model="vm.data.ukUserQuestionnaireRISForm.bYesExtraAnswer" />
+                            </div>
+                        </div>
+
+                        <div class="row form-check mt-2rem">
+                            <div class="col-xs-1">
+                                <input class="form-check-input"
+                                       id="ukUserQuestionnaireRISForm_Signature"
+                                       name="ukUserQuestionnaireRISForm_Signature"
+                                       type="checkbox"
+                                       data-ng-model="vm.data.ukUserQuestionnaireRISForm.isSigned" />
+                            </div>
+                            <div class="col-xs-11">
+                                <label class="form-check-label" for="ukUserQuestionnaireRISForm_Signature">
+                                    I accept that being a sophisticated investor will expose me to promotions for 
+                                    investment where there is a significant risk of losing all the money I invest. 
+                                    I am aware that it is open to me to seek professional advice before making any 
+                                    investment in a high-risk investment.
+                                </label>
+                            </div>
+                        </div>
+
+                        <p class="mt-1rem">Date: {{ vm.data.ukUserQuestionnaireRISForm.date.toLocaleDateString() }}</p>
+
+                    </div>
+                </div>
+
+                <div class="submit-group">
+                    <button class="btn btn--brand btn-block"
+                            type="submit"
+                            data-ng-class="{'btn_loading': vm.data.loading}"
+                            data-ng-disabled="vm.data.loading"
+                            data-ng-click="vm.handlers.ukQuestionnaireInvestorStatementBack()">
+                        Back
+                    </button>
+                    <button class="btn btn--brand btn-block"
+                            style="margin-top: 0px;"
+                            type="submit"
+                            data-ng-class="{'btn_loading': vm.data.loading}"
+                            data-ng-disabled="!vm.data.ukUserQuestionnaireRISForm.isFilled() || vm.data.loading"
+                            data-ng-click="vm.handlers.setUkQuestionnaireRISAnswer()">
+                        Next
+                    </button>
+                </div>
+            </form>
         </div>
         <div data-ng-show="vm.data.ukUserQuestionnaire.investorType == 'HighNetWorthIndividual'">
             HighNetWorthIndividual

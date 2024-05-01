@@ -89,6 +89,24 @@
                         );
                 }
             },
+            ukUserQuestionnaireRISForm: {
+                aSelectedAnswerIndex: null,
+                bSelectedAnswerIndex: null,
+                aYesExtraAnswer: null,
+                bYesExtraAnswer: null,
+                date: null,
+                isSigned: false,
+                isFilled: () => {
+                    return vm.data.ukUserQuestionnaireRISForm.isSigned &&
+                        vm.data.ukUserQuestionnaireRISForm.aSelectedAnswerIndex == 1 &&
+                        vm.data.ukUserQuestionnaireRISForm.aYesExtraAnswer != null &&
+                        vm.data.ukUserQuestionnaireRISForm.aYesExtraAnswer.length > 0 &&
+
+                        vm.data.ukUserQuestionnaireRISForm.bSelectedAnswerIndex == 1 &&
+                        vm.data.ukUserQuestionnaireRISForm.bYesExtraAnswer != null &&
+                        vm.data.ukUserQuestionnaireRISForm.bYesExtraAnswer.length > 0;
+                }
+            },
             ukUserQuestionnaireForm: {
                 currentQuestionnaireEntry: null,
                 currentQuestionIndex: 0,
@@ -124,6 +142,7 @@
             setUkQuestionnaireInvestorTypeAnswer: setUkQuestionnaireInvestorTypeAnswer,
             setUkQuestionnaireSISAnswer: setUkQuestionnaireSISAnswer,
             setUkQuestionnaireSCSISAnswer: setUkQuestionnaireSCSISAnswer,
+            setUkQuestionnaireRISAnswer: setUkQuestionnaireRISAnswer,
             ukQuestionnaireInvestorStatementBack: ukQuestionnaireInvestorStatementBack,
             setUkQuestionnaireAnswer: setUkQuestionnaireAnswer,
             ukQuestionnaireBack: ukQuestionnaireBack,
@@ -284,6 +303,13 @@
             vm.data.ukUserQuestionnaireSCSISForm.dYesExtraAnswer = null;
             vm.data.ukUserQuestionnaireSCSISForm.date = new Date();
             vm.data.ukUserQuestionnaireSCSISForm.isSigned = false;
+
+            vm.data.ukUserQuestionnaireRISForm.aSelectedAnswerIndex = null;
+            vm.data.ukUserQuestionnaireRISForm.aYesExtraAnswer = null;
+            vm.data.ukUserQuestionnaireRISForm.bSelectedAnswerIndex = null;
+            vm.data.ukUserQuestionnaireRISForm.bYesExtraAnswer = null;
+            vm.data.ukUserQuestionnaireRISForm.date = new Date();
+            vm.data.ukUserQuestionnaireRISForm.isSigned = false;
         };
 
         function verifyEmail() {
@@ -515,6 +541,64 @@
 
                     case 1:
                         statement[question] = "Yes";
+                        statement[yesExtraQuestion] = yesExtraAnswer;
+                        break;
+
+                    default:
+                        throw "Unknown answer: " + answerIndex + " question index:" + i;
+                }
+            }
+
+            vm.data.model.ukUserQuestionnaire.investorStatement = statement;
+
+            setStep('ukQuestionnaire');
+        }
+
+        function setUkQuestionnaireRISAnswer() {
+
+            var generalQuestion = angular.element('#ukUserQuestionnaireRISForm_GeneralQuestion').html();
+            var questions = [
+                angular.element("#ukUserQuestionnaireRISForm_AQuestion").html(),
+                angular.element("#ukUserQuestionnaireRISForm_BQuestion").html()];
+            var yesExtraQuestions = [
+                angular.element("#ukUserQuestionnaireRISForm_AYesExtraQuestion").html(),
+                angular.element("#ukUserQuestionnaireRISForm_BYesExtraQuestion").html()];
+            let answerIndexes = [
+                vm.data.ukUserQuestionnaireRISForm.aSelectedAnswerIndex,
+                vm.data.ukUserQuestionnaireRISForm.bSelectedAnswerIndex];
+            let yesExtraAnswers = [
+                vm.data.ukUserQuestionnaireRISForm.aYesExtraAnswer,
+                vm.data.ukUserQuestionnaireRISForm.bYesExtraAnswer];
+            let noLabels = [
+                angular.element("#ukUserQuestionnaireRISForm_ANo_Label").html(),
+                angular.element("#ukUserQuestionnaireRISForm_BNo_Label").html()];
+            let yesLabels = [
+                angular.element("#ukUserQuestionnaireRISForm_AYes_Label").html(),
+                angular.element("#ukUserQuestionnaireRISForm_BYes_Label").html()];
+            let isSigned = vm.data.ukUserQuestionnaireRISForm.isSigned;
+            let date = vm.data.ukUserQuestionnaireRISForm.date;
+            let statement = {
+                generalQuestion: generalQuestion,
+                isSigned: isSigned,
+                date: date
+            };
+
+            for (var i = 0; i < questions.length; ++i) {
+
+                let question = questions[i];
+                let answerIndex = answerIndexes[i];
+                let yesExtraQuestion = yesExtraQuestions[i];
+                let yesExtraAnswer = yesExtraAnswers[i];
+                let noLabel = noLabels[i];
+                let yesLabel = yesLabels[i];
+
+                switch (answerIndex) {
+                    case 0:
+                        statement[question] = noLabel;
+                        break;
+
+                    case 1:
+                        statement[question] = yesLabel;
                         statement[yesExtraQuestion] = yesExtraAnswer;
                         break;
 
