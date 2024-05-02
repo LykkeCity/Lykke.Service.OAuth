@@ -22,8 +22,8 @@
                     return data.data;
                 });
         }
-        function verifyPhone(key, code, phone, prefix) {
-            return $http.post('/signup/verifyPhone', { key: key, code: code, phone: phone, selectedPrefix: prefix })
+        function verifyPhone(key, code, phone, countryOfResidence) {
+            return $http.post('/signup/verifyPhone', { key: key, code: code, phone: phone, countryOfResidence: countryOfResidence })
                 .then(function (data) {
                     return data.data;
                 });

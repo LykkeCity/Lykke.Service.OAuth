@@ -22,3 +22,9 @@ fieldset .form-control.ng-invalid:focus { border-color: #ff3e2e; box-shadow: ins
     border-radius: 4px;
     border-color: #cfd2d7;
 }
+.mt-1rem {
+    margin-top: 1rem;
+}
+.mt-2rem {
+    margin-top: 2rem;
+}

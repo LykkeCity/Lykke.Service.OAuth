@@ -9,5 +9,6 @@ namespace WebAuth.Models
         public bool IsPhoneTaken { get; set; }
         public bool IsCodeExpired { get; set; }
         public bool IsValid { get; set; }
+        public bool IsUkUser { get; set; }
     }
 }

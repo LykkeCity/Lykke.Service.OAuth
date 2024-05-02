@@ -8,6 +8,7 @@ using Lykke.Service.Session.Client;
 using Lykke.Service.Registration;
 using WebAuth.Settings.ServiceSettings;
 using WebAuth.Settings.SlackNotifications;
+using Lykke.Service.Kyc.Client;
 
 namespace WebAuth.Settings
 {
@@ -23,5 +24,6 @@ namespace WebAuth.Settings
         public SessionServiceClientSettings SessionServiceClient { get; set; }
         public ConfirmationCodesServiceClientSettings ConfirmationCodesClient { get; set; }
         public IpGeoLocationServiceClientSettings IpGeoLocationServiceClient { get; set; }
+        public KycServiceClientSettings KycServiceClient { get; set; }
     }
 }
