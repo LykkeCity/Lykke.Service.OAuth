@@ -28,3 +28,6 @@ fieldset .form-control.ng-invalid:focus { border-color: #ff3e2e; box-shadow: ins
 .mt-2rem {
     margin-top: 2rem;
 }
+.uk-questionnaire-error {
+    color: #ff3e2e;
+}
