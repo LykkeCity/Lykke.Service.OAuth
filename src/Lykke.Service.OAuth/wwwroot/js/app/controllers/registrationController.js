@@ -130,6 +130,7 @@
             ukUserQuestionnaireForm: {
                 currentQuestionnaireEntry: null,
                 currentQuestionIndex: 0,
+                incorrectSelectedAnswerIndex: null,
                 selectedAnswerIndex: null,
                 answers: {},
                 answerIndexes: {}
@@ -218,7 +219,8 @@
                         "Lykke charges a monthly fee.",
                         "Lykke does not charge anything for holding cryptoassets in custody.",
                         "Lykke charges a variable fee based on the value of the customers’ assets."
-                    ]
+                    ],
+                    correctAnswerIndex: 1
                 },
                 {
                     question: "What occurs with your cryptocurrency holdings in the event of Lykke's insolvency?",
@@ -226,7 +228,8 @@
                         "My cryptocurrency holdings are safeguarded against Lykke's insolvency. Nevertheless, there could be a potential delay in retrieving them, potentially hindering my ability to sell if market prices were declining.",
                         "My cryptoassets are immediately exchanged to fiat currencies (GBP, EUR, USD, CHF), which I can withdraw to my bank account.",
                         "I can continue to trade and access my cryptoassets even if Lykke becomes insolvent."
-                    ]
+                    ],
+                    correctAnswerIndex: 0
                 },
                 {
                     question: "How frequently does the value of cryptoassets change?",
@@ -234,7 +237,8 @@
                         "The value fluctuates rarely as it solely relies on the stability and structure of the underlying protocol/blockchain.",
                         "The value can change frequently because cryptoassets are generally traded 24/7/365 in a global market.",
                         "Cryptoassets can only be traded during normal UK market hours and their value will not change outside these times."
-                    ]
+                    ],
+                    correctAnswerIndex: 1
                 },
                 {
                     question: "Which one of the following statements is CORRECT?",
@@ -242,7 +246,8 @@
                         "Cryptoassets are only traded on regulated exchanges.",
                         "Market data concerning cryptoassets maintains reliability as it consistently undergoes publication via regulated market data providers.",
                         "None of the above statements are correct."
-                    ]
+                    ],
+                    correctAnswerIndex: 2
                 },
                 {
                     question: "What is the most sensible strategy for investing in high-risk investments like cryptoassets for retail investors?",
@@ -250,7 +255,8 @@
                         "To invest everything into a single cryptoasset and hold it for at least 5 years.",
                         "To only invest in cryptoassets as they generate the highest possible returns.",
                         "To not invest more than 10% of net assets in cryptoassets."
-                    ]
+                    ],
+                    correctAnswerIndex: 2
                 },
                 {
                     question: "What is a good way to learn about the risks and rewards of investing in cryptoassets?",
@@ -258,7 +264,8 @@
                         "Start by investing in Bitcoin first as it’s the lowest risk cryptoasset.",
                         "Social media influencers offer valuable insights regarding which cryptoassets might yield the most substantial returns.",
                         "Use online learning resources and the Lykke blog to learn about investing in cryptoassets and the associated risks."
-                    ]
+                    ],
+                    correctAnswerIndex: 2
                 },
                 {
                     question: "What regulatory protections currently apply to cryptoassets in the UK?",
@@ -266,7 +273,8 @@
                         "They are protected under the UK Financial Services Compensation Scheme like any other investment.",
                         "The UK Financial Ombudsman Service will handle any complaint relating to my cryptoasset investments.",
                         "There are no regulatory protections for cryptoassets."
-                    ]
+                    ],
+                    correctAnswerIndex: 2
                 },
                 {
                     question: "What are the main differences between the risks of cryptoassets and regular currencies (GBP, EUR, USD, etc.)?",
@@ -274,7 +282,8 @@
                         "Cryptocurrencies lack government backing akin to traditional currencies (GBP, USD, EUR, etc.), and there is no central bank to implement measures safeguarding their value during a crisis.",
                         "There are no significant differences and traders on all markets are equally protected from risks.",
                         "Cryptoassets have intrinsic value while fiat currencies (GBP, EUR, USD, etc.) do not."
-                    ]
+                    ],
+                    correctAnswerIndex: 0
                 },
                 {
                     question: "What is the risk if the Lykke exchange is not available because there is an operational outage?",
@@ -282,7 +291,8 @@
                         "I will be unable to sell my cryptocurrency, and a potential decrease in the market price of the asset may lead to diminishing the value of my investment.",
                         "There is no risk because the price will remain the same once the exchange is available again.",
                         "There is no risk because Lykke will compensate me for any losses due to an operational outage."
-                    ]
+                    ],
+                    correctAnswerIndex: 0
                 },
                 {
                     question: "Can you always sell your cryptoassets?",
@@ -290,7 +300,8 @@
                         "No, in the case of low liquidity for cryptoassets, there might not be a buyer available at the specific time and price at which I intend to sell.",
                         "Yes, there’s always a buyer for any cryptoasset.",
                         "Yes, cryptoasset liquidity is always available."
-                    ]
+                    ],
+                    correctAnswerIndex: 0
                 }
             ]
         };
@@ -303,6 +314,7 @@
 
             vm.data.ukUserQuestionnaireForm.currentQuestionnaireEntry = vm.ukUserQuestionnaire.generalQuestions[0];
             vm.data.ukUserQuestionnaireForm.currentQuestionIndex = 0;
+            vm.data.ukUserQuestionnaireForm.incorrectSelectedAnswerIndex = null;
             vm.data.ukUserQuestionnaireForm.selectedAnswerIndex = null;
             vm.data.ukUserQuestionnaireForm.answers = {};
             vm.data.ukUserQuestionnaireForm.answerIndexes = {};
@@ -701,6 +713,14 @@
             let questionnaireEntry = vm.ukUserQuestionnaire.generalQuestions[questionIndex];
             let question = questionnaireEntry.question;
             let answerIndex = vm.data.ukUserQuestionnaireForm.selectedAnswerIndex;
+
+            if (answerIndex != questionnaireEntry.correctAnswerIndex) {
+                vm.data.ukUserQuestionnaireForm.incorrectSelectedAnswerIndex = answerIndex;
+                return;
+            }
+
+            vm.data.ukUserQuestionnaireForm.incorrectSelectedAnswerIndex = null;
+
             let answer = questionnaireEntry.answers[answerIndex];
 
             vm.data.ukUserQuestionnaireForm.answers[question] = answer;

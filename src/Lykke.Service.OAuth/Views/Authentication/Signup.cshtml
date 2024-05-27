@@ -966,8 +966,14 @@
                                    data-ng-model="vm.data.ukUserQuestionnaireForm.selectedAnswerIndex" />
                             </div>
                         <div class="col-xs-11">
-                            <label class="form-check-label" for="ukUserQuestionnaireFormAnswer_{{ $index }}">{{ answer }}</label>
+                            <label class="form-check-label" 
+                                   for="ukUserQuestionnaireFormAnswer_{{ $index }}"
+                                   data-ng-class="{'uk-questionnaire-error': vm.data.ukUserQuestionnaireForm.incorrectSelectedAnswerIndex == $index}">{{ answer }}</label>
                         </div>
+                    </div>
+
+                    <div data-ng-show="vm.data.ukUserQuestionnaireForm.incorrectSelectedAnswerIndex != null" class="uk-questionnaire-error mt-2rem">
+                        Your answer is incorrect, please choose another one
                     </div>
                 </div>
             </div>
